@@ -69,22 +69,22 @@ const PayoutCard = ({ payout }) => {
     <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
       {/* Card header — purple gradient matching PHP */}
       <div className="bg-gradient-to-b from-[#9073be] to-[#522f89] px-4 py-3 flex items-center justify-between">
-        <span className="text-xs font-bold text-white uppercase tracking-wide">Parcel Type</span>
+        <span className="text-xs font-bold text-white capitalize tracking-wide">Parcel Type</span>
         <span className="text-xs font-semibold text-white/90 bg-white/10 px-3 py-1 rounded-full">{parcelType}</span>
       </div>
 
       <div className="p-4 grid grid-cols-2 gap-x-4 gap-y-4">
         {/* Drop DP */}
         <div className="col-span-2 sm:col-span-1">
-          <p className="text-[10px] uppercase font-bold text-[#5d3c96] mb-1">Drop Delivery Partner Name</p>
+          <p className="text-[10px] capitalize font-bold text-[#5d3c96] mb-1">Drop Delivery Partner Name</p>
           <p className="text-sm font-semibold text-slate-800">{dropDpName}</p>
         </div>
         <div className="col-span-2 sm:col-span-1">
-          <p className="text-[10px] uppercase font-bold text-[#5d3c96] mb-1">Receiving Timing</p>
+          <p className="text-[10px] capitalize font-bold text-[#5d3c96] mb-1">Receiving Timing</p>
           <p className="text-sm text-slate-600">{formatDate(receivingTime)}</p>
         </div>
         <div className="col-span-2">
-          <p className="text-[10px] uppercase font-bold text-[#5d3c96] mb-1">Rating</p>
+          <p className="text-[10px] capitalize font-bold text-[#5d3c96] mb-1">Rating</p>
           <StarDisplay />
         </div>
 
@@ -92,21 +92,21 @@ const PayoutCard = ({ payout }) => {
 
         {/* Pickup DP */}
         <div className="col-span-2 sm:col-span-1">
-          <p className="text-[10px] uppercase font-bold text-[#5d3c96] mb-1">Receiver Delivery Partner Name</p>
+          <p className="text-[10px] capitalize font-bold text-[#5d3c96] mb-1">Receiver Delivery Partner Name</p>
           <p className="text-sm font-semibold text-slate-800">{pickupDpName}</p>
         </div>
         <div className="col-span-2 sm:col-span-1">
-          <p className="text-[10px] uppercase font-bold text-[#5d3c96] mb-1">Sending Timing</p>
+          <p className="text-[10px] capitalize font-bold text-[#5d3c96] mb-1">Sending Timing</p>
           <p className="text-sm text-slate-600">{formatDate(sendingTime)}</p>
         </div>
         <div className="col-span-2">
-          <p className="text-[10px] uppercase font-bold text-[#5d3c96] mb-1">Rating</p>
+          <p className="text-[10px] capitalize font-bold text-[#5d3c96] mb-1">Rating</p>
           <StarDisplay />
         </div>
 
         {/* Earning amount */}
         <div className="col-span-2 bg-[#f8f4ff] rounded-xl px-4 py-3 mt-1">
-          <p className="text-[10px] uppercase font-bold text-[#5d3c96] mb-1">Earning</p>
+          <p className="text-[10px] capitalize font-bold text-[#5d3c96] mb-1">Earning</p>
           <p className="text-xl font-extrabold text-[#522f89]">Rs. {payout.earnings ?? 0}</p>
         </div>
       </div>
@@ -203,7 +203,7 @@ export const PdcEarning = () => {
           {/* LAST EARNING SECTION */}
           {activeView === 'last' && (
             <div className="space-y-4">
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider pl-1">Last Payout Details</h3>
+              <h3 className="text-sm font-bold text-slate-500 capitalize tracking-wider pl-1">Last Payout Details</h3>
               {pdcPayLast ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <PayoutCard payout={pdcPayLast} />
@@ -220,7 +220,7 @@ export const PdcEarning = () => {
           {/* TODAY EARNING SECTION */}
           {activeView === 'today' && (
             <div className="space-y-4">
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider pl-1">Today's Payouts</h3>
+              <h3 className="text-sm font-bold text-slate-500 capitalize tracking-wider pl-1">Today's Payouts</h3>
               {todayEarnings.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {todayEarnings.map((payout, i) => (

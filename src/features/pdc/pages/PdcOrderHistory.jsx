@@ -119,7 +119,7 @@ export const PdcOrderHistory = () => {
             <thead>
               <tr className="bg-gradient-to-b from-[#9073be] to-[#522f89]">
                 {headers.map((h, i) => (
-                  <th key={i} className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-white whitespace-nowrap">
+                  <th key={i} className="px-5 py-3.5 text-xs font-bold capitalize tracking-wider text-white whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -214,23 +214,23 @@ export const PdcOrderHistory = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-[10px] uppercase text-slate-400 font-bold mb-1">User ID</p>
+                <p className="text-[10px] capitalize text-slate-400 font-bold mb-1">User ID</p>
                 <p className="text-sm font-semibold text-slate-800">{orderDetailsModal.order.raw?.user_id || 'N/A'}</p>
               </div>
               <div>
-                <p className="text-[10px] uppercase text-slate-400 font-bold mb-1">Ordered At</p>
+                <p className="text-[10px] capitalize text-slate-400 font-bold mb-1">Ordered At</p>
                 <p className="text-sm font-semibold text-slate-800">{orderDetailsModal.order.created_at}</p>
               </div>
               <div className="col-span-2">
-                <p className="text-[10px] uppercase text-slate-400 font-bold mb-1">Pickup Location</p>
+                <p className="text-[10px] capitalize text-slate-400 font-bold mb-1">Pickup Location</p>
                 <p className="text-sm font-medium text-slate-700 bg-slate-50 p-3 rounded-lg">{orderDetailsModal.order.pickup_address}</p>
               </div>
               <div className="col-span-2">
-                <p className="text-[10px] uppercase text-slate-400 font-bold mb-1">Drop Location</p>
+                <p className="text-[10px] capitalize text-slate-400 font-bold mb-1">Drop Location</p>
                 <p className="text-sm font-medium text-slate-700 bg-slate-50 p-3 rounded-lg">{orderDetailsModal.order.delivery_address}</p>
               </div>
               <div className="col-span-2">
-                <p className="text-[10px] uppercase text-slate-400 font-bold mb-1">Mode Of Transport</p>
+                <p className="text-[10px] capitalize text-slate-400 font-bold mb-1">Mode Of Transport</p>
                 <p className="text-sm font-semibold text-slate-800 capitalize">{orderDetailsModal.order.raw?.mode_of_transport || 'N/A'}</p>
               </div>
             </div>
@@ -263,23 +263,23 @@ export const PdcOrderHistory = () => {
 
             <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
               <div>
-                <p className="text-[10px] uppercase text-slate-400 font-bold mb-1">Package ID</p>
+                <p className="text-[10px] capitalize text-slate-400 font-bold mb-1">Package ID</p>
                 <p className="text-sm font-semibold text-slate-800">{parcelModal.order.raw?.package_id || 'N/A'}</p>
               </div>
               <div>
-                <p className="text-[10px] uppercase text-slate-400 font-bold mb-1">Type of Product</p>
+                <p className="text-[10px] capitalize text-slate-400 font-bold mb-1">Type of Product</p>
                 <p className="text-sm font-semibold text-slate-800">{parcelModal.order.raw?.packageDetail?.product_type || 'N/A'}</p>
               </div>
               <div>
-                <p className="text-[10px] uppercase text-slate-400 font-bold mb-1">Size</p>
+                <p className="text-[10px] capitalize text-slate-400 font-bold mb-1">Size</p>
                 <p className="text-sm font-semibold text-slate-800">{parcelModal.order.raw?.packageDetail?.size || 'N/A'}</p>
               </div>
               <div>
-                <p className="text-[10px] uppercase text-slate-400 font-bold mb-1">Weight</p>
+                <p className="text-[10px] capitalize text-slate-400 font-bold mb-1">Weight</p>
                 <p className="text-sm font-semibold text-slate-800">{parcelModal.order.raw?.packageDetail?.weight || 'N/A'}</p>
               </div>
               <div className="col-span-2">
-                <p className="text-[10px] uppercase text-slate-400 font-bold mb-1">No. of Items</p>
+                <p className="text-[10px] capitalize text-slate-400 font-bold mb-1">No. of Items</p>
                 <p className="text-sm font-semibold text-slate-800">{parcelModal.order.items_count}</p>
               </div>
             </div>
@@ -337,7 +337,7 @@ export const PdcOrderHistory = () => {
                 </div>
 
                 <div className="w-full space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase">Feedback (Optional)</label>
+                  <label className="text-xs font-bold text-slate-500 capitalize">Feedback (Optional)</label>
                   <textarea
                     rows="3"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple transition-all text-sm outline-none resize-none"

@@ -1,234 +1,337 @@
 import React, { useEffect, useState } from 'react';
 import { fetchPdcOrders } from '../../../api/pdc.api';
-import { rateDeliveryPartner } from '../../../api/pdc.api';
 import useAuth from '../../../hooks/useAuth';
 import useSocket from '../../../hooks/useSocket';
-import Badge from '../../../components/common/Badge';
-import Button from '../../../components/common/Button';
 import Modal from '../../../components/common/Modal';
-import Input from '../../../components/common/Input';
 
+// ── Skeleton Loaders ──────────────────────────────────────────────────────────
+const TableShimmerRow = ({ cols }) => (
+  <tr className="animate-pulse bg-white border-b border-slate-100">
+    {Array.from({ length: cols }).map((_, i) => (
+      <td key={i} className="p-3 text-center">
+        <div className="h-4 bg-slate-200 rounded w-full mx-auto"></div>
+      </td>
+    ))}
+  </tr>
+);
+
+const StatsSkeleton = () => (
+  <div className="flex justify-evenly pt-1 animate-pulse mb-6">
+    <div className="w-1/2 sm:w-1/3 lg:w-1/3 px-2">
+      <div className="h-[120px] bg-slate-200 rounded-lg"></div>
+    </div>
+    <div className="w-1/2 sm:w-1/3 lg:w-1/3 px-2">
+      <div className="h-[120px] bg-slate-200 rounded-lg"></div>
+    </div>
+  </div>
+);
+
+// ── Reusable Table Component ──────────────────────────────────────────────────
+const OrderTable = ({ title, orders, isLoading, onViewPackage, onViewDp, otpKey }) => {
+  const headers = ['OrderId', 'User Name', 'Package Details', 'Package Count', 'Pickup Location', 'Drop Location', 'Mode of Transport', 'OTP', 'Dp Details'];
+  if (!isLoading && orders.length === 0) return null;
+
+  return (
+    <div className="space-y-3 mb-8">
+      <h1 className="text-2xl font-bold text-slate-800 text-center my-3 capitalize">{title}</h1>
+      <div className="w-full overflow-x-auto px-5 flex justify-center pb-[5vh]">
+        <table className="w-full border-collapse table-fixed" style={{ minWidth: '1000px' }}>
+          <thead>
+            <tr className="bg-gradient-to-b from-[#9073be] to-[#522f89] text-center align-middle">
+              {headers.map((h) => (
+                <th key={h} className="text-white p-3 text-sm font-semibold whitespace-nowrap h-[10vh] capitalize">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="align-middle">
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, i) => <TableShimmerRow key={i} cols={9} />)
+            ) : (
+              orders.map((order, idx) => {
+                const raw = order._raw || order;
+                const otp = otpKey === 'drop_otp'
+                  ? (raw.broadcast?.drop_otp || 'Wait for Delivery')
+                  : (raw.broadcast?.pickup_otp || '-');
+                const stripe = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50';
+                return (
+                  <tr key={order._id || order.id} className={`${stripe} hover:bg-purple-50/40 transition-colors text-center text-sm text-slate-600`}>
+                    <td className="text-center p-3 font-semibold text-slate-700 max-h-[10vh] overflow-hidden">{raw.order_id || raw._id || order.id}</td>
+                    <td className="text-center p-3 max-h-[10vh] overflow-hidden">{raw.customer?.name || raw.user_id?.name || '-'}</td>
+                    <td className="text-center p-3 max-h-[10vh] overflow-hidden">
+                      <button
+                        onClick={() => onViewPackage(order)}
+                        className="px-3 py-1 text-white text-sm rounded bg-gradient-to-b from-[#9073be] to-[#522f89] hover:opacity-90 transition-opacity"
+                      >View</button>
+                    </td>
+                    <td className="text-center p-3 max-h-[10vh] overflow-hidden">{raw.packageDetail?.no_of_items ?? '-'}</td>
+                    <td className="text-center p-3 max-h-[10vh] overflow-hidden">
+                      <div className="max-h-[7vh] overflow-y-auto cursor-ns-resize scrollbar-thin scrollbar-thumb-purple-200">{raw.pickup_location || raw.pickup_address || '-'}</div>
+                    </td>
+                    <td className="text-center p-3 max-h-[10vh] overflow-hidden">
+                      <div className="max-h-[7vh] overflow-y-auto cursor-ns-resize scrollbar-thin scrollbar-thumb-purple-200">{raw.drop_location || raw.delivery_location || '-'}</div>
+                    </td>
+                    <td className="text-center p-3 capitalize max-h-[10vh] overflow-hidden">{raw.mode_of_transport || '-'}</td>
+                    <td className="text-center p-3 max-h-[10vh] overflow-hidden">
+                      <button className="px-3 py-1 text-white text-sm rounded bg-gradient-to-b from-[#9073be] to-[#522f89] hover:opacity-90 transition-opacity">
+                        {otp}
+                      </button>
+                    </td>
+                    <td className="text-center p-3 max-h-[10vh] overflow-hidden">
+                      <button
+                        onClick={() => onViewDp(order)}
+                        className="px-3 py-1 text-white text-sm rounded bg-gradient-to-b from-[#9073be] to-[#522f89] hover:opacity-90 transition-opacity"
+                      >View</button>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// ── Package Details Modal ─────────────────────────────────────────────────────
+const PackageModal = ({ isOpen, onClose, order }) => {
+  if (!order) return null;
+  const raw = order._raw || order;
+  const pkg = raw.packageDetail || {};
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+  const imgSrc = (img) => img ? (img.startsWith('http') ? img : `${baseUrl}/uploads/${img}`) : null;
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Package Details" size="lg">
+      <div className="space-y-5">
+        <div className="flex gap-3 justify-center flex-wrap">
+          {[pkg.image1, pkg.image2, pkg.image3].filter(Boolean).map((img, i) => (
+            <div key={i} className="w-28 h-28 rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+              <img src={imgSrc(img)} alt={`product-image${i + 1}`} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-3 gap-y-4 gap-x-2 text-sm text-slate-700">
+          <div className="font-bold text-slate-900 col-span-1">Product Description</div>
+          <div className="col-span-2 capitalize">{pkg.product_description || '-'}</div>
+
+          <div className="font-bold text-slate-900 col-span-1">Product Weight</div>
+          <div className="col-span-2 capitalize">{pkg.product_weight || '-'}</div>
+
+          <div className="font-bold text-slate-900 col-span-1">Number of Packages</div>
+          <div className="col-span-2">{pkg.no_of_items || '-'}</div>
+
+          <div className="font-bold text-slate-900 col-span-1 capitalize">Type of Product</div>
+          <div className="col-span-2">{pkg.types_of_product || '-'}</div>
+
+          <div className="font-bold text-slate-900 col-span-1">Size of Package</div>
+          <div className="col-span-2">{pkg.size_of_package || '-'}</div>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+// ── Single DP Details Modal ───────────────────────────────────────────────────
+const DpModal = ({ isOpen, onClose, order }) => {
+  if (!order) return null;
+  const raw = order._raw || order;
+  const req = raw.orderReq || {};
+  const effectiveDp = req.dp || req.requestedUser || {};
+  const effectiveDpLoc = req.dpLocation || req.requestedDpLocation || {};
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+  const dpImg = effectiveDpLoc.profile_img ? `${baseUrl}/uploads/${effectiveDpLoc.profile_img}` : '/default-user.png';
+
+  const stars = effectiveDpLoc.rating?.avg?.stars ?? 0;
+  const fullStars = Math.floor(stars);
+  const halfStar = stars - fullStars > 0;
+  const blankStars = 5 - fullStars - (halfStar ? 1 : 0);
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Delivery Partner Details" size="sm">
+      <div className="flex justify-center mb-4">
+        <img src={dpImg} className="w-32 h-32 rounded-full object-cover border-4 border-slate-100" alt="DP" onError={(e) => { e.target.src = '/default-user.png'; }} />
+      </div>
+      <div className="grid grid-cols-3 gap-y-3 gap-x-2 text-sm text-slate-700">
+        <div className="font-bold text-slate-900 col-span-1">Name</div>
+        <div className="col-span-2">{effectiveDp.name || '-'}</div>
+
+        <div className="font-bold text-slate-900 col-span-1">Gender</div>
+        <div className="col-span-2">{effectiveDpLoc.gender || effectiveDp.gender || '-'}</div>
+
+        <div className="font-bold text-slate-900 col-span-1">Phone</div>
+        <div className="col-span-2">{effectiveDp.phone || '-'}</div>
+
+        <div className="font-bold text-slate-900 col-span-1">Rating</div>
+        <div className="col-span-2 flex items-center text-yellow-400">
+          {Array.from({ length: fullStars }).map((_, i) => <span key={`f${i}`}>★</span>)}
+          {halfStar && <span className="text-yellow-300">½</span>}
+          {Array.from({ length: blankStars }).map((_, i) => <span key={`b${i}`} className="text-slate-200">★</span>)}
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+// ── DP List Modal (For Broadcast) ─────────────────────────────────────────────
+const DpListModal = ({ isOpen, onClose, order }) => {
+  if (!order) return null;
+  const raw = order._raw || order;
+  const list = raw.orderReqList || [];
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Delivery Partner Details" size="lg">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gradient-to-b from-[#9073be] to-[#522f89] text-white">
+              <th className="p-3">Partner Profile</th>
+              <th className="p-3">Name</th>
+              <th className="p-3">Gender</th>
+              <th className="p-3">Phone</th>
+              <th className="p-3">Rating</th>
+            </tr>
+          </thead>
+          <tbody>
+            {list.map((req, i) => {
+              const dp = req.dp || req.requestedUser || {};
+              const loc = req.dpLocation || req.requestedDpLocation || {};
+              const dpImg = loc.profile_img ? `${baseUrl}/uploads/${loc.profile_img}` : '/default-user.png';
+              const stars = loc.rating?.avg?.stars ?? 0;
+              const fullStars = Math.floor(stars);
+              const halfStar = stars - fullStars > 0;
+              const blankStars = 5 - fullStars - (halfStar ? 1 : 0);
+
+              return (
+                <tr key={i} className="border-b border-slate-100 text-center">
+                  <td className="p-3 flex justify-center">
+                    <img src={dpImg} className="w-16 h-16 rounded-full object-cover border border-slate-200" alt="DP" onError={(e) => { e.target.src = '/default-user.png'; }} />
+                  </td>
+                  <td className="p-3 font-semibold">{dp.name || '-'}</td>
+                  <td className="p-3">{loc.gender || dp.gender || '-'}</td>
+                  <td className="p-3">{dp.phone || '-'}</td>
+                  <td className="p-3 text-yellow-400">
+                    {Array.from({ length: fullStars }).map((_, idx) => <span key={`f${idx}`}>★</span>)}
+                    {halfStar && <span className="text-yellow-300">½</span>}
+                    {Array.from({ length: blankStars }).map((_, idx) => <span key={`b${idx}`} className="text-slate-200">★</span>)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </Modal>
+  );
+};
+
+// ── Main Page Component ───────────────────────────────────────────────────────
 export const PdcHome = () => {
   const { user } = useAuth();
-  const [activeOrders, setActiveOrders] = useState([]);
+  const [ordersToReceive, setOrdersToReceive] = useState([]);
+  const [ordersToBroadcast, setOrdersToBroadcast] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  
-  // Rating modal states
-  const [selectedDp, setSelectedDp] = useState(null); // { id, name, orderId }
-  const [rating, setRating] = useState('5');
-  const [comment, setComment] = useState('');
-  const [isRatingSubmit, setIsRatingSubmit] = useState(false);
-  const [ratingSuccess, setRatingSuccess] = useState(false);
 
-  const fetchActiveOrders = async () => {
+  // Modal states
+  const [packageModalOpen, setPackageModalOpen] = useState(false);
+  const [dpModalOpen, setDpModalOpen] = useState(false);
+  const [dpListModalOpen, setDpListModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  const totalOrders = ordersToReceive.length + ordersToBroadcast.length;
+  const pendingOrders = totalOrders; // All these are technically pending/active
+
+  const fetchDashboard = async () => {
     setIsLoading(true);
     try {
-      // Fetch PDC-specific order history from /pdc/order-history
       const response = await fetchPdcOrders();
       const orders = response.data?.data?.orders || response.data?.orders || [];
-      // Show only active/in-progress orders
-      const active = orders.filter(o =>
-        ['pending', 'assigned', 'intransit', 'broadcasted'].includes(o.status_completed)
-      );
-      setActiveOrders(active);
+      
+      const receive = [];
+      const broadcast = [];
+
+      orders.forEach(o => {
+        if (!['pending', 'assigned', 'intransit', 'broadcasted'].includes(o.status_completed)) return;
+        const raw = o._raw || o;
+        if (raw.order_category === 1 || raw.order_category === 4) {
+          receive.push(o);
+        } else {
+          broadcast.push(o);
+        }
+      });
+
+      setOrdersToReceive(receive);
+      setOrdersToBroadcast(broadcast);
     } catch (e) {
-      console.error('Failed to fetch orders', e);
+      console.error('Failed to load dashboard', e);
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchActiveOrders();
-  }, []);
-
-  // Socket triggers to reload active orders on assign/creation updates
-  useSocket('order:assigned', () => {
-    fetchActiveOrders();
-  });
-  useSocket('order:created', () => {
-    fetchActiveOrders();
-  });
-
-  const handleRateSubmit = async (e) => {
-    e.preventDefault();
-    if (!selectedDp) return;
-    setIsRatingSubmit(true);
-
-    try {
-      await rateDeliveryPartner({
-        dpId: selectedDp.id,
-        rating: parseInt(rating),
-        comment
-      });
-      setRatingSuccess(true);
-      setComment('');
-      setRating('5');
-      setTimeout(() => {
-        setRatingSuccess(false);
-        setSelectedDp(null);
-      }, 2000);
-    } catch (e) {
-      console.error('Rating failed', e);
-    } finally {
-      setIsRatingSubmit(false);
-    }
-  };
+  useEffect(() => { fetchDashboard(); }, []);
+  useSocket('order:assigned', fetchDashboard);
+  useSocket('order:created', fetchDashboard);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 text-left page-transition">
-      
-      {/* Welcome banner */}
-      <div className="bg-white rounded-2xl shadow-xs border border-slate-100 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-slate-800">Welcome back, {user?.name}!</h2>
-          <p className="text-xs text-slate-400 mt-1">Manage your active parcel collections and drop-offs</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={fetchActiveOrders} variant="outline" size="sm">
-            🔄 Refresh List
-          </Button>
-        </div>
-      </div>
+    <div className="w-full space-y-6 text-left page-transition pb-10">
 
-      {/* Active orders sections */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider pl-1">Active Deliveries</h3>
-        
-        {isLoading ? (
-          <div className="bg-white rounded-2xl shadow-xs border border-slate-100 p-12 text-center text-slate-400">
-            <svg className="animate-spin h-8 w-8 text-brand-purple mx-auto mb-3" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            <p className="text-sm">Loading active orders...</p>
-          </div>
-        ) : activeOrders.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-xs border border-slate-100 p-12 text-center text-slate-400">
-            <span className="text-3xl mb-2 block">📦</span>
-            <p className="text-sm font-medium">No active deliveries at this time</p>
-            <p className="text-xs text-slate-400 mt-1">Orders assigned to your store hub will show up here</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {activeOrders.map((order) => (
-              <div key={order.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow">
-                
-                <div>
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-xs font-bold text-slate-400">{order.order_number}</span>
-                    <Badge variant={order.status === 'intransit' ? 'info' : order.status === 'assigned' ? 'primary' : 'warning'}>
-                      {order.status}
-                    </Badge>
-                  </div>
-
-                  <h4 className="font-bold text-slate-800 text-sm">{order.customer_name}</h4>
-                  <p className="text-[11px] text-slate-400">{order.customer_phone}</p>
-                  
-                  <div className="mt-4 space-y-2 border-t border-b border-slate-50 py-3">
-                    <div className="flex gap-2 text-xs">
-                      <span className="text-slate-400">📍</span>
-                      <p className="text-slate-600 truncate">{order.delivery_address}</p>
-                    </div>
-                    <div className="flex gap-2 text-xs">
-                      <span className="text-slate-400">💼</span>
-                      <p className="text-slate-600">{order.items_count} Parcels • ₹{order.amount}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom action controls */}
-                <div className="mt-4 pt-3 flex items-center justify-between gap-3 border-t border-slate-50">
-                  <div className="text-left">
-                    <p className="text-[10px] text-slate-400 uppercase font-semibold">Delivery OTP</p>
-                    {order.dp_name ? (
-                      <span className="inline-block bg-brand-purple text-white text-xs font-bold px-3 py-1 rounded-lg mt-1 select-all">
-                        🔑 {order.drop_otp}
-                      </span>
-                    ) : (
-                      <span className="inline-block bg-slate-100 text-slate-500 text-xs font-semibold px-2 py-1 rounded-lg mt-1">
-                        Waiting for Delivery
-                      </span>
-                    )}
-                  </div>
-                  
-                  {/* Rating / Feedback action if assigned */}
-                  {order.dp_id && (
-                    <Button
-                      onClick={() => setSelectedDp({ id: order.dp_id, name: order.dp_name, orderId: order.id })}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs py-1 px-2.5"
-                    >
-                      ⭐ Rate Partner
-                    </Button>
-                  )}
-                </div>
-
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Rate Delivery Boy Modal */}
-      {selectedDp && (
-        <Modal
-          isOpen={!!selectedDp}
-          onClose={() => setSelectedDp(null)}
-          title="Rate Delivery Partner"
-        >
-          {ratingSuccess ? (
-            <div className="text-center py-6">
-              <span className="text-3xl">🎉</span>
-              <h4 className="font-bold text-emerald-600 text-sm mt-2">Rating Submitted!</h4>
-              <p className="text-xs text-slate-400 mt-1">Thank you for your feedback.</p>
+      {/* ── Stat Cards — matching PHP col-6 col-sm-4 evenly spaced ──────── */}
+      {isLoading ? <StatsSkeleton /> : (
+        <div className="flex justify-evenly pt-1 mb-6">
+          <div className="w-1/2 sm:w-1/3 lg:w-1/3 px-2">
+            <div className="p-4 text-center rounded-lg shadow-none" style={{ backgroundColor: '#f8d7da' }}>
+              <img src="/dist/images/svgs/icon-favorites.svg" width="50" height="50" className="mb-6 mx-auto" alt="" />
+              <p className="font-semibold text-red-600 mb-1 text-sm capitalize">Total Orders</p>
+              <h4 className="font-semibold text-red-600 text-xl m-0">{totalOrders}</h4>
             </div>
-          ) : (
-            <form onSubmit={handleRateSubmit} className="space-y-4 text-left">
-              <p className="text-xs text-slate-500">
-                Please rate your experience with partner <strong>{selectedDp.name}</strong> for delivery {selectedDp.orderId}.
-              </p>
-              
-              <div className="flex flex-col">
-                <label className="text-xs font-semibold text-slate-600 mb-1.5">Rating Score</label>
-                <select
-                  value={rating}
-                  onChange={(e) => setRating(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm transition-all outline-none focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple"
-                >
-                  <option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
-                  <option value="4">⭐⭐⭐⭐ (Good)</option>
-                  <option value="3">⭐⭐⭐ (Average)</option>
-                  <option value="2">⭐⭐ (Poor)</option>
-                  <option value="1">⭐ (Terrible)</option>
-                </select>
-              </div>
-
-              <div className="flex flex-col">
-                <label htmlFor="comment" className="text-xs font-semibold text-slate-600 mb-1.5">Comments</label>
-                <textarea
-                  id="comment"
-                  rows={3}
-                  placeholder="Enter comments about this delivery boy partner..."
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm transition-all outline-none focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <Button onClick={() => setSelectedDp(null)} variant="secondary" size="sm">
-                  Cancel
-                </Button>
-                <Button type="submit" isLoading={isRatingSubmit} variant="primary" size="sm">
-                  Submit Feedback
-                </Button>
-              </div>
-            </form>
-          )}
-        </Modal>
+          </div>
+          <div className="w-1/2 sm:w-1/3 lg:w-1/3 px-2">
+            <div className="p-4 text-center rounded-lg shadow-none" style={{ backgroundColor: '#d4edda' }}>
+              <img src="/dist/images/svgs/icon-speech-bubble.svg" width="50" height="50" className="mb-6 mx-auto" alt="" />
+              <p className="font-semibold text-green-700 mb-1 text-sm capitalize">Pending Orders</p>
+              <h4 className="font-semibold text-green-700 text-xl m-0">{pendingOrders}</h4>
+            </div>
+          </div>
+        </div>
       )}
+
+      {/* ── No Orders Empty State ────────────────────────────────────────── */}
+      {!isLoading && ordersToReceive.length === 0 && ordersToBroadcast.length === 0 && (
+        <div className="flex flex-col items-center justify-center mx-auto rounded-[15px] overflow-hidden relative shadow-lg" 
+             style={{ background: 'linear-gradient(135deg, #6fd3f7 0%, #7de2d1 100%)', height: '50vh', width: '76vw', transition: 'all 0.3s ease' }}>
+          <img src="/dist/images/backgrounds/empty_box.png" alt="" className="w-[120px] mb-[30px] z-10" />
+          <div className="text-white text-2xl font-bold animate-pulse z-10 capitalize">No Orders Available</div>
+        </div>
+      )}
+
+      {/* ── Orders To Receive ──────────────────────────────────────────── */}
+      <OrderTable
+        title="Orders To Receive"
+        orders={ordersToReceive}
+        isLoading={isLoading}
+        onViewPackage={(o) => { setSelectedOrder(o); setPackageModalOpen(true); }}
+        onViewDp={(o) => { setSelectedOrder(o); setDpModalOpen(true); }}
+        otpKey="drop_otp"
+      />
+
+      {/* ── Orders To Broadcast ────────────────────────────────────────── */}
+      <OrderTable
+        title="Orders To Broadcast"
+        orders={ordersToBroadcast}
+        isLoading={isLoading}
+        onViewPackage={(o) => { setSelectedOrder(o); setPackageModalOpen(true); }}
+        onViewDp={(o) => { setSelectedOrder(o); setDpListModalOpen(true); }}
+        otpKey="pickup_otp"
+      />
+
+      {/* ── Modals ─────────────────────────────────────────────────────── */}
+      <PackageModal isOpen={packageModalOpen} onClose={() => setPackageModalOpen(false)} order={selectedOrder} />
+      <DpModal isOpen={dpModalOpen} onClose={() => setDpModalOpen(false)} order={selectedOrder} />
+      <DpListModal isOpen={dpListModalOpen} onClose={() => setDpListModalOpen(false)} order={selectedOrder} />
 
     </div>
   );
