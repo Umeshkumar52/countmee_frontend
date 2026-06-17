@@ -1,0 +1,1520 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  fetchPartners as apiFetchPartners,
+  createPartner,
+  updatePartner,
+  deletePartner,
+  fetchDpDetails,
+} from "../../../api/admin.api";
+import Table from "../../../components/common/Table";
+import Badge from "../../../components/common/Badge";
+import Button from "../../../components/common/Button";
+import Modal from "../../../components/common/Modal";
+import Input from "../../../components/common/Input";
+import ConfirmationModal from "../../../components/common/ConfirmationModal";
+import { Plus, Search } from "lucide-react";
+
+// Reusable File Upload Preview Component
+const FileUpload = ({ label, id, preview, onChange, required }) => (
+  <div className="flex flex-col text-left space-y-1">
+    <span className="text-xs font-semibold text-slate-600">
+      {label} {required && <span className="text-red-500 ml-0.5">*</span>}
+    </span>
+    <div className="relative border border-dashed border-slate-200 hover:border-[#553092] rounded-xl p-3 flex flex-col items-center justify-center bg-slate-50 transition-colors h-28 cursor-pointer overflow-hidden">
+      {preview ? (
+        <img src={preview} alt="Upload Preview" className="w-full h-full object-contain" />
+      ) : (
+        <div className="flex flex-col items-center text-slate-400">
+          <span className="text-xl">📁</span>
+          <span className="text-[10px] font-semibold mt-1">Upload image</span>
+        </div>
+      )}
+      <input 
+        type="file" 
+        id={id} 
+        accept="image/*" 
+        onChange={onChange} 
+        className="absolute inset-0 opacity-0 cursor-pointer" 
+      />
+    </div>
+  </div>
+);
+
+export const DeliveryPartners = () => {
+  const [partners, setPartners] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+
+  // Add/Edit Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPartner, setSelectedPartner] = useState(null); // null for add, partner object for edit
+  const [isSubmit, setIsSubmit] = useState(false);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("basic"); // used for edit mode tabs
+
+  // Form fields states
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [dob, setDob] = useState("");
+  const [gender, setGender] = useState("");
+  const [address, setAddress] = useState("");
+  const [vehicle, setVehicle] = useState("Two Wheeler"); // maps to vehicle_type
+
+  // Documents
+  const [aadharNumber, setAadharNumber] = useState("");
+  const [aadharImgFront, setAadharImgFront] = useState(null);
+  const [aadharImgBack, setAadharImgBack] = useState(null);
+  const [rcNumber, setRcNumber] = useState("");
+  const [rcImgFront, setRcImgFront] = useState(null);
+  const [rcImgBack, setRcImgBack] = useState(null);
+  const [dlNumber, setDlNumber] = useState("");
+  const [dlImgFront, setDlImgFront] = useState(null);
+  const [dlImgBack, setDlImgBack] = useState(null);
+  const [vehicleNumber, setVehicleNumber] = useState("");
+  const [residenceImg, setResidenceImg] = useState(null);
+  const [vehicleImg, setVehicleImg] = useState(null);
+
+  // Bank details
+  const [bankName, setBankName] = useState("");
+  const [bankAccNumber, setBankAccNumber] = useState("");
+  const [bankIfsc, setBankIfsc] = useState("");
+  const [bankImageFront, setBankImageFront] = useState(null);
+  const [bankImgBack, setBankImgBack] = useState(null);
+
+  // References
+  const [reference1Name, setReference1Name] = useState("");
+  const [reference1Phone, setReference1Phone] = useState("");
+  const [reference2Name, setReference2Name] = useState("");
+  const [reference2Phone, setReference2Phone] = useState("");
+
+  // Files state (raw file uploads and preview URLs)
+  const [profileImg, setProfileImg] = useState(null);
+  const [profileImgPreview, setProfileImgPreview] = useState("");
+  const [aadharImgFrontPreview, setAadharImgFrontPreview] = useState("");
+  const [aadharImgBackPreview, setAadharImgBackPreview] = useState("");
+  const [rcImgFrontPreview, setRcImgFrontPreview] = useState("");
+  const [rcImgBackPreview, setRcImgBackPreview] = useState("");
+  const [dlImgFrontPreview, setDlImgFrontPreview] = useState("");
+  const [dlImgBackPreview, setDlImgBackPreview] = useState("");
+  const [residenceImgPreview, setResidenceImgPreview] = useState("");
+  const [vehicleImgPreview, setVehicleImgPreview] = useState("");
+  const [bankImageFrontPreview, setBankImageFrontPreview] = useState("");
+  const [bankImgBackPreview, setBankImgBackPreview] = useState("");
+
+  // Existing/uploaded file names (for edit mode)
+  const [existingProfileImg, setExistingProfileImg] = useState("");
+  const [existingAadharImgFront, setExistingAadharImgFront] = useState("");
+  const [existingAadharImgBack, setExistingAadharImgBack] = useState("");
+  const [existingRcImgFront, setExistingRcImgFront] = useState("");
+  const [existingRcImgBack, setExistingRcImgBack] = useState("");
+  const [existingDlImgFront, setExistingDlImgFront] = useState("");
+  const [existingDlImgBack, setExistingDlImgBack] = useState("");
+  const [existingResidenceImg, setExistingResidenceImg] = useState("");
+  const [existingVehicleImg, setExistingVehicleImg] = useState("");
+  const [existingBankImageFront, setExistingBankImageFront] = useState("");
+  const [existingBankImgBack, setExistingBankImgBack] = useState("");
+
+  // Step state (1: Basic, 2: Vehicle, 3: KYC Docs & Bank, 4: References)
+  const [currentStep, setCurrentStep] = useState(1);
+  const [validationError, setValidationError] = useState("");
+
+  // Delete Modal states
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+
+  const fetchPartners = async (params = {}) => {
+    setIsLoading(true);
+    try {
+      const response = await apiFetchPartners(params);
+      const rawList = response.data.dpList || response.data.data?.dpList || [];
+      const formatted = rawList.map((d) => ({
+        id: d._id,
+        name: d.user?.name || "N/A",
+        phone: d.user?.phone || "N/A",
+        email: d.user?.email || "N/A",
+        vehicle: d.vehicle_type || "Bike",
+        status: d.status,
+      }));
+      setPartners(formatted);
+    } catch (e) {
+      console.error("Failed to fetch partners", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      fetchPartners({ search: searchQuery });
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
+  const handleOpenAddModal = () => {
+    setSelectedPartner(null);
+    setCurrentStep(1);
+    setValidationError("");
+    
+    // Clear all inputs
+    setName("");
+    setEmail("");
+    setPhone("");
+    setDob("");
+    setGender("");
+    setAddress("");
+    setVehicle("Two Wheeler");
+    
+    setAadharNumber("");
+    setRcNumber("");
+    setDlNumber("");
+    setVehicleNumber("");
+    setBankName("");
+    setBankAccNumber("");
+    setBankIfsc("");
+    setReference1Name("");
+    setReference1Phone("");
+    setReference2Name("");
+    setReference2Phone("");
+    
+    // Clear file states
+    setProfileImg(null);
+    setAadharImgFront(null);
+    setAadharImgBack(null);
+    setRcImgFront(null);
+    setRcImgBack(null);
+    setDlImgFront(null);
+    setDlImgBack(null);
+    setResidenceImg(null);
+    setVehicleImg(null);
+    setBankImageFront(null);
+    setBankImgBack(null);
+    
+    // Clear previews
+    setProfileImgPreview("");
+    setAadharImgFrontPreview("");
+    setAadharImgBackPreview("");
+    setRcImgFrontPreview("");
+    setRcImgBackPreview("");
+    setDlImgFrontPreview("");
+    setDlImgBackPreview("");
+    setResidenceImgPreview("");
+    setVehicleImgPreview("");
+    setBankImageFrontPreview("");
+    setBankImgBackPreview("");
+
+    // Clear existing filenames
+    setExistingProfileImg("");
+    setExistingAadharImgFront("");
+    setExistingAadharImgBack("");
+    setExistingRcImgFront("");
+    setExistingRcImgBack("");
+    setExistingDlImgFront("");
+    setExistingDlImgBack("");
+    setExistingResidenceImg("");
+    setExistingVehicleImg("");
+    setExistingBankImageFront("");
+    setExistingBankImgBack("");
+    
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = async (partner) => {
+    setSelectedPartner(partner);
+    setIsModalOpen(true);
+    setIsDetailLoading(true);
+    setActiveTab("basic");
+    setValidationError("");
+
+    // Clear inputs first
+    setName(partner.name || "");
+    setEmail(partner.email || "");
+    setPhone(partner.phone || "");
+    setVehicle(partner.vehicle || "Two Wheeler");
+    setDob("");
+    setGender("");
+    setAddress("");
+    setAadharNumber("");
+    setRcNumber("");
+    setDlNumber("");
+    setVehicleNumber("");
+    setBankName("");
+    setBankAccNumber("");
+    setBankIfsc("");
+    setReference1Name("");
+    setReference1Phone("");
+    setReference2Name("");
+    setReference2Phone("");
+
+    // Clear previews/files
+    setProfileImg(null);
+    setAadharImgFront(null);
+    setAadharImgBack(null);
+    setRcImgFront(null);
+    setRcImgBack(null);
+    setDlImgFront(null);
+    setDlImgBack(null);
+    setResidenceImg(null);
+    setVehicleImg(null);
+    setBankImageFront(null);
+    setBankImgBack(null);
+
+    setProfileImgPreview("");
+    setAadharImgFrontPreview("");
+    setAadharImgBackPreview("");
+    setRcImgFrontPreview("");
+    setRcImgBackPreview("");
+    setDlImgFrontPreview("");
+    setDlImgBackPreview("");
+    setResidenceImgPreview("");
+    setVehicleImgPreview("");
+    setBankImageFrontPreview("");
+    setBankImgBackPreview("");
+
+    try {
+      const response = await fetchDpDetails(partner.id);
+      const { dpDetail, dpDocument } = response.data.data || response.data || {};
+
+      setName(dpDetail?.user_id?.name || partner.name || "");
+      setEmail(dpDetail?.user_id?.email || partner.email || "");
+      setPhone(dpDetail?.user_id?.phone || partner.phone || "");
+      setDob(dpDetail?.dob ? dpDetail.dob.split('T')[0] : "");
+      setGender(dpDetail?.gender || "");
+      setAddress(dpDetail?.address || "");
+      setVehicle(dpDocument?.vehicle_type || partner.vehicle || "Two Wheeler");
+      
+      setAadharNumber(dpDocument?.aadhar_number || "");
+      setRcNumber(dpDocument?.rc_number || "");
+      setDlNumber(dpDocument?.dl_number || "");
+      setVehicleNumber(dpDocument?.vehicle_number || "");
+      setBankName(dpDocument?.bank_name || "");
+      setBankAccNumber(dpDocument?.bank_acc_number || "");
+      setBankIfsc(dpDocument?.bank_ifsc || "");
+      setReference1Name(dpDocument?.reference1_name || "");
+      setReference1Phone(dpDocument?.reference1_phone || "");
+      setReference2Name(dpDocument?.reference2_name || "");
+      setReference2Phone(dpDocument?.reference2_phone || "");
+
+      const uploadUrlBase = import.meta.env.VITE_API_URL 
+        ? import.meta.env.VITE_API_URL.replace("/api", "/uploads") 
+        : "http://localhost:3008/uploads";
+
+      if (dpDetail?.profile_img) {
+        setExistingProfileImg(dpDetail.profile_img);
+        setProfileImgPreview(`${uploadUrlBase}/${dpDetail.profile_img}`);
+      }
+      if (dpDocument?.aadhar_imgfront) {
+        setExistingAadharImgFront(dpDocument.aadhar_imgfront);
+        setAadharImgFrontPreview(`${uploadUrlBase}/${dpDocument.aadhar_imgfront}`);
+      }
+      if (dpDocument?.aadhar_imgback) {
+        setExistingAadharImgBack(dpDocument.aadhar_imgback);
+        setAadharImgBackPreview(`${uploadUrlBase}/${dpDocument.aadhar_imgback}`);
+      }
+      if (dpDocument?.rc_imgfront) {
+        setExistingRcImgFront(dpDocument.rc_imgfront);
+        setRcImgFrontPreview(`${uploadUrlBase}/${dpDocument.rc_imgfront}`);
+      }
+      if (dpDocument?.rc_imgback) {
+        setExistingRcImgBack(dpDocument.rc_imgback);
+        setRcImgBackPreview(`${uploadUrlBase}/${dpDocument.rc_imgback}`);
+      }
+      if (dpDocument?.dl_imgfront) {
+        setExistingDlImgFront(dpDocument.dl_imgfront);
+        setDlImgFrontPreview(`${uploadUrlBase}/${dpDocument.dl_imgfront}`);
+      }
+      if (dpDocument?.dl_imgback) {
+        setExistingDlImgBack(dpDocument.dl_imgback);
+        setDlImgBackPreview(`${uploadUrlBase}/${dpDocument.dl_imgback}`);
+      }
+      if (dpDocument?.residence_img) {
+        setExistingResidenceImg(dpDocument.residence_img);
+        setResidenceImgPreview(`${uploadUrlBase}/${dpDocument.residence_img}`);
+      }
+      if (dpDocument?.vehicle_img) {
+        setExistingVehicleImg(dpDocument.vehicle_img);
+        setVehicleImgPreview(`${uploadUrlBase}/${dpDocument.vehicle_img}`);
+      }
+      if (dpDocument?.bank_imagefront) {
+        setExistingBankImageFront(dpDocument.bank_imagefront);
+        setBankImageFrontPreview(`${uploadUrlBase}/${dpDocument.bank_imagefront}`);
+      }
+      if (dpDocument?.bank_imgeback) {
+        setExistingBankImgBack(dpDocument.bank_imgeback);
+        setBankImgBackPreview(`${uploadUrlBase}/${dpDocument.bank_imgeback}`);
+      }
+    } catch (err) {
+      console.error("Failed to fetch DP details", err);
+      setValidationError("Failed to load details. Using list summary.");
+    } finally {
+      setIsDetailLoading(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    // Revoke object URLs
+    [
+      profileImgPreview, aadharImgFrontPreview, aadharImgBackPreview,
+      rcImgFrontPreview, rcImgBackPreview, dlImgFrontPreview, dlImgBackPreview,
+      residenceImgPreview, vehicleImgPreview, bankImageFrontPreview, bankImgBackPreview
+    ].forEach(p => {
+      if (p && p.startsWith("blob:")) {
+        URL.revokeObjectURL(p);
+      }
+    });
+  };
+
+  const handleFileChange = (e, setFile, setPreview) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Basic type & size checks
+      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        alert('Please upload an image file (JPEG, PNG, GIF, WebP)');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should not exceed 5MB');
+        return;
+      }
+
+      setFile(file);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const validateStep = (step) => {
+    setValidationError("");
+    if (step === 1) {
+      if (!selectedPartner && !profileImg) {
+        setValidationError("Profile upload is required");
+        return false;
+      }
+      if (!name.trim()) {
+        setValidationError("Name is required");
+        return false;
+      }
+      if (!phone.trim() || phone.length !== 10 || !/^\d+$/.test(phone)) {
+        setValidationError("A valid 10-digit Phone Number is required");
+        return false;
+      }
+      if (!email.trim() || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+        setValidationError("A valid Email Address is required");
+        return false;
+      }
+      if (!gender) {
+        setValidationError("Gender is required");
+        return false;
+      }
+      if (!dob) {
+        setValidationError("Date of Birth is required");
+        return false;
+      } else {
+        const today = new Date();
+        const birthDate = new Date(dob);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+        if (age < 18) {
+          setValidationError("Delivery Partner must be at least 18 years old");
+          return false;
+        }
+      }
+      if (!address.trim()) {
+        setValidationError("Address is required");
+        return false;
+      }
+    }
+    if (step === 2) {
+      if (!vehicle) {
+        setValidationError("Vehicle Type is required");
+        return false;
+      }
+    }
+    if (step === 3) {
+      if (!aadharNumber.trim() || aadharNumber.length !== 12 || !/^\d+$/.test(aadharNumber)) {
+        setValidationError("A valid 12-digit Aadhar Number is required");
+        return false;
+      }
+      if (!selectedPartner && (!aadharImgFront || !aadharImgBack)) {
+        setValidationError("Aadhar Front and Back images are required");
+        return false;
+      }
+      if (!rcNumber.trim()) {
+        setValidationError("RC Number is required");
+        return false;
+      }
+      if (!selectedPartner && (!rcImgFront || !rcImgBack)) {
+        setValidationError("RC Front and Back images are required");
+        return false;
+      }
+      if (!dlNumber.trim()) {
+        setValidationError("DL Number is required");
+        return false;
+      }
+      if (!selectedPartner && (!dlImgFront || !dlImgBack)) {
+        setValidationError("DL Front and Back images are required");
+        return false;
+      }
+      if (!vehicleNumber.trim()) {
+        setValidationError("Vehicle Number is required");
+        return false;
+      }
+      if (!selectedPartner && (!residenceImg || !vehicleImg)) {
+        setValidationError("Residence and Vehicle images are required");
+        return false;
+      }
+      if (!bankName.trim()) {
+        setValidationError("Bank Name is required");
+        return false;
+      }
+      if (!bankAccNumber.trim() || !/^\d{6,18}$/.test(bankAccNumber)) {
+        setValidationError("A valid Bank Account Number is required (6-18 digits)");
+        return false;
+      }
+      if (!bankIfsc.trim() || !/^[A-Za-z]{4}0[A-Za-z0-9]{6}$/.test(bankIfsc)) {
+        setValidationError("A valid Bank IFSC Code is required (e.g. SBIN0001234)");
+        return false;
+      }
+      if (!selectedPartner && (!bankImageFront || !bankImgBack)) {
+        setValidationError("Bank Front and Back images are required");
+        return false;
+      }
+    }
+    if (step === 4) {
+      if (!reference1Name.trim()) {
+        setValidationError("1st Reference Name is required");
+        return false;
+      }
+      if (!reference1Phone.trim() || reference1Phone.length !== 10 || !/^\d+$/.test(reference1Phone)) {
+        setValidationError("1st Reference Contact must be a valid 10-digit number");
+        return false;
+      }
+      if (!reference2Name.trim()) {
+        setValidationError("2nd Reference Name is required");
+        return false;
+      }
+      if (!reference2Phone.trim() || reference2Phone.length !== 10 || !/^\d+$/.test(reference2Phone)) {
+        setValidationError("2nd Reference Contact must be a valid 10-digit number");
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!selectedPartner) {
+      if (!validateStep(4)) return;
+    } else {
+      if (!validateStep(1) || !validateStep(2) || !validateStep(3) || !validateStep(4)) return;
+    }
+
+    setIsSubmit(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("name", name.trim());
+      formData.append("phone", phone.trim());
+      formData.append("email", email.trim());
+      formData.append("dob", dob);
+      formData.append("gender", gender);
+      formData.append("address", address.trim());
+      formData.append("vehicle_type", vehicle);
+      formData.append("aadhar_number", aadharNumber.trim());
+      formData.append("rc_number", rcNumber.trim());
+      formData.append("dl_number", dlNumber.trim());
+      formData.append("bank_name", bankName.trim());
+      formData.append("bank_acc_number", bankAccNumber.trim());
+      formData.append("bank_ifsc", bankIfsc.trim().toUpperCase());
+      formData.append("vehicle_number", vehicleNumber.trim());
+      formData.append("reference1_name", reference1Name.trim());
+      formData.append("reference1_phone", reference1Phone.trim());
+      formData.append("reference2_name", reference2Name.trim());
+      formData.append("reference2_phone", reference2Phone.trim());
+
+      // Append files
+      if (profileImg) formData.append("profile_img", profileImg);
+      if (aadharImgFront) formData.append("aadhar_imgfront", aadharImgFront);
+      if (aadharImgBack) formData.append("aadhar_imgback", aadharImgBack);
+      if (rcImgFront) formData.append("rc_imgfront", rcImgFront);
+      if (rcImgBack) formData.append("rc_imgback", rcImgBack);
+      if (dlImgFront) formData.append("dl_imgfront", dlImgFront);
+      if (dlImgBack) formData.append("dl_imgback", dlImgBack);
+      if (residenceImg) formData.append("residence_img", residenceImg);
+      if (vehicleImg) formData.append("vehicle_img", vehicleImg);
+      if (bankImageFront) formData.append("bank_imagefront", bankImageFront);
+      if (bankImgBack) formData.append("bank_imgeback", bankImgBack);
+
+      if (selectedPartner) {
+        await updatePartner(selectedPartner.id, formData);
+      } else {
+        await createPartner(formData);
+      }
+      setIsModalOpen(false);
+      fetchPartners();
+    } catch (err) {
+      console.error("Submit failed", err);
+      setValidationError(err.response?.data?.message || "An error occurred during submission. Please check your inputs.");
+    } finally {
+      setIsSubmit(false);
+    }
+  };
+
+  const handleTriggerDelete = (id) => {
+    setDeleteId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteId) return;
+    setIsDeleteLoading(true);
+    try {
+      await deletePartner(deleteId);
+      fetchPartners();
+    } catch (e) {
+      console.error("Delete failed", e);
+    } finally {
+      setIsDeleteLoading(false);
+      setIsDeleteModalOpen(false);
+      setDeleteId(null);
+    }
+  };
+
+  const headers = [
+    "DP ID",
+    "Name",
+    "Phone",
+    "Email",
+    "Vehicle",
+    "Status",
+    "Actions",
+  ];
+
+  return (
+    <div className="space-y-6 text-left page-transition">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold text-slate-800">
+            Delivery Partners
+          </h2>
+          <p className="text-xs text-slate-400 mt-1">
+            Manage delivery boys and verify operational documents
+          </p>
+        </div>
+        <Button
+          onClick={handleOpenAddModal}
+          icon={Plus}
+          variant="primary"
+          size="sm"
+        >
+          Add Delivery Partner
+        </Button>
+      </div>
+
+      {/* Search Bar */}
+      <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-xs max-w-md">
+        <div className="relative">
+          <Search
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+          />
+
+          <input
+            type="text"
+            placeholder="Search by name, phone or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm transition-all outline-none focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple"
+          />
+        </div>
+      </div>
+
+      <Table
+        headers={headers}
+        data={partners}
+        isLoading={isLoading}
+        emptyMessage="No delivery boys registered yet."
+        renderRow={(dp) => (
+          <tr key={dp.id} className="hover:bg-slate-50/50 transition-colors">
+            <td className="px-5 py-4 text-xs font-bold text-slate-400">
+              #DP-{dp.id}
+            </td>
+            <td className="px-5 py-4 text-xs font-bold text-slate-800">
+              {dp.name}
+            </td>
+            <td className="px-5 py-4 text-xs text-slate-500">{dp.phone}</td>
+            <td className="px-5 py-4 text-xs text-slate-500">{dp.email}</td>
+            <td className="px-5 py-4 text-xs text-slate-600">
+              {dp.vehicle || "Bike"}
+            </td>
+            <td className="px-5 py-4 text-xs">
+              <Badge variant={dp.status === "active" ? "success" : "slate"}>
+                {dp.status}
+              </Badge>
+            </td>
+            <td className="px-5 py-4 text-xs space-x-2">
+              <Button
+                onClick={() => navigate(`/admin/delivery-partners/${dp.id}`)}
+                variant="outline"
+                size="sm"
+                className="py-1 px-2.5 text-[10px]"
+              >
+                📄 KYC Docs
+              </Button>
+              <Button
+                onClick={() => handleOpenEditModal(dp)}
+                variant="secondary"
+                size="sm"
+                className="py-1 px-2.5 text-[10px]"
+              >
+                ✏️ Edit
+              </Button>
+              <Button
+                onClick={() => handleTriggerDelete(dp.id)}
+                variant="danger"
+                size="sm"
+                className="py-1 px-2.5 text-[10px]"
+              >
+                🗑️ Delete
+              </Button>
+            </td>
+          </tr>
+        )}
+      />
+
+      {/* Add / Edit Modal */}
+      {isModalOpen && (
+        <Modal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          size="xl"
+          title={
+            selectedPartner ? "Edit Delivery Partner" : "Add Delivery Partner"
+          }
+        >
+          <form onSubmit={handleSubmit} className="space-y-6 text-left">
+            {validationError && (
+              <div className="bg-red-50 border border-red-200 text-red-600 text-xs font-semibold px-4 py-2.5 rounded-xl">
+                ⚠️ {validationError}
+              </div>
+            )}
+
+            {/* Stepper Header for Add Mode */}
+            {!selectedPartner && (
+              <div className="mb-6">
+                <div className="flex items-center justify-between relative">
+                  {/* Progress Line */}
+                  <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[2px] bg-slate-100 z-0">
+                    <div 
+                      className="h-full bg-[#553092] transition-all duration-300"
+                      style={{ width: `${((currentStep - 1) / 3) * 100}%` }}
+                    ></div>
+                  </div>
+
+                  {/* Steps */}
+                  {[
+                    { step: 1, label: "Basic Details" },
+                    { step: 2, label: "Mode of Delivery" },
+                    { step: 3, label: "Documents" },
+                    { step: 4, label: "References" }
+                  ].map((s) => (
+                    <div key={s.step} className="flex flex-col items-center z-10 relative">
+                      <div 
+                        className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border transition-all duration-300 ${
+                          currentStep === s.step 
+                            ? "bg-[#553092] border-[#553092] text-white ring-4 ring-[#553092]/10" 
+                            : currentStep > s.step 
+                            ? "bg-[#553092] border-[#553092] text-white" 
+                            : "bg-white border-slate-200 text-slate-400"
+                        }`}
+                      >
+                        {currentStep > s.step ? "✓" : s.step}
+                      </div>
+                      <span className={`text-[9px] font-bold mt-1 transition-colors uppercase tracking-wider ${
+                        currentStep >= s.step ? "text-slate-700" : "text-slate-400"
+                      }`}>
+                        {s.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selectedPartner ? (
+              /* EDIT MODE - Tabbed Layout */
+              <div className="space-y-6">
+                {/* Tab selector */}
+                <div className="flex border-b border-slate-100 gap-4 mb-4">
+                  {[
+                    { id: "basic", label: "Basic Info" },
+                    { id: "kyc", label: "KYC & Vehicle" },
+                    { id: "bankRef", label: "Bank & References" }
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setActiveTab(t.id)}
+                      className={`pb-2.5 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
+                        activeTab === t.id 
+                          ? "border-[#553092] text-[#553092]" 
+                          : "border-transparent text-slate-400 hover:text-slate-600"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+
+                {isDetailLoading ? (
+                  <div className="text-center py-12 text-slate-400 text-sm font-semibold">Loading details...</div>
+                ) : (
+                  <div className="max-h-[55vh] overflow-y-auto pr-2 space-y-4">
+                    {/* Basic Info Tab */}
+                    {activeTab === "basic" && (
+                      <div className="space-y-4">
+                        <div className="flex flex-col items-center justify-center pb-2">
+                          <label className="text-xs font-semibold text-slate-600 mb-2">Profile Image</label>
+                          <div className="relative group cursor-pointer">
+                            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200 flex items-center justify-center bg-slate-50 group-hover:border-[#553092] transition-colors relative">
+                              {profileImgPreview ? (
+                                <img src={profileImgPreview} alt="Profile Preview" className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-slate-400 text-xs font-medium text-center px-2">Click to Upload</span>
+                              )}
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                onChange={(e) => handleFileChange(e, setProfileImg, setProfileImgPreview)} 
+                                className="absolute inset-0 opacity-0 cursor-pointer" 
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <Input
+                            label="Full Name"
+                            id="name"
+                            placeholder="Enter Full Name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                          />
+                          <Input
+                            label="Phone Number"
+                            id="phone"
+                            placeholder="10-digit number"
+                            maxLength={10}
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                            required
+                          />
+                          <Input
+                            label="Email Address"
+                            id="email"
+                            type="email"
+                            placeholder="Enter Email Address"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                          />
+                          <div className="flex flex-col text-left">
+                            <label htmlFor="gender" className="text-xs font-semibold text-slate-600 mb-1.5">
+                              Gender <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                              id="gender"
+                              value={gender}
+                              onChange={(e) => setGender(e.target.value)}
+                              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm transition-all outline-none focus:ring-2 focus:ring-[#553092]/20 focus:border-[#553092]"
+                              required
+                            >
+                              <option value="">Select Gender</option>
+                              <option value="male">Male</option>
+                              <option value="female">Female</option>
+                              <option value="other">Others</option>
+                            </select>
+                          </div>
+                          <Input
+                            label="Date of Birth"
+                            id="dob"
+                            type="date"
+                            value={dob}
+                            onChange={(e) => setDob(e.target.value)}
+                            required
+                          />
+                          <Input
+                            label="Address"
+                            id="address"
+                            placeholder="Enter full address"
+                            value={address}
+                            onChange={(e) => setAddress(e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* KYC & Vehicle Tab */}
+                    {activeTab === "kyc" && (
+                      <div className="space-y-6">
+                        <div className="flex flex-col text-left max-w-md">
+                          <label htmlFor="vehicle_type" className="text-xs font-semibold text-slate-600 mb-1.5">
+                            Vehicle Type <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            id="vehicle_type"
+                            value={vehicle}
+                            onChange={(e) => setVehicle(e.target.value)}
+                            className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm transition-all outline-none focus:ring-2 focus:ring-[#553092]/20 focus:border-[#553092]"
+                            required
+                          >
+                            <option value="">Select Vehicle Type</option>
+                            <option value="By Hand">By Hand</option>
+                            <option value="Two Wheeler">Two Wheeler</option>
+                            <option value="Three Wheeler">Three Wheeler</option>
+                            <option value="Four Wheeler">Four Wheeler</option>
+                          </select>
+                        </div>
+
+                        {/* Aadhar details */}
+                        <div>
+                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">1. Aadhar Details</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Input
+                              label="Aadhar Number"
+                              id="aadharNumber"
+                              placeholder="12-digit number"
+                              maxLength={12}
+                              value={aadharNumber}
+                              onChange={(e) => setAadharNumber(e.target.value.replace(/\D/g, ""))}
+                              required
+                            />
+                            <FileUpload
+                              label="Aadhar Front Image"
+                              id="aadharImgFront"
+                              preview={aadharImgFrontPreview}
+                              onChange={(e) => handleFileChange(e, setAadharImgFront, setAadharImgFrontPreview)}
+                            />
+                            <FileUpload
+                              label="Aadhar Back Image"
+                              id="aadharImgBack"
+                              preview={aadharImgBackPreview}
+                              onChange={(e) => handleFileChange(e, setAadharImgBack, setAadharImgBackPreview)}
+                            />
+                          </div>
+                        </div>
+
+                        {/* RC Details */}
+                        <div>
+                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">2. RC Details</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Input
+                              label="RC Number"
+                              id="rcNumber"
+                              placeholder="Enter RC Number"
+                              value={rcNumber}
+                              onChange={(e) => setRcNumber(e.target.value)}
+                              required
+                            />
+                            <FileUpload
+                              label="RC Front Image"
+                              id="rcImgFront"
+                              preview={rcImgFrontPreview}
+                              onChange={(e) => handleFileChange(e, setRcImgFront, setRcImgFrontPreview)}
+                            />
+                            <FileUpload
+                              label="RC Back Image"
+                              id="rcImgBack"
+                              preview={rcImgBackPreview}
+                              onChange={(e) => handleFileChange(e, setRcImgBack, setRcImgBackPreview)}
+                            />
+                          </div>
+                        </div>
+
+                        {/* DL Details */}
+                        <div>
+                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">3. DL Details</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Input
+                              label="DL Number"
+                              id="dlNumber"
+                              placeholder="Enter DL Number"
+                              value={dlNumber}
+                              onChange={(e) => setDlNumber(e.target.value)}
+                              required
+                            />
+                            <FileUpload
+                              label="DL Front Image"
+                              id="dlImgFront"
+                              preview={dlImgFrontPreview}
+                              onChange={(e) => handleFileChange(e, setDlImgFront, setDlImgFrontPreview)}
+                            />
+                            <FileUpload
+                              label="DL Back Image"
+                              id="dlImgBack"
+                              preview={dlImgBackPreview}
+                              onChange={(e) => handleFileChange(e, setDlImgBack, setDlImgBackPreview)}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Vehicle Details */}
+                        <div>
+                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">4. Vehicle & Residence Details</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Input
+                              label="Vehicle Number"
+                              id="vehicleNumber"
+                              placeholder="Enter Vehicle Number"
+                              value={vehicleNumber}
+                              onChange={(e) => setVehicleNumber(e.target.value)}
+                              required
+                            />
+                            <FileUpload
+                              label="Residence Image"
+                              id="residenceImg"
+                              preview={residenceImgPreview}
+                              onChange={(e) => handleFileChange(e, setResidenceImg, setResidenceImgPreview)}
+                            />
+                            <FileUpload
+                              label="Vehicle Image"
+                              id="vehicleImg"
+                              preview={vehicleImgPreview}
+                              onChange={(e) => handleFileChange(e, setVehicleImg, setVehicleImgPreview)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Bank & References Tab */}
+                    {activeTab === "bankRef" && (
+                      <div className="space-y-6">
+                        {/* Bank Details */}
+                        <div>
+                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">1. Bank Account Details</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Input
+                              label="Bank Name"
+                              id="bankName"
+                              placeholder="Enter Bank Name"
+                              value={bankName}
+                              onChange={(e) => setBankName(e.target.value)}
+                              required
+                            />
+                            <Input
+                              label="Account Number"
+                              id="bankAccNumber"
+                              placeholder="Enter Account Number"
+                              value={bankAccNumber}
+                              onChange={(e) => setBankAccNumber(e.target.value.replace(/\D/g, ""))}
+                              required
+                            />
+                            <Input
+                              label="IFSC Code"
+                              id="bankIfsc"
+                              placeholder="e.g. SBIN0001234"
+                              value={bankIfsc}
+                              onChange={(e) => setBankIfsc(e.target.value)}
+                              required
+                            />
+                            <div className="grid grid-cols-2 gap-4 col-span-1 md:col-span-2">
+                              <FileUpload
+                                label="Bank Front Image"
+                                id="bankImageFront"
+                                preview={bankImageFrontPreview}
+                                onChange={(e) => handleFileChange(e, setBankImageFront, setBankImageFrontPreview)}
+                              />
+                              <FileUpload
+                                label="Bank Back Image"
+                                id="bankImgBack"
+                                preview={bankImgBackPreview}
+                                onChange={(e) => handleFileChange(e, setBankImgBack, setBankImgBackPreview)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* References */}
+                        <div>
+                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">2. Reference Details</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-slate-50 p-4 rounded-xl space-y-4 border border-slate-100">
+                              <h5 className="text-xs font-bold text-[#553092] uppercase tracking-wider pb-1 border-b border-slate-200">1st Reference</h5>
+                              <Input
+                                label="Reference Name"
+                                id="reference1Name"
+                                placeholder="Enter Reference Name"
+                                value={reference1Name}
+                                onChange={(e) => setReference1Name(e.target.value)}
+                                required
+                              />
+                              <Input
+                                label="Reference Contact"
+                                id="reference1Phone"
+                                placeholder="10-digit phone number"
+                                maxLength={10}
+                                value={reference1Phone}
+                                onChange={(e) => setReference1Phone(e.target.value.replace(/\D/g, ""))}
+                                required
+                              />
+                            </div>
+                            <div className="bg-slate-50 p-4 rounded-xl space-y-4 border border-slate-100">
+                              <h5 className="text-xs font-bold text-[#553092] uppercase tracking-wider pb-1 border-b border-slate-200">2nd Reference</h5>
+                              <Input
+                                label="Reference Name"
+                                id="reference2Name"
+                                placeholder="Enter Reference Name"
+                                value={reference2Name}
+                                onChange={(e) => setReference2Name(e.target.value)}
+                                required
+                              />
+                              <Input
+                                label="Reference Contact"
+                                id="reference2Phone"
+                                placeholder="10-digit phone number"
+                                maxLength={10}
+                                value={reference2Phone}
+                                onChange={(e) => setReference2Phone(e.target.value.replace(/\D/g, ""))}
+                                required
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* ADD MODE - 4-Step wizard content */
+              <div className="min-h-[35vh]">
+                {/* Step 1: Basic Details */}
+                {currentStep === 1 && (
+                  <div className="space-y-4">
+                    <div className="flex flex-col items-center justify-center pb-2">
+                      <label className="text-xs font-semibold text-slate-600 mb-2">Profile Image *</label>
+                      <div className="relative group cursor-pointer">
+                        <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200 flex items-center justify-center bg-slate-50 group-hover:border-[#553092] transition-colors relative">
+                          {profileImgPreview ? (
+                            <img src={profileImgPreview} alt="Profile Preview" className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-slate-400 text-xs font-semibold text-center px-2">Click to Upload</span>
+                          )}
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={(e) => handleFileChange(e, setProfileImg, setProfileImgPreview)} 
+                            className="absolute inset-0 opacity-0 cursor-pointer" 
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        label="Full Name"
+                        id="name"
+                        placeholder="Enter Full Name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                      />
+                      <Input
+                        label="Phone Number"
+                        id="phone"
+                        placeholder="10-digit number"
+                        maxLength={10}
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                        required
+                      />
+                      <Input
+                        label="Email Address"
+                        id="email"
+                        type="email"
+                        placeholder="Enter Email Address"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                      <div className="flex flex-col text-left">
+                        <label htmlFor="gender" className="text-xs font-semibold text-slate-600 mb-1.5">
+                          Gender <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          id="gender"
+                          value={gender}
+                          onChange={(e) => setGender(e.target.value)}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm transition-all outline-none focus:ring-2 focus:ring-[#553092]/20 focus:border-[#553092]"
+                          required
+                        >
+                          <option value="">Select Gender</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="other">Others</option>
+                        </select>
+                      </div>
+                      <Input
+                        label="Date of Birth"
+                        id="dob"
+                        type="date"
+                        value={dob}
+                        onChange={(e) => setDob(e.target.value)}
+                        required
+                      />
+                      <Input
+                        label="Address"
+                        id="address"
+                        placeholder="Enter full address"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 2: Mode of Delivery */}
+                {currentStep === 2 && (
+                  <div className="space-y-4 max-w-md mx-auto pt-6">
+                    <div className="flex flex-col text-left">
+                      <label htmlFor="vehicle_type" className="text-xs font-semibold text-slate-600 mb-1.5">
+                        Select Vehicle Type <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="vehicle_type"
+                        value={vehicle}
+                        onChange={(e) => setVehicle(e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm transition-all outline-none focus:ring-2 focus:ring-[#553092]/20 focus:border-[#553092]"
+                        required
+                      >
+                        <option value="">Select Vehicle Type</option>
+                        <option value="By Hand">By Hand</option>
+                        <option value="Two Wheeler">Two Wheeler</option>
+                        <option value="Three Wheeler">Three Wheeler</option>
+                        <option value="Four Wheeler">Four Wheeler</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Documents & Bank */}
+                {currentStep === 3 && (
+                  <div className="space-y-6 max-h-[50vh] overflow-y-auto pr-2">
+                    {/* Aadhar details */}
+                    <div>
+                      <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">1. Aadhar Details</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Input
+                          label="Aadhar Number"
+                          id="aadharNumber"
+                          placeholder="12-digit number"
+                          maxLength={12}
+                          value={aadharNumber}
+                          onChange={(e) => setAadharNumber(e.target.value.replace(/\D/g, ""))}
+                          required
+                        />
+                        <FileUpload
+                          label="Aadhar Front Image"
+                          id="aadharImgFront"
+                          preview={aadharImgFrontPreview}
+                          onChange={(e) => handleFileChange(e, setAadharImgFront, setAadharImgFrontPreview)}
+                          required
+                        />
+                        <FileUpload
+                          label="Aadhar Back Image"
+                          id="aadharImgBack"
+                          preview={aadharImgBackPreview}
+                          onChange={(e) => handleFileChange(e, setAadharImgBack, setAadharImgBackPreview)}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* RC Details */}
+                    <div>
+                      <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">2. RC Details</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Input
+                          label="RC Number"
+                          id="rcNumber"
+                          placeholder="Enter RC Number"
+                          value={rcNumber}
+                          onChange={(e) => setRcNumber(e.target.value)}
+                          required
+                        />
+                        <FileUpload
+                          label="RC Front Image"
+                          id="rcImgFront"
+                          preview={rcImgFrontPreview}
+                          onChange={(e) => handleFileChange(e, setRcImgFront, setRcImgFrontPreview)}
+                          required
+                        />
+                        <FileUpload
+                          label="RC Back Image"
+                          id="rcImgBack"
+                          preview={rcImgBackPreview}
+                          onChange={(e) => handleFileChange(e, setRcImgBack, setRcImgBackPreview)}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* DL Details */}
+                    <div>
+                      <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">3. DL Details</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Input
+                          label="DL Number"
+                          id="dlNumber"
+                          placeholder="Enter DL Number"
+                          value={dlNumber}
+                          onChange={(e) => setDlNumber(e.target.value)}
+                          required
+                        />
+                        <FileUpload
+                          label="DL Front Image"
+                          id="dlImgFront"
+                          preview={dlImgFrontPreview}
+                          onChange={(e) => handleFileChange(e, setDlImgFront, setDlImgFrontPreview)}
+                          required
+                        />
+                        <FileUpload
+                          label="DL Back Image"
+                          id="dlImgBack"
+                          preview={dlImgBackPreview}
+                          onChange={(e) => handleFileChange(e, setDlImgBack, setDlImgBackPreview)}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Vehicle Details */}
+                    <div>
+                      <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">4. Vehicle & Residence Details</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Input
+                          label="Vehicle Number"
+                          id="vehicleNumber"
+                          placeholder="Enter Vehicle Number"
+                          value={vehicleNumber}
+                          onChange={(e) => setVehicleNumber(e.target.value)}
+                          required
+                        />
+                        <FileUpload
+                          label="Residence Image"
+                          id="residenceImg"
+                          preview={residenceImgPreview}
+                          onChange={(e) => handleFileChange(e, setResidenceImg, setResidenceImgPreview)}
+                          required
+                        />
+                        <FileUpload
+                          label="Vehicle Image"
+                          id="vehicleImg"
+                          preview={vehicleImgPreview}
+                          onChange={(e) => handleFileChange(e, setVehicleImg, setVehicleImgPreview)}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Bank Details */}
+                    <div>
+                      <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">5. Bank Account Details</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Input
+                          label="Bank Name"
+                          id="bankName"
+                          placeholder="Enter Bank Name"
+                          value={bankName}
+                          onChange={(e) => setBankName(e.target.value)}
+                          required
+                        />
+                        <Input
+                          label="Account Number"
+                          id="bankAccNumber"
+                          placeholder="Enter Account Number"
+                          value={bankAccNumber}
+                          onChange={(e) => setBankAccNumber(e.target.value.replace(/\D/g, ""))}
+                          required
+                        />
+                        <Input
+                          label="IFSC Code"
+                          id="bankIfsc"
+                          placeholder="e.g. SBIN0001234"
+                          value={bankIfsc}
+                          onChange={(e) => setBankIfsc(e.target.value)}
+                          required
+                        />
+                        <div className="grid grid-cols-2 gap-4 col-span-1 md:col-span-2">
+                          <FileUpload
+                            label="Bank Front Image"
+                            id="bankImageFront"
+                            preview={bankImageFrontPreview}
+                            onChange={(e) => handleFileChange(e, setBankImageFront, setBankImageFrontPreview)}
+                            required
+                          />
+                          <FileUpload
+                            label="Bank Back Image"
+                            id="bankImgBack"
+                            preview={bankImgBackPreview}
+                            onChange={(e) => handleFileChange(e, setBankImgBack, setBankImgBackPreview)}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4: References */}
+                {currentStep === 4 && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-slate-50 p-4 rounded-xl space-y-4 border border-slate-100">
+                        <h5 className="text-xs font-bold text-[#553092] uppercase tracking-wider pb-1 border-b border-slate-200">1st Reference</h5>
+                        <Input
+                          label="Reference Name"
+                          id="reference1Name"
+                          placeholder="Enter Reference Name"
+                          value={reference1Name}
+                          onChange={(e) => setReference1Name(e.target.value)}
+                          required
+                        />
+                        <Input
+                          label="Reference Contact"
+                          id="reference1Phone"
+                          placeholder="10-digit phone number"
+                          maxLength={10}
+                          value={reference1Phone}
+                          onChange={(e) => setReference1Phone(e.target.value.replace(/\D/g, ""))}
+                          required
+                        />
+                      </div>
+                      <div className="bg-slate-50 p-4 rounded-xl space-y-4 border border-slate-100">
+                        <h5 className="text-xs font-bold text-[#553092] uppercase tracking-wider pb-1 border-b border-slate-200">2nd Reference</h5>
+                        <Input
+                          label="Reference Name"
+                          id="reference2Name"
+                          placeholder="Enter Reference Name"
+                          value={reference2Name}
+                          onChange={(e) => setReference2Name(e.target.value)}
+                          required
+                        />
+                        <Input
+                          label="Reference Contact"
+                          id="reference2Phone"
+                          placeholder="10-digit phone number"
+                          maxLength={10}
+                          value={reference2Phone}
+                          onChange={(e) => setReference2Phone(e.target.value.replace(/\D/g, ""))}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Form actions / Stepper controls */}
+            <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+              <Button
+                type="button"
+                onClick={handleCloseModal}
+                variant="secondary"
+                size="sm"
+              >
+                Cancel
+              </Button>
+              
+              {selectedPartner ? (
+                /* Edit mode submit buttons */
+                <Button
+                  type="submit"
+                  isLoading={isSubmit}
+                  variant="primary"
+                  size="sm"
+                  className="bg-[#553092] hover:bg-[#442474] text-white border-none"
+                  disabled={isDetailLoading}
+                >
+                  Save Changes
+                </Button>
+              ) : (
+                /* Add mode stepper buttons */
+                <>
+                  {currentStep > 1 && (
+                    <Button
+                      type="button"
+                      onClick={() => setCurrentStep((prev) => prev - 1)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Back
+                    </Button>
+                  )}
+                  {currentStep < 4 ? (
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        if (validateStep(currentStep)) {
+                          setCurrentStep((prev) => prev + 1);
+                        }
+                      }}
+                      variant="primary"
+                      size="sm"
+                      className="bg-[#553092] hover:bg-[#442474] text-white border-none"
+                    >
+                      Next
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      isLoading={isSubmit}
+                      variant="primary"
+                      size="sm"
+                      className="bg-[#553092] hover:bg-[#442474] text-white border-none"
+                    >
+                      Create Partner
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Reusable Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <ConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => {
+            setIsDeleteModalOpen(false);
+            setDeleteId(null);
+          }}
+          onConfirm={handleConfirmDelete}
+          title="Delete Delivery Partner"
+          message="Are you sure you want to delete this delivery partner? This action will permanently remove their records from the system."
+          confirmLabel="Delete Partner"
+          variant="danger"
+          isLoading={isDeleteLoading}
+        />
+      )}
+    </div>
+  );
+};
+
+export default DeliveryPartners;
