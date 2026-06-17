@@ -1,18 +1,131 @@
 import React, { useEffect, useState } from 'react';
 import { fetchPdcEarnings } from '../../../api/pdc.api';
-import Table from '../../../components/common/Table';
 
+// --- Shimmer Skeleton Components ---
+const ShimmerBlock = ({ className = '' }) => (
+  <div className={`bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 bg-[length:400%_100%] animate-[shimmer_1.4s_ease-in-out_infinite] rounded-lg ${className}`} />
+);
+
+const CardsSkeleton = () => (
+  <div className="grid grid-cols-3 gap-3">
+    {[0, 1, 2].map((i) => (
+      <div key={i} className="rounded-2xl border-2 border-slate-100 bg-white p-4 sm:p-6 space-y-3">
+        <ShimmerBlock className="h-3 w-3/4 mx-auto" />
+        <ShimmerBlock className="h-7 w-1/2 mx-auto" />
+      </div>
+    ))}
+  </div>
+);
+
+const PayoutCardSkeleton = () => (
+  <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-slate-100 px-4 py-3 flex items-center justify-between">
+      <ShimmerBlock className="h-3 w-24" />
+      <ShimmerBlock className="h-5 w-20 rounded-full" />
+    </div>
+    <div className="p-4 grid grid-cols-2 gap-x-4 gap-y-4">
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className={`${i >= 2 && i <= 3 ? 'col-span-2 sm:col-span-1' : 'col-span-2'} space-y-2`}>
+          <ShimmerBlock className="h-2 w-2/5" />
+          <ShimmerBlock className="h-4 w-4/5" />
+        </div>
+      ))}
+      <div className="col-span-2 bg-slate-50 rounded-xl px-4 py-3">
+        <ShimmerBlock className="h-2 w-1/5 mb-2" />
+        <ShimmerBlock className="h-6 w-2/5" />
+      </div>
+    </div>
+  </div>
+);
+
+// --- Static Star Display ---
+const StarDisplay = () => (
+  <div className="flex gap-0.5">
+    {[1, 2, 3, 4, 5].map((s) => (
+      <span key={s} className="text-yellow-400 text-lg">★</span>
+    ))}
+  </div>
+);
+
+// --- Payout Detail Card (matches PHP card layout) ---
+const PayoutCard = ({ payout }) => {
+  if (!payout) return null;
+  const order = payout.order || {};
+  const parcelType = order.packageDetail?.types_of_product || order.packageDetail?.product_type || 'N/A';
+  const dropDpName = payout.dp?.requestedUser?.name || payout.dp?.name || 'N/A';
+  const receivingTime = payout.dp?.updated_at || payout.dp?.created_at || null;
+  const pickupDpName = payout.broadcast?.dpUser?.name || 'N/A';
+  const sendingTime = payout.broadcast?.updated_at || payout.broadcast?.created_at || null;
+
+  const formatDate = (dt) =>
+    dt
+      ? new Date(dt).toLocaleString('en-IN', {
+          day: '2-digit', month: '2-digit', year: '2-digit',
+          hour: '2-digit', minute: '2-digit', second: '2-digit',
+        })
+      : 'N/A';
+
+  return (
+    <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+      {/* Card header — purple gradient matching PHP */}
+      <div className="bg-gradient-to-b from-[#9073be] to-[#522f89] px-4 py-3 flex items-center justify-between">
+        <span className="text-xs font-bold text-white uppercase tracking-wide">Parcel Type</span>
+        <span className="text-xs font-semibold text-white/90 bg-white/10 px-3 py-1 rounded-full">{parcelType}</span>
+      </div>
+
+      <div className="p-4 grid grid-cols-2 gap-x-4 gap-y-4">
+        {/* Drop DP */}
+        <div className="col-span-2 sm:col-span-1">
+          <p className="text-[10px] uppercase font-bold text-[#5d3c96] mb-1">Drop Delivery Partner Name</p>
+          <p className="text-sm font-semibold text-slate-800">{dropDpName}</p>
+        </div>
+        <div className="col-span-2 sm:col-span-1">
+          <p className="text-[10px] uppercase font-bold text-[#5d3c96] mb-1">Receiving Timing</p>
+          <p className="text-sm text-slate-600">{formatDate(receivingTime)}</p>
+        </div>
+        <div className="col-span-2">
+          <p className="text-[10px] uppercase font-bold text-[#5d3c96] mb-1">Rating</p>
+          <StarDisplay />
+        </div>
+
+        <div className="col-span-2 border-t border-slate-100 my-1"></div>
+
+        {/* Pickup DP */}
+        <div className="col-span-2 sm:col-span-1">
+          <p className="text-[10px] uppercase font-bold text-[#5d3c96] mb-1">Receiver Delivery Partner Name</p>
+          <p className="text-sm font-semibold text-slate-800">{pickupDpName}</p>
+        </div>
+        <div className="col-span-2 sm:col-span-1">
+          <p className="text-[10px] uppercase font-bold text-[#5d3c96] mb-1">Sending Timing</p>
+          <p className="text-sm text-slate-600">{formatDate(sendingTime)}</p>
+        </div>
+        <div className="col-span-2">
+          <p className="text-[10px] uppercase font-bold text-[#5d3c96] mb-1">Rating</p>
+          <StarDisplay />
+        </div>
+
+        {/* Earning amount */}
+        <div className="col-span-2 bg-[#f8f4ff] rounded-xl px-4 py-3 mt-1">
+          <p className="text-[10px] uppercase font-bold text-[#5d3c96] mb-1">Earning</p>
+          <p className="text-xl font-extrabold text-[#522f89]">Rs. {payout.earnings ?? 0}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Main Page ---
 export const PdcEarning = () => {
-  const [transactions, setTransactions] = useState([]);
-  const [totalEarning, setTotalEarning] = useState(0);
+  const [earningsData, setEarningsData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeView, setActiveView] = useState('last'); // 'last' | 'today'
 
   const fetchEarnings = async () => {
     setIsLoading(true);
     try {
       const response = await fetchPdcEarnings();
-      setTransactions(response.data.transactions || []);
-      setTotalEarning(response.data.total || 0);
+      const data = response.data?.data || response.data;
+      setEarningsData(data);
     } catch (e) {
       console.error('Failed to load earnings', e);
     } finally {
@@ -24,53 +137,106 @@ export const PdcEarning = () => {
     fetchEarnings();
   }, []);
 
-  const headers = ['Transaction ID', 'Date & Time', 'Description', 'Amount'];
+  const totalEarning = earningsData?.totalEarning ?? 0;
+  const lastEarning = earningsData?.lastEarning ?? 0;
+  const pdcPayLast = earningsData?.pdcPayLast ?? null;
+  const todayEarnings = earningsData?.todayEarnings ?? [];
+  const todayTotal = todayEarnings.reduce((sum, t) => sum + (Number(t.earnings) || 0), 0);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 text-left page-transition">
-      {/* Total Earnings Balance Card */}
-      <div className="bg-gradient-to-br from-[#9073be] to-[#522f89] rounded-2xl shadow-lg p-6 md:p-8 text-white flex justify-between items-center relative overflow-hidden">
-        {/* Decorative background element */}
-        <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-white/5 skew-x-12 transform origin-top"></div>
-        
-        <div>
-          <span className="text-xs text-white/70 uppercase tracking-wider font-semibold">Total Accumulative Earnings</span>
-          <h2 className="text-3xl md:text-4xl font-extrabold font-display mt-2">₹ {totalEarning.toFixed(2)}</h2>
-          <p className="text-[10px] text-white/50 mt-1">Payout settlements are automatically credited to your wallet</p>
-        </div>
-        <div className="text-4xl">
-          🪙
-        </div>
+    <div className="w-full space-y-6 text-left page-transition pb-10">
+      <div>
+        <h2 className="text-xl font-bold text-slate-800">Earnings</h2>
+        <p className="text-xs text-slate-400 mt-1">Track your payout history and daily performance</p>
       </div>
 
-      {/* Ledger History List */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider pl-1">Earnings Transactions</h3>
-        
-        <Table
-          headers={headers}
-          data={transactions}
-          isLoading={isLoading}
-          emptyMessage="No payout transactions credited yet."
-          renderRow={(tx) => (
-            <tr key={tx.id} className="hover:bg-slate-50/50 transition-colors">
-              <td className="px-5 py-4 text-xs font-bold text-slate-400">
-                #TX-{tx.id}
-              </td>
-              <td className="px-5 py-4 text-xs text-slate-600">
-                {tx.created_at}
-              </td>
-              <td className="px-5 py-4 text-xs font-semibold text-slate-700">
-                {tx.description}
-              </td>
-              <td className="px-5 py-4 text-xs font-bold text-emerald-600">
-                + ₹{tx.amount.toFixed(2)}
-              </td>
-            </tr>
+      {/* Summary Cards — shimmer while loading */}
+      {isLoading ? (
+        <CardsSkeleton />
+      ) : (
+        <div className="grid grid-cols-3 gap-3">
+          {/* Last Earning Card — clickable */}
+          <div
+            onClick={() => setActiveView('last')}
+            className={`text-center cursor-pointer rounded-2xl border-2 p-4 sm:p-6 transition-all select-none ${
+              activeView === 'last'
+                ? 'border-[#9073be] bg-[#f8f4ff] shadow-md'
+                : 'border-slate-100 bg-white shadow-sm hover:border-[#c9b3e6]'
+            }`}
+          >
+            <p className="text-xs sm:text-sm font-bold text-[#5d3c96] mb-1 sm:mb-2">Last Earning</p>
+            <p className="text-lg sm:text-2xl font-extrabold text-slate-800">₹ {lastEarning}</p>
+          </div>
+
+          {/* Today's Earning Card — clickable */}
+          <div
+            onClick={() => setActiveView('today')}
+            className={`text-center cursor-pointer rounded-2xl border-2 p-4 sm:p-6 transition-all select-none ${
+              activeView === 'today'
+                ? 'border-[#9073be] bg-[#f8f4ff] shadow-md'
+                : 'border-slate-100 bg-white shadow-sm hover:border-[#c9b3e6]'
+            }`}
+          >
+            <p className="text-xs sm:text-sm font-bold text-[#5d3c96] mb-1 sm:mb-2">Today's Earning</p>
+            <p className="text-lg sm:text-2xl font-extrabold text-slate-800">₹ {todayTotal}</p>
+          </div>
+
+          {/* Total Earning Card — display only */}
+          <div className="text-center rounded-2xl border-2 border-slate-100 bg-white shadow-sm p-4 sm:p-6">
+            <p className="text-xs sm:text-sm font-bold text-[#5d3c96] mb-1 sm:mb-2">Total Earning</p>
+            <p className="text-lg sm:text-2xl font-extrabold text-slate-800">₹ {totalEarning}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Detail Section */}
+      {isLoading ? (
+        <div className="space-y-4">
+          <ShimmerBlock className="h-4 w-40" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <PayoutCardSkeleton />
+            <PayoutCardSkeleton />
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* LAST EARNING SECTION */}
+          {activeView === 'last' && (
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider pl-1">Last Payout Details</h3>
+              {pdcPayLast ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <PayoutCard payout={pdcPayLast} />
+                </div>
+              ) : (
+                <div className="text-center py-12 text-slate-400">
+                  <div className="text-5xl mb-3">💰</div>
+                  <p className="text-sm font-semibold">No payout records yet.</p>
+                </div>
+              )}
+            </div>
           )}
-        />
-      </div>
 
+          {/* TODAY EARNING SECTION */}
+          {activeView === 'today' && (
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider pl-1">Today's Payouts</h3>
+              {todayEarnings.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {todayEarnings.map((payout, i) => (
+                    <PayoutCard key={i} payout={payout} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-slate-400">
+                  <div className="text-5xl mb-3">📅</div>
+                  <p className="text-sm font-semibold">No earnings recorded today.</p>
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

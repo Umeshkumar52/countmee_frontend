@@ -16,7 +16,8 @@ const mapOrder = (o) => {
     drop_otp: o.drop_otp || '',
     items_count: o.items_count || 1,
     payment_status: o.payment_status || (o.payment_settled ? 'settled' : 'pending'),
-    created_at: o.createdAt ? new Date(o.createdAt).toISOString().split('T')[0] : (o.created_at || 'N/A')
+    created_at: o.createdAt ? new Date(o.createdAt).toISOString().split('T')[0] : (o.created_at || 'N/A'),
+    raw: o // Keep raw object for nested details (packageDetail, pdcEarning, etc)
   };
 };
 

@@ -1,101 +1,55 @@
-import React, { useState } from 'react';
-import Input from '../../../components/common/Input';
-import Button from '../../../components/common/Button';
+import React from 'react';
 
 export const PdcContactUs = () => {
-  const [subject, setSubject] = useState('');
-  const [message, setMessage] = useState('');
-  const [isSubmit, setIsSubmit] = useState(false);
-  const [success, setSuccess] = useState(false);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsSubmit(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmit(false);
-      setSuccess(true);
-      setSubject('');
-      setMessage('');
-      setTimeout(() => setSuccess(false), 3000);
-    }, 1000);
-  };
-
   return (
-    <div className="max-w-4xl mx-auto space-y-6 text-left page-transition">
-      <div>
-        <h2 className="text-xl font-bold text-slate-800">Contact Support</h2>
-        <p className="text-xs text-slate-400 mt-1">Get in touch with the CountMee administration support team</p>
-      </div>
+    <div className="min-h-[calc(100vh-100px)] flex items-center justify-center px-4 py-10 bg-slate-50">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-10 sm:p-12 text-center w-full max-w-sm">
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* Support Cards */}
-        <div className="md:col-span-1 space-y-4">
-          <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs text-center flex flex-col items-center">
-            <span className="text-2xl mb-2">📞</span>
-            <h4 className="font-bold text-slate-700 text-xs uppercase tracking-wide">Call Helpline</h4>
-            <p className="text-sm font-semibold text-brand-purple mt-1.5">+91 99999 88888</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Mon to Sat • 9 AM - 6 PM</p>
-          </div>
+        {/* Logo */}
+        <img
+          src="/countMe_logo.png"
+          alt="CountMee Logo"
+          className="w-24 h-auto mx-auto mb-6"
+          onError={(e) => { e.target.style.display = 'none'; }}
+        />
 
-          <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs text-center flex flex-col items-center">
-            <span className="text-2xl mb-2">✉️</span>
-            <h4 className="font-bold text-slate-700 text-xs uppercase tracking-wide">Email Support</h4>
-            <p className="text-sm font-semibold text-brand-purple mt-1.5">support@countmee.in</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">We reply within 24 hours</p>
-          </div>
-        </div>
+        {/* Heading */}
+        <h2 className="text-2xl font-bold text-slate-800 mb-6">Contact Us :</h2>
 
-        {/* Support Request Form */}
-        <div className="md:col-span-2 bg-white border border-slate-100 p-6 md:p-8 rounded-2xl shadow-xs">
-          <h3 className="font-bold text-slate-800 text-sm mb-4">Send a Support Ticket</h3>
-          
-          {success && (
-            <div className="mb-4 bg-emerald-50 text-emerald-600 text-xs font-semibold px-4 py-2.5 rounded-xl border border-emerald-100">
-              ✅ Support ticket sent successfully! We will contact you soon.
-            </div>
-          )}
+        {/* Email */}
+        <a
+          href="mailto:countmeeapp@gmail.com"
+          className="flex items-center justify-center gap-2 text-[#6b21c8] font-medium text-base mb-4 hover:text-[#4c1d95] transition-colors no-underline"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          countmeeapp@gmail.com
+        </a>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Subject"
-              id="subject"
-              placeholder="e.g. Wallet settlement issue, order missing"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              required
-            />
+        {/* Phone */}
+        <a
+          href="tel:+919900160707"
+          className="flex items-center justify-center gap-2 text-[#6b21c8] font-medium text-base mb-4 hover:text-[#4c1d95] transition-colors no-underline"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          </svg>
+          +919900160707
+        </a>
 
-            <div className="flex flex-col text-left">
-              <label htmlFor="message" className="text-xs font-semibold text-slate-600 mb-1.5">
-                Detailed Message
-              </label>
-              <textarea
-                id="message"
-                rows={4}
-                placeholder="Describe your issue or query in detail..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                required
-                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm transition-all outline-none focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple"
-              />
-            </div>
-
-            <Button
-              type="submit"
-              isLoading={isSubmit}
-              className="w-full py-3 bg-brand-purple hover:bg-brand-purple-dark text-white font-bold"
-            >
-              Submit Support Request
-            </Button>
-          </form>
+        {/* Location */}
+        <div className="flex items-center justify-center gap-2 text-[#6b21c8] font-medium text-base">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+            <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-2.083 3.204-4.399 3.204-6.977a7.5 7.5 0 10-15 0c0 2.578 1.26 4.894 3.204 6.977a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.144.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+          </svg>
+          Bengaluru, Karnataka
         </div>
 
       </div>
-
     </div>
   );
 };
 
 export default PdcContactUs;
+
