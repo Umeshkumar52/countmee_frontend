@@ -91,8 +91,8 @@ export const PdcRegister = () => {
         first_name: name,
         email,
         phone,
-        password1: password,
-        password2: confirmPassword,
+        password,
+        confirmPassword,
       })
     );
   };
