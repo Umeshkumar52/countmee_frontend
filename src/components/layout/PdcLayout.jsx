@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { Home, Coins, History, PhoneCall, Bell, Menu, Circle, LogOut, X } from "lucide-react";
 import {
   logoutUser,
   toggleOnlineStatus,
@@ -91,10 +92,10 @@ export const PdcLayout = () => {
   const isKycVerified = Number(pdcDocument?.status) === 1;
 
   const pdcMenuItems = [
-    { name: "Home", path: "/pdc/home", icon: "🏠" },
-    { name: "Earning", path: "/pdc/earning", icon: "🪙" },
-    { name: "Order History", path: "/pdc/order_history", icon: "📖" },
-    { name: "Contact us", path: "/pdc/contact_us", icon: "📞" },
+    { name: "Home", path: "/pdc/home", icon: <Home size={20} /> },
+    { name: "Earning", path: "/pdc/earning", icon: <Coins size={20} /> },
+    { name: "Order History", path: "/pdc/order_history", icon: <History size={20} /> },
+    { name: "Contact us", path: "/pdc/contact_us", icon: <PhoneCall size={20} /> },
   ];
 
   // Onboarding pages get a simplified layout (no nav, no bottom bar)
@@ -123,16 +124,16 @@ export const PdcLayout = () => {
       )}
 
       {/* Header Bar */}
-      <header className="sticky top-0 z-40 bg-gradient-to-r from-[#9073be] to-[#522f89] text-white shadow-md">
+      <header className="sticky top-0 z-40 bg-[#522e90] border-b-[3px] border-[#4a2a82] text-white shadow-[0_4px_6px_rgba(0,0,0,0.1)] rounded-b-[15px]">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-[100px]">
             {/* Mobile Sidebar toggle button — hide on onboarding */}
             {!isOnboardingPage && (
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="lg:hidden p-2 hover:bg-white/10 rounded-lg"
               >
-                <span className="text-xl">☰</span>
+                <Menu size={28} />
               </button>
             )}
 
@@ -141,22 +142,22 @@ export const PdcLayout = () => {
               <img
                 src="/countMe_logo.png"
                 alt="CountMee Logo"
-                className="h-10 w-auto object-contain bg-white rounded-lg p-1.5 select-none"
+                className="w-[120px] h-[70px] object-contain bg-white rounded-[10px] p-2 select-none shadow-sm"
               />
             </div>
 
             {/* Desktop Navigation Links — hidden during onboarding */}
             {!isOnboardingPage && (
-              <nav className="hidden lg:flex items-center space-x-6">
+              <nav className="hidden lg:flex items-center justify-evenly flex-1 mx-8">
                 {pdcMenuItems.slice(0, 2).map((item) => (
                   <NavLink
                     key={item.name}
                     to={item.path}
                     className={({ isActive }) =>
-                      `text-sm font-semibold flex items-center gap-1.5 transition-opacity ${
+                      `text-base font-normal flex items-center gap-1.5 px-3 transition-colors ${
                         isActive
-                          ? "opacity-100 underline underline-offset-4"
-                          : "opacity-80 hover:opacity-100"
+                          ? "bg-[#e7edfe] text-[#5d87ff] h-[37px] rounded-[7px]"
+                          : "text-white/80 hover:text-white"
                       }`
                     }
                   >
@@ -169,16 +170,21 @@ export const PdcLayout = () => {
                 {pdcDocument && (
                   <button
                     onClick={handleToggleOnline}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    className={`px-4 py-2 rounded-[6px] text-[15px] font-[500] transition-all flex items-center gap-2 cursor-pointer border-0 ${
                       isOnline
-                        ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
-                        : "bg-slate-700 hover:bg-slate-800 text-slate-200"
+                        ? "bg-[#522e90] text-white"
+                        : "bg-[#212529] text-white"
                     }`}
                   >
-                    <span
-                      className={`w-2 h-2 rounded-full ${isOnline ? "bg-white animate-ping" : "bg-red-500"}`}
-                    ></span>
-                    {isOnline ? "Online" : "Offline"}
+                    {isOnline ? (
+                      <>
+                        Online <Circle fill="white" strokeWidth={0} size={20} />
+                      </>
+                    ) : (
+                      <>
+                        <Circle fill="#dc3545" strokeWidth={0} size={20} /> Offline
+                      </>
+                    )}
                   </button>
                 )}
 
@@ -187,10 +193,10 @@ export const PdcLayout = () => {
                     key={item.name}
                     to={item.path}
                     className={({ isActive }) =>
-                      `text-sm font-semibold flex items-center gap-1.5 transition-opacity ${
+                      `text-base font-normal flex items-center gap-1.5 px-3 transition-colors ${
                         isActive
-                          ? "opacity-100 underline underline-offset-4"
-                          : "opacity-80 hover:opacity-100"
+                          ? "bg-[#e7edfe] text-[#5d87ff] h-[37px] rounded-[7px]"
+                          : "text-white/80 hover:text-white"
                       }`
                     }
                   >
@@ -212,7 +218,7 @@ export const PdcLayout = () => {
                   }}
                   className="p-2 hover:bg-white/10 rounded-lg relative transition-colors"
                 >
-                  <span className="text-lg">🔔</span>
+                  <Bell size={24} />
                   {unreadNotifs.length > 0 && (
                     <span className="absolute top-1.5 right-1.5 w-4.5 h-4.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center animate-bounce">
                       {unreadNotifs.length}
@@ -303,7 +309,7 @@ export const PdcLayout = () => {
                         onClick={handleLogout}
                         className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 transition-colors font-medium"
                       >
-                        <span>🚪</span> Log Out
+                        <LogOut size={16} /> Log Out
                       </button>
                     </div>
                   </div>
@@ -322,13 +328,13 @@ export const PdcLayout = () => {
             onClick={() => setIsMobileMenuOpen(false)}
           ></div>
           <div className="fixed top-0 bottom-0 left-0 w-64 bg-white shadow-xl flex flex-col z-50 page-transition">
-            <div className="h-16 px-6 bg-gradient-to-r from-[#9073be] to-[#522f89] text-white flex items-center justify-between">
+            <div className="h-[100px] px-6 bg-[#522e90] text-white flex items-center justify-between border-b-[3px] border-[#4a2a82]">
               <span className="text-lg font-bold">Menu</span>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-2xl text-white/80 hover:text-white"
+                className="text-white/80 hover:text-white"
               >
-                ×
+                <X size={28} />
               </button>
             </div>
 
@@ -337,16 +343,21 @@ export const PdcLayout = () => {
               <div className="p-4 border-b border-slate-100">
                 <button
                   onClick={handleToggleOnline}
-                  className={`w-full py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+                  className={`w-full py-2.5 rounded-[6px] text-[15px] font-[500] transition-all flex items-center justify-center gap-2 border-0 ${
                     isOnline
-                      ? "bg-emerald-500 text-white shadow-md"
-                      : "bg-slate-700 text-slate-200"
+                      ? "bg-[#522e90] text-white"
+                      : "bg-[#212529] text-white"
                   }`}
                 >
-                  <span
-                    className={`w-2.5 h-2.5 rounded-full ${isOnline ? "bg-white animate-ping" : "bg-red-500"}`}
-                  ></span>
-                  Online Status: {isOnline ? "ONLINE" : "OFFLINE"}
+                  {isOnline ? (
+                    <>
+                      Online <Circle fill="white" strokeWidth={0} size={20} />
+                    </>
+                  ) : (
+                    <>
+                      <Circle fill="#dc3545" strokeWidth={0} size={20} /> Offline
+                    </>
+                  )}
                 </button>
               </div>
             )}
@@ -357,7 +368,7 @@ export const PdcLayout = () => {
                   key={item.name}
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-colors ${
+                    `flex items-center gap-3 px-4 py-3 rounded-xl text-base font-normal transition-colors ${
                       isActive
                         ? "bg-brand-purple-soft text-brand-purple"
                         : "text-slate-600 hover:bg-slate-50"
