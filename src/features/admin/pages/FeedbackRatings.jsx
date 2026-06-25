@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { ROLES } from '../../../constants/roles.js';
 import { fetchRatings } from '../../../api/admin.api';
 import Table from '../../../components/common/Table';
 import Badge from '../../../components/common/Badge';
@@ -15,16 +16,16 @@ export const FeedbackRatings = () => {
         const rawList = response.data.ratings || response.data.data?.ratings || [];
         const formatted = rawList.map(r => {
           let name = 'System';
-          let role = 'customer';
+          let role = ROLES.USER;
           if (r.from_customer) {
             name = r.from_customer.name || 'Customer';
-            role = 'customer';
+            role = ROLES.USER;
           } else if (r.from_dp) {
             name = r.from_dp.name || 'Delivery Partner';
-            role = 'dp';
+            role = ROLES.DP;
           } else if (r.from_pdc) {
             name = r.from_pdc.name || 'PDC Hub';
-            role = 'pdc';
+            role = ROLES.PDC;
           }
           return {
             id: r._id,
@@ -75,7 +76,7 @@ export const FeedbackRatings = () => {
               {fb.user_name}
             </td>
             <td className="px-5 py-4 text-xs">
-              <Badge variant={fb.role === 'customer' ? 'info' : 'primary'}>
+              <Badge variant={fb.role === ROLES.USER ? 'info' : 'primary'}>
                 {fb.role}
               </Badge>
             </td>

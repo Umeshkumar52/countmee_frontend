@@ -6,6 +6,7 @@ import {
   updatePartner,
   deletePartner,
   fetchDpDetails,
+  updateDpApprovalStatus,
 } from "../../../api/admin.api";
 import Table from "../../../components/common/Table";
 import Badge from "../../../components/common/Badge";
@@ -13,7 +14,7 @@ import Button from "../../../components/common/Button";
 import Modal from "../../../components/common/Modal";
 import Input from "../../../components/common/Input";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Eye } from "lucide-react";
 
 // Reusable File Upload Preview Component
 const FileUpload = ({ label, id, preview, onChange, required }) => (
@@ -138,6 +139,7 @@ export const DeliveryPartners = () => {
         email: d.user?.email || "N/A",
         vehicle: d.vehicle_type || "Bike",
         status: d.status,
+        document_approval: d.document_approval,
       }));
       setPartners(formatted);
     } catch (e) {
@@ -589,12 +591,23 @@ export const DeliveryPartners = () => {
     }
   };
 
+  const handleToggleApproval = async (id, currentApproval) => {
+    const newStatus = currentApproval === "Approved" ? "Rejected" : "Approved";
+    try {
+      await updateDpApprovalStatus({ userId: id, document_approval: newStatus });
+      fetchPartners();
+    } catch (e) {
+      console.error("Failed to toggle approval", e);
+    }
+  };
+
   const headers = [
     "DP ID",
     "Name",
     "Phone",
     "Email",
     "Vehicle",
+    "Verification",
     "Status",
     "Actions",
   ];
@@ -657,6 +670,16 @@ export const DeliveryPartners = () => {
               {dp.vehicle || "Bike"}
             </td>
             <td className="px-5 py-4 text-xs">
+              <Button
+                onClick={() => handleToggleApproval(dp.id, dp.document_approval)}
+                variant={dp.document_approval === "Approved" ? "danger" : "success"}
+                size="sm"
+                className="py-1 px-2.5 text-[10px]"
+              >
+                {dp.document_approval === "Approved" ? "Reject" : "Approve"}
+              </Button>
+            </td>
+            <td className="px-5 py-4 text-xs">
               <Badge variant={dp.status === "active" ? "success" : "slate"}>
                 {dp.status}
               </Badge>
@@ -667,8 +690,9 @@ export const DeliveryPartners = () => {
                 variant="outline"
                 size="sm"
                 className="py-1 px-2.5 text-[10px]"
+                icon={Eye}
               >
-                📄 KYC Docs
+                View
               </Button>
               <Button
                 onClick={() => handleOpenEditModal(dp)}
