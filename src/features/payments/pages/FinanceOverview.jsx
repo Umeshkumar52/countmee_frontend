@@ -9,7 +9,7 @@ import Input from '../../../components/common/Input';
 
 export const FinanceOverview = () => {
   const [activeView, setActiveView] = useState('pending'); // pending, past
-  const [financeType, setFinanceType] = useState('dp'); // dp, pdc
+  const [financeType, setFinanceType] = useState('DP'); // DP, PDC
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 30);
@@ -101,7 +101,7 @@ export const FinanceOverview = () => {
     setIsDetailsOpen(true);
   };
 
-  const pendingHeaders = financeType === 'dp'
+  const pendingHeaders = financeType === 'DP'
     ? ['Pilot ID', 'Pilot Name', 'Total Orders', 'Sum to Pay', 'Bank Details', 'Actions']
     : ['PDC ID', 'Center Name', 'Total Orders', 'Sum to Pay', 'Bank Details', 'Actions'];
 
@@ -148,9 +148,9 @@ export const FinanceOverview = () => {
               <label className="text-xs font-bold text-slate-500 mb-1.5">Payout Partner Type</label>
               <div className="flex gap-2">
                 <button
-                  onClick={() => setFinanceType('dp')}
+                  onClick={() => setFinanceType('DP')}
                   className={`px-4 py-2 text-xs font-semibold rounded-lg transition-colors border cursor-pointer ${
-                    financeType === 'dp'
+                    financeType === 'DP'
                       ? 'bg-brand-purple border-brand-purple text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
@@ -158,9 +158,9 @@ export const FinanceOverview = () => {
                   Delivery Partner (Pilot)
                 </button>
                 <button
-                  onClick={() => setFinanceType('pdc')}
+                  onClick={() => setFinanceType('PDC')}
                   className={`px-4 py-2 text-xs font-semibold rounded-lg transition-colors border cursor-pointer ${
-                    financeType === 'pdc'
+                    financeType === 'PDC'
                       ? 'bg-brand-purple border-brand-purple text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
@@ -206,7 +206,7 @@ export const FinanceOverview = () => {
             headers={pendingHeaders}
             data={pendingRecords}
             isLoading={isLoading}
-            emptyMessage={`No pending ${financeType === 'dp' ? 'Delivery Partner' : 'PDC'} payouts found in this date range.`}
+            emptyMessage={`No pending ${financeType === 'DP' ? 'Delivery Partner' : 'PDC'} payouts found in this date range.`}
             renderRow={(group) => {
               const id = group.dp_auth_id || group.pdc_auth_id;
               const isHovered = hoveredBankId === id;
@@ -238,7 +238,7 @@ export const FinanceOverview = () => {
 
                     {isHovered && (
                       <div className="absolute z-50 bottom-full mb-2 left-5 bg-slate-800 text-white p-3 rounded-xl shadow-lg border border-slate-700 min-w-56 text-[10px] space-y-1 page-transition">
-                        {financeType === 'dp' ? (
+                        {financeType === 'DP' ? (
                           <>
                             <p className="font-bold border-b border-slate-700 pb-1 mb-1 text-slate-300">Bank Details</p>
                             <p><span className="text-slate-400">Bank Name:</span> {group.bank_name}</p>
@@ -293,8 +293,8 @@ export const FinanceOverview = () => {
                   {item.user_name}
                 </td>
                 <td className="px-5 py-4 text-xs">
-                  <Badge variant={item.user_type === 'dp' ? 'success' : 'indigo'}>
-                    {item.user_type === 'dp' ? 'Pilot (DP)' : 'PDC Center'}
+                  <Badge variant={item.user_type === 'DP' ? 'success' : 'indigo'}>
+                    {item.user_type === 'DP' ? 'Pilot (DP)' : 'PDC Center'}
                   </Badge>
                 </td>
                 <td className="px-5 py-4 text-xs font-bold text-slate-700">

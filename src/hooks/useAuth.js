@@ -1,11 +1,12 @@
 import { useSelector } from 'react-redux';
+import { ROLES } from '../constants/roles.js';
 
 export const useAuth = () => {
   const { token, user, pdcDocument, isLoading, error } = useSelector((state) => state.auth);
 
   const isAuthenticated = !!token;
-  const isAdmin = user?.role === 'admin';
-  const isPdc = user?.role === 'pdc';
+  const isAdmin = user?.role === ROLES.ADMIN;
+  const isPdc = user?.role === ROLES.PDC;
 
   // Overall KYC approved: admin sets pdcDocument.status = 1
   const isKycVerified = isPdc && pdcDocument && Number(pdcDocument.status) === 1;

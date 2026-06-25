@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { fetchReportsData } from '../../../api/admin.api';
+import { ROLES } from '../../../constants/roles.js';
 import Table from '../../../components/common/Table';
 import Badge from '../../../components/common/Badge';
 import Button from '../../../components/common/Button';
@@ -74,7 +75,7 @@ export const Reports = () => {
       headers = ['User ID', 'User Type', 'Full Name', 'Mobile Number', 'Email Address', 'Registration Date'];
       rows = reportData.map(u => [
         u.id,
-        u.role ? u.role.toUpperCase() : 'CUSTOMER',
+        u.role ? u.role.toUpperCase() : ROLES.USER.toUpperCase(),
         `"${u.name || 'N/A'}"`,
         u.phone || 'N/A',
         u.email || 'N/A',
@@ -230,8 +231,8 @@ export const Reports = () => {
                       #{item.id}
                     </td>
                     <td className="px-5 py-3.5 text-xs">
-                      <Badge variant={item.role === 'admin' ? 'danger' : item.role === 'pdc' ? 'indigo' : 'success'}>
-                        {item.role ? item.role.toUpperCase() : 'CUSTOMER'}
+                      <Badge variant={item.role === ROLES.ADMIN ? 'danger' : item.role === ROLES.PDC ? 'indigo' : 'success'}>
+                        {item.role ? item.role.toUpperCase() : ROLES.USER.toUpperCase()}
                       </Badge>
                     </td>
                     <td className="px-5 py-3.5 text-xs font-bold text-slate-800">
@@ -258,7 +259,7 @@ export const Reports = () => {
                       {item.user_name}
                     </td>
                     <td className="px-5 py-3.5 text-xs">
-                      <Badge variant="indigo">{item.role ? item.role.toUpperCase() : 'CUSTOMER'}</Badge>
+                      <Badge variant="indigo">{item.role ? item.role.toUpperCase() : ROLES.USER.toUpperCase()}</Badge>
                     </td>
                     <td className="px-5 py-3.5 text-xs text-slate-600 italic font-medium">
                       "{item.comment}"

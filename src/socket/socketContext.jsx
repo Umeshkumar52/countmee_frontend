@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { io } from "socket.io-client";
 import { addNotification } from "../features/notifications/notificationSlice";
 import { requestFcmToken, onForegroundMessage } from "../firebase/firebaseConfig";
+import { ROLES } from "../constants/roles.js";
 
 const USE_MOCK = false;
 
@@ -59,7 +60,7 @@ export const SocketProvider = ({ children }) => {
       window.triggerMockNotification = (title, message) => {
         const newNotif = {
           id: Math.floor(Math.random() * 100000),
-          notifiable_type: user.role === "admin" ? "admin" : "pdc",
+          notifiable_type: user.role === ROLES.ADMIN ? ROLES.ADMIN : ROLES.PDC,
           user_id: user.id,
           title,
           message,

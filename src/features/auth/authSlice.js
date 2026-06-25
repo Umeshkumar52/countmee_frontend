@@ -73,7 +73,7 @@ export const logoutUser = createAsyncThunk(
       if (sessionStr) {
         try {
           const session = JSON.parse(sessionStr);
-          if (session?.user?.user_type === 'pdc') {
+          if (session?.user?.user_type === 'PDC') {
             await logoutPdc();
           }
         } catch (e) {}

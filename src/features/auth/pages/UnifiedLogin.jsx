@@ -6,6 +6,7 @@ import AuthLayout from '../../../components/layout/AuthLayout';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import useAuth from '../../../hooks/useAuth';
+import { ROLES } from '../../../constants/roles';
 
 // Clean SVG Icons
 const EnvelopeIcon = () => (
@@ -27,7 +28,7 @@ const PhoneIcon = () => (
 );
 
 export const UnifiedLogin = () => {
-  const [activeTab, setActiveTab] = useState('pdc'); // pdc, admin
+  const [activeTab, setActiveTab] = useState('PDC'); // PDC, ADMIN
   
   // Credentials states
   const [phone, setPhone] = useState('');
@@ -56,9 +57,9 @@ export const UnifiedLogin = () => {
   // Handle role-based redirections on load or successful auth
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === 'admin') {
+      if (user.role === ROLES.ADMIN) {
         navigate('/admin/dashboard', { replace: true });
-      } else if (user.role === 'pdc') {
+      } else if (user.role === ROLES.PDC) {
         // KYC Guard will redirect to /pdc/home if already approved,
         // or stay on /pdc/profile_setup for the onboarding hub
         navigate('/pdc/profile_setup', { replace: true });
@@ -81,7 +82,7 @@ export const UnifiedLogin = () => {
     e.preventDefault();
     setValidationError('');
 
-    if (activeTab === 'pdc') {
+    if (activeTab === 'PDC') {
       if (phone.length !== 10) {
         setValidationError('Please enter a valid 10-digit mobile number');
         return;
@@ -102,9 +103,9 @@ export const UnifiedLogin = () => {
       <div className="w-full flex bg-slate-100 p-1 rounded-xl mb-6 relative select-none">
         <button
           type="button"
-          onClick={() => setActiveTab('pdc')}
+          onClick={() => setActiveTab('PDC')}
           className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-            activeTab === 'pdc'
+            activeTab === 'PDC'
               ? 'bg-white text-brand-purple shadow-xs'
               : 'text-slate-500 hover:text-slate-800'
           }`}
@@ -113,9 +114,9 @@ export const UnifiedLogin = () => {
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab('admin')}
+          onClick={() => setActiveTab('ADMIN')}
           className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-            activeTab === 'admin'
+            activeTab === 'ADMIN'
               ? 'bg-white text-brand-purple shadow-xs'
               : 'text-slate-500 hover:text-slate-800'
           }`}
@@ -125,10 +126,10 @@ export const UnifiedLogin = () => {
       </div>
 
       <h2 className="text-xl font-extrabold text-slate-800 font-display uppercase tracking-wider">
-        {activeTab === 'pdc' ? 'PDC Partner Login' : 'Admin Login'}
+        {activeTab === 'PDC' ? 'PDC Partner Login' : 'Admin Login'}
       </h2>
       <p className="text-xs text-slate-500 mt-1 mb-6">
-        {activeTab === 'pdc' ? 'Manage your hub shipments' : 'Platform administrative access'}
+        {activeTab === 'PDC' ? 'Manage your hub shipments' : 'Platform administrative access'}
       </p>
 
       {/* Error Displays */}
@@ -144,7 +145,7 @@ export const UnifiedLogin = () => {
       )}
 
       <form onSubmit={handleSubmit} className="w-full space-y-4 text-left">
-        {activeTab === 'pdc' ? (
+        {activeTab === 'PDC' ? (
           <Input
             label="Mobile Number"
             id="phone"
@@ -208,7 +209,7 @@ export const UnifiedLogin = () => {
         </Button>
       </form>
 
-      {activeTab === 'pdc' && (
+      {activeTab === 'PDC' && (
         <div className="mt-6 text-center text-xs text-slate-600 border-t border-slate-100 pt-4 w-full">
           <p className="mb-2">New to Countmee?</p>
           <Link to="/pdc/register" className="text-brand-success hover:underline font-bold text-sm">

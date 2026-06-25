@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import RoleGuard from "./RoleGuard";
 import PdcKycGuard from "./PdcKycGuard";
+import { ROLES } from "../constants/roles.js";
 
 // Layouts
 import AdminLayout from "../components/layout/AdminLayout";
@@ -31,7 +32,7 @@ import OrderView from "../features/orders/pages/OrderView";
 // Admin-Only Pages
 import Dashboard from "../features/admin/pages/Dashboard";
 import DeliveryPartners from "../features/admin/pages/DeliveryPartners";
-import DpDetails from "../features/admin/pages/DpDetails";
+import DpDocumentVerification from "../features/admin/pages/DpDocumentVerification";
 import Customers from "../features/admin/pages/Customers";
 import PdcList from "../features/admin/pages/PdcList";
 import PdcDetails from "../features/admin/pages/PdcDetails";
@@ -55,7 +56,7 @@ export const AppRoutes = () => {
         path="/pdc"
         element={
           <ProtectedRoute>
-            <RoleGuard allowedRoles={["pdc"]}>
+            <RoleGuard allowedRoles={[ROLES.PDC]}>
               <PdcKycGuard>
                 <PdcLayout />
               </PdcKycGuard>
@@ -84,7 +85,7 @@ export const AppRoutes = () => {
         path="/admin"
         element={
           <ProtectedRoute>
-            <RoleGuard allowedRoles={["admin"]}>
+            <RoleGuard allowedRoles={[ROLES.ADMIN]}>
               <AdminLayout />
             </RoleGuard>
           </ProtectedRoute>
@@ -92,7 +93,7 @@ export const AppRoutes = () => {
       >
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="delivery-partners" element={<DeliveryPartners />} />
-        <Route path="delivery-partners/:id" element={<DpDetails />} />
+        <Route path="delivery-partners/:id" element={<DpDocumentVerification />} />
         <Route path="customers" element={<Customers />} />
         <Route path="pdc-list" element={<PdcList />} />
         <Route path="pdcs/:id" element={<PdcDetails />} />

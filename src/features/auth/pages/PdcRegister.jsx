@@ -6,6 +6,7 @@ import AuthLayout from '../../../components/layout/AuthLayout';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import useAuth from '../../../hooks/useAuth';
+import { ROLES } from '../../../constants/roles';
 
 // Clean SVG Icons
 const UserIcon = () => (
@@ -50,7 +51,7 @@ export const PdcRegister = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (isAuthenticated && user?.role === 'pdc') {
+    if (isAuthenticated && user?.role === ROLES.PDC) {
       // KYC Guard will redirect to /pdc/home if approved, otherwise shows hub
       navigate('/pdc/profile_setup', { replace: true });
     }
