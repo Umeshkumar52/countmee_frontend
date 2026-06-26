@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { loginAdmin, loginPdc, registerPdc as registerPdcApi, logoutPdc } from '../../api/auth.api';
 import { toggleOnline } from '../../api/pdc.api';
+import { getFcmToken } from '../../firebase/firebaseConfig';
 
 // Load initial session if exists
 const getLocalSession = () => {
@@ -35,11 +36,14 @@ export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
+      const fcmToken = await getFcmToken();
+      const payload = { ...credentials, fcmToken };
+
       let response;
       if (credentials.email) {
-        response = await loginAdmin(credentials);
+        response = await loginAdmin(payload);
       } else if (credentials.phone) {
-        response = await loginPdc(credentials);
+        response = await loginPdc(payload);
       } else {
         throw new Error('Email or phone is required');
       }
@@ -55,7 +59,17 @@ export const registerPdc = createAsyncThunk(
   'auth/register',
   async (formData, { rejectWithValue }) => {
     try {
-      const response = await registerPdcApi(formData);
+      const fcmToken = await getFcmToken();
+      
+      // formData might be FormData object or plain object
+      let payload = formData;
+      if (formData instanceof FormData) {
+        formData.append('fcmToken', fcmToken || '');
+      } else {
+        payload = { ...formData, fcmToken };
+      }
+
+      const response = await registerPdcApi(payload);
       return response.data.data || response.data;
     } catch (err) {
       const message = err.response?.data?.message || err.message || 'Registration failed';
@@ -68,13 +82,14 @@ export const logoutUser = createAsyncThunk(
   'auth/logout',
   async (_, { rejectWithValue }) => {
     try {
+      const fcmToken = await getFcmToken();
       // Best-effort logout to backend
       const sessionStr = localStorage.getItem('countme_session');
       if (sessionStr) {
         try {
           const session = JSON.parse(sessionStr);
-          if (session?.user?.user_type === 'PDC') {
-            await logoutPdc();
+          if (session?.user?.user_type === 'PDC' || session?.user?.role === 'PDC') {
+            await logoutPdc({ fcmToken });
           }
         } catch (e) {}
       }

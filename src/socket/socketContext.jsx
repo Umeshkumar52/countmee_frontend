@@ -2,8 +2,12 @@ import { createContext, useContext, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { io } from "socket.io-client";
 import { addNotification } from "../features/notifications/notificationSlice";
-import { requestFcmToken, onForegroundMessage } from "../firebase/firebaseConfig";
+import {
+  requestFcmToken,
+  onForegroundMessage,
+} from "../firebase/firebaseConfig";
 import { ROLES } from "../constants/roles.js";
+import { log } from "firebase/firestore/pipelines";
 
 const USE_MOCK = false;
 
@@ -74,7 +78,9 @@ export const SocketProvider = ({ children }) => {
         mockSocket.trigger("order:assigned", order);
       };
     } else {
-      const baseUrl = (import.meta.env.VITE_API_URL || "http://localhost:3008/api").replace(/\/api\/?$/, "");
+      const baseUrl = (
+        import.meta.env.VITE_API_URL || "http://localhost:3008/api"
+      ).replace(/\/api\/?$/, "");
       socketRef.current = io(baseUrl, {
         auth: { token },
         transports: ["websocket"],
