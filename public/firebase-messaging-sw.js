@@ -8,13 +8,13 @@ importScripts(
 
 // Initialize the Firebase app in the service worker by passing VAPID configuration
 firebase.initializeApp({
-  apiKey: "AIzaSyD_LmxwI7934gOCqoUMI-iuYnY5QHvn_CI",
-  authDomain: "countmee-cf825.firebaseapp.com",
-  projectId: "countmee-cf825",
-  storageBucket: "countmee-cf825.firebasestorage.app",
-  messagingSenderId: "259581174185",
-  appId: "1:259581174185:web:cfbe068f080fe314a8e4b8",
-  measurementId: "G-6TQ7L0XQF4",
+  apiKey: "AIzaSyBnLlM15Hj1FwjUfqf4_fgI384r-0_mIf0",
+  authDomain: "countmee-cd2e5.firebaseapp.com",
+  projectId: "countmee-cd2e5",
+  storageBucket: "countmee-cd2e5.firebasestorage.app",
+  messagingSenderId: "596364310462",
+  appId: "1:596364310462:web:20c3fe763b7146b6852bef",
+  measurementId: "G-W1CX986CH6",
 });
 
 const messaging = firebase.messaging();

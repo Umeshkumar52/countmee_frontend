@@ -36,8 +36,18 @@ const notificationSlice = createSlice({
   initialState,
   reducers: {
     addNotification: (state, action) => {
-      // Append new real-time notification to the beginning of the list
-      state.notifications.unshift(action.payload);
+      const newNotif = action.payload;
+      // Prevent duplicates from FCM and Socket firing simultaneously
+      const exists = state.notifications.find(n => 
+        (n.id && n.id === newNotif.id) || 
+        (n._id && n._id === newNotif.id) ||
+        (newNotif._id && n.id === newNotif._id)
+      );
+      
+      if (!exists) {
+        // Append new real-time notification to the beginning of the list
+        state.notifications.unshift(newNotif);
+      }
     },
   },
   extraReducers: (builder) => {
