@@ -15,8 +15,14 @@ let app = null;
 let messaging = null;
 
 try {
+  // Check if we have the minimum required config
+  if (!firebaseConfig.apiKey) {
+    console.warn(
+      "[Firebase] Client initialization skipped. Missing VITE_FIREBASE_API_KEY in environment variables.",
+    );
+  }
   // Check if we are running in a supported browser context
-  if (
+  else if (
     typeof window !== "undefined" &&
     "serviceWorker" in navigator &&
     "PushManager" in window
@@ -37,23 +43,17 @@ try {
 
 export { app, messaging };
 
-/**
- * Request notification permissions and register token with backend
- */
-export const requestFcmToken = async () => {
+export const getFcmToken = async () => {
   if (!messaging) return null;
 
   try {
-    const permission = await Notification.requestPermission();
-    if (permission === "granted") {
+    if (Notification.permission === "granted") {
       const vapidKey =
         import.meta.env.VITE_FIREBASE_VAPID_KEY || "BFZ0G_DUMMY_VAPID_KEY";
 
-      // Pre-validate vapidKey to prevent Firebase's internal atob() from throwing uncaught/noisy errors
       let isValidVapidKey = false;
       try {
         if (vapidKey && !vapidKey.includes("DUMMY") && vapidKey.length > 20) {
-          // base64url decode test
           const standardBase64 =
             vapidKey.replace(/-/g, "+").replace(/_/g, "/") +
             "=".repeat((4 - (vapidKey.length % 4)) % 4);
@@ -73,9 +73,7 @@ export const requestFcmToken = async () => {
 
       const fcmToken = await getToken(messaging, { vapidKey });
       if (fcmToken) {
-        console.log("[Firebase] Registered FCM Token:", fcmToken);
-        // Upload token to backend via auth router
-        await client.post("/auth/fcm-token", { fcmToken });
+        console.log("[Firebase] Generated FCM Token:", fcmToken);
         return fcmToken;
       }
     } else {
@@ -91,9 +89,37 @@ export const requestFcmToken = async () => {
 };
 
 /**
- * Setup foreground notification listener
- * @param {function} onNotificationReceived
+ * Request notification permissions and register token with backend
  */
+export const requestFcmToken = async () => {
+  if (typeof window !== "undefined" && "Notification" in window) {
+    if (Notification.permission === "default") {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+          console.warn("[Firebase] User denied notification permission.");
+          return null;
+        }
+      } catch (e) {
+        console.error("Failed to request permission:", e);
+      }
+    }
+  }
+
+  const fcmToken = await getFcmToken();
+  if (fcmToken) {
+    try {
+      // Upload token to backend via auth router
+      await client.post("/auth/fcm-token", { fcmToken });
+      console.log("[Firebase] FCM Token synced with backend.");
+      return fcmToken;
+    } catch (err) {
+      console.error("[Firebase] Failed to sync FCM token:", err.message);
+    }
+  }
+  return null;
+};
+
 export const onForegroundMessage = (onNotificationReceived) => {
   if (!messaging) return () => {};
   return onMessage(messaging, (payload) => {
@@ -103,6 +129,7 @@ export const onForegroundMessage = (onNotificationReceived) => {
     );
     if (typeof onNotificationReceived === "function") {
       onNotificationReceived({
+        id: payload.data?.notification_id || Math.floor(Math.random() * 100000).toString(),
         title: payload.notification?.title || "Notification",
         message: payload.notification?.body || "",
         order_id: payload.data?.order_id || null,
