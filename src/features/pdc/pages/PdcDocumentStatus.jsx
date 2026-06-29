@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { updatePdcDocumentState } from '../../auth/authSlice';
-import { fetchPdcProfile } from '../../../api/pdc.api';
+import { fetchPdcDocStatus } from '../../../api/pdc.api';
 import useAuth from '../../../hooks/useAuth';
 import Badge from '../../../components/common/Badge';
 import Button from '../../../components/common/Button';
@@ -16,9 +16,9 @@ export const PdcDocumentStatus = () => {
   const checkStatus = async () => {
     setIsRefreshing(true);
     try {
-      const response = await fetchPdcProfile();
-      // Backend returns: { success, message, data: { document: {...} } }
-      const doc = response.data?.data?.document || response.data?.data || null;
+      const response = await fetchPdcDocStatus();
+      // Backend returns: { success, message, data: { pdcDocument: {...} } }
+      const doc = response.data?.data?.pdcDocument || response.data?.data || null;
       if (doc) {
         dispatch(updatePdcDocumentState(doc));
       }

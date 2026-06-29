@@ -7,11 +7,11 @@ import client from './client';
 export const fetchPdcProfile = () => client.get('/pdc/profile');
 
 /**
- * Step 1 — Update inner account details (name, phone, email, city, address).
+ * Step 1 — Update inner account details (name, phone, email).
  * Sends JSON.
  */
 export const updatePdcInnerRegister = (data) =>
-  client.post('/pdc/inner-register-update', data);
+  client.put('/pdc/inner-register-update', data);
 
 /**
  * Step 2 — Submit KYC documents.
