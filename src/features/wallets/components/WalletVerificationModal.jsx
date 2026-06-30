@@ -4,12 +4,15 @@ import Modal from '../../../components/common/Modal';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 
-export const WalletVerificationModal = ({ isOpen, onClose, onVerificationSuccess, actionLabel }) => {
+export const WalletVerificationModal = ({ isOpen, onClose, onVerificationSuccess, actionLabel, actionType, amount }) => {
   const [step, setStep] = useState(1); // 1: Email/Password, 2: Phone Selection, 3: OTP
-  const [email, setEmail] = useState('admin@gmail.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [selectedPhone, setSelectedPhone] = useState('7411199281');
   const [otp, setOtp] = useState('');
+  
+  const [credentialsToken, setCredentialsToken] = useState('');
+  const [otpToken, setOtpToken] = useState('');
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -21,7 +24,8 @@ export const WalletVerificationModal = ({ isOpen, onClose, onVerificationSuccess
 
     try {
       // Step 1: Verify admin credentials
-      await verifyCredentials({ email, password });
+      const res = await verifyCredentials({ email, password });
+      setCredentialsToken(res.data?.data?.credentialsToken || res.data?.credentialsToken);
       setStep(2);
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid security credentials');
@@ -37,7 +41,13 @@ export const WalletVerificationModal = ({ isOpen, onClose, onVerificationSuccess
 
     try {
       // Step 2: Send OTP to selected phone
-      await sendOtp({ phone: selectedPhone });
+      const res = await sendOtp({ 
+        phone: selectedPhone, 
+        action_type: actionType, 
+        amount: parseFloat(amount) || 0, 
+        credentialsToken 
+      });
+      setOtpToken(res.data?.data?.otpToken || res.data?.otpToken);
       setStep(3);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send OTP to registered number');
@@ -53,10 +63,11 @@ export const WalletVerificationModal = ({ isOpen, onClose, onVerificationSuccess
 
     try {
       // Step 3: Verify OTP
-      await verifyOtp({ otp });
+      const res = await verifyOtp({ otp, otpToken });
+      const finalToken = res.data?.data?.verificationToken || res.data?.verificationToken;
 
       // Execute target action
-      onVerificationSuccess();
+      onVerificationSuccess(finalToken);
       onClose();
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid OTP code');

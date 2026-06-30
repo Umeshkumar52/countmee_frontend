@@ -318,7 +318,7 @@ export const DpDocumentVerification = () => {
               {renderDocumentSection(
                 "Bank Details",
                 "bank",
-                [{ label: "Front", img: dpDocument.bank_imagefront }, { label: "Back", img: dpDocument.bank_imgeback }],
+                [{ label: "Front", img: dpDocument.bank_imagefront }, { label: "Back", img: dpDocument.bank_imageback }],
                 "bank_status",
                 "bank_reject_reason",
                 "Bank/Account",

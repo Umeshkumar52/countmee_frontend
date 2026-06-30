@@ -14,7 +14,8 @@ import Button from "../../../components/common/Button";
 import Modal from "../../../components/common/Modal";
 import Input from "../../../components/common/Input";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
-import { Plus, Search, Eye } from "lucide-react";
+import { Plus, Search, Eye, Edit2, Trash2, FolderUp } from "lucide-react";
+import { VEHICLE_TYPES } from "../../../constants";
 
 // Reusable File Upload Preview Component
 const FileUpload = ({ label, id, preview, onChange, required }) => (
@@ -24,19 +25,23 @@ const FileUpload = ({ label, id, preview, onChange, required }) => (
     </span>
     <div className="relative border border-dashed border-slate-200 hover:border-[#553092] rounded-xl p-3 flex flex-col items-center justify-center bg-slate-50 transition-colors h-28 cursor-pointer overflow-hidden">
       {preview ? (
-        <img src={preview} alt="Upload Preview" className="w-full h-full object-contain" />
+        <img
+          src={preview}
+          alt="Upload Preview"
+          className="w-full h-full object-contain"
+        />
       ) : (
         <div className="flex flex-col items-center text-slate-400">
-          <span className="text-xl">📁</span>
+          <FolderUp size={24} className="mb-1 text-slate-400" />
           <span className="text-[10px] font-semibold mt-1">Upload image</span>
         </div>
       )}
-      <input 
-        type="file" 
-        id={id} 
-        accept="image/*" 
-        onChange={onChange} 
-        className="absolute inset-0 opacity-0 cursor-pointer" 
+      <input
+        type="file"
+        id={id}
+        accept="image/*"
+        onChange={onChange}
+        className="absolute inset-0 opacity-0 cursor-pointer"
       />
     </div>
   </div>
@@ -62,7 +67,7 @@ export const DeliveryPartners = () => {
   const [dob, setDob] = useState("");
   const [gender, setGender] = useState("");
   const [address, setAddress] = useState("");
-  const [vehicle, setVehicle] = useState("Two Wheeler"); // maps to vehicle_type
+  const [vehicle, setVehicle] = useState(VEHICLE_TYPES.TWO_WHEELER); // maps to vehicle_type
 
   // Documents
   const [aadharNumber, setAadharNumber] = useState("");
@@ -104,19 +109,6 @@ export const DeliveryPartners = () => {
   const [vehicleImgPreview, setVehicleImgPreview] = useState("");
   const [bankImageFrontPreview, setBankImageFrontPreview] = useState("");
   const [bankImgBackPreview, setBankImgBackPreview] = useState("");
-
-  // Existing/uploaded file names (for edit mode)
-  const [existingProfileImg, setExistingProfileImg] = useState("");
-  const [existingAadharImgFront, setExistingAadharImgFront] = useState("");
-  const [existingAadharImgBack, setExistingAadharImgBack] = useState("");
-  const [existingRcImgFront, setExistingRcImgFront] = useState("");
-  const [existingRcImgBack, setExistingRcImgBack] = useState("");
-  const [existingDlImgFront, setExistingDlImgFront] = useState("");
-  const [existingDlImgBack, setExistingDlImgBack] = useState("");
-  const [existingResidenceImg, setExistingResidenceImg] = useState("");
-  const [existingVehicleImg, setExistingVehicleImg] = useState("");
-  const [existingBankImageFront, setExistingBankImageFront] = useState("");
-  const [existingBankImgBack, setExistingBankImgBack] = useState("");
 
   // Step state (1: Basic, 2: Vehicle, 3: KYC Docs & Bank, 4: References)
   const [currentStep, setCurrentStep] = useState(1);
@@ -161,7 +153,7 @@ export const DeliveryPartners = () => {
     setSelectedPartner(null);
     setCurrentStep(1);
     setValidationError("");
-    
+
     // Clear all inputs
     setName("");
     setEmail("");
@@ -169,8 +161,8 @@ export const DeliveryPartners = () => {
     setDob("");
     setGender("");
     setAddress("");
-    setVehicle("Two Wheeler");
-    
+    setVehicle(VEHICLE_TYPES.TWO_WHEELER);
+
     setAadharNumber("");
     setRcNumber("");
     setDlNumber("");
@@ -182,7 +174,7 @@ export const DeliveryPartners = () => {
     setReference1Phone("");
     setReference2Name("");
     setReference2Phone("");
-    
+
     // Clear file states
     setProfileImg(null);
     setAadharImgFront(null);
@@ -195,7 +187,7 @@ export const DeliveryPartners = () => {
     setVehicleImg(null);
     setBankImageFront(null);
     setBankImgBack(null);
-    
+
     // Clear previews
     setProfileImgPreview("");
     setAadharImgFrontPreview("");
@@ -209,19 +201,6 @@ export const DeliveryPartners = () => {
     setBankImageFrontPreview("");
     setBankImgBackPreview("");
 
-    // Clear existing filenames
-    setExistingProfileImg("");
-    setExistingAadharImgFront("");
-    setExistingAadharImgBack("");
-    setExistingRcImgFront("");
-    setExistingRcImgBack("");
-    setExistingDlImgFront("");
-    setExistingDlImgBack("");
-    setExistingResidenceImg("");
-    setExistingVehicleImg("");
-    setExistingBankImageFront("");
-    setExistingBankImgBack("");
-    
     setIsModalOpen(true);
   };
 
@@ -236,7 +215,7 @@ export const DeliveryPartners = () => {
     setName(partner.name || "");
     setEmail(partner.email || "");
     setPhone(partner.phone || "");
-    setVehicle(partner.vehicle || "Two Wheeler");
+    setVehicle(partner.vehicle || VEHICLE_TYPES.TWO_WHEELER);
     setDob("");
     setGender("");
     setAddress("");
@@ -279,16 +258,21 @@ export const DeliveryPartners = () => {
 
     try {
       const response = await fetchDpDetails(partner.id);
-      const { dpDetail, dpDocument } = response.data.data || response.data || {};
+      const { dpDetail, dpDocument } =
+        response.data.data || response.data || {};
 
       setName(dpDetail?.user_id?.name || partner.name || "");
       setEmail(dpDetail?.user_id?.email || partner.email || "");
       setPhone(dpDetail?.user_id?.phone || partner.phone || "");
-      setDob(dpDetail?.dob ? dpDetail.dob.split('T')[0] : "");
+      setDob(dpDetail?.dob ? dpDetail.dob.split("T")[0] : "");
       setGender(dpDetail?.gender || "");
       setAddress(dpDetail?.address || "");
-      setVehicle(dpDocument?.vehicle_type || partner.vehicle || "Two Wheeler");
-      
+      setVehicle(
+        dpDocument?.vehicle_type ||
+          partner.vehicle ||
+          VEHICLE_TYPES.TWO_WHEELER,
+      );
+
       setAadharNumber(dpDocument?.aadhar_number || "");
       setRcNumber(dpDocument?.rc_number || "");
       setDlNumber(dpDocument?.dl_number || "");
@@ -300,55 +284,6 @@ export const DeliveryPartners = () => {
       setReference1Phone(dpDocument?.reference1_phone || "");
       setReference2Name(dpDocument?.reference2_name || "");
       setReference2Phone(dpDocument?.reference2_phone || "");
-
-      const uploadUrlBase = import.meta.env.VITE_API_URL 
-        ? import.meta.env.VITE_API_URL.replace("/api", "/uploads") 
-        : "http://localhost:3008/uploads";
-
-      if (dpDetail?.profile_img) {
-        setExistingProfileImg(dpDetail.profile_img);
-        setProfileImgPreview(`${uploadUrlBase}/${dpDetail.profile_img}`);
-      }
-      if (dpDocument?.aadhar_imgfront) {
-        setExistingAadharImgFront(dpDocument.aadhar_imgfront);
-        setAadharImgFrontPreview(`${uploadUrlBase}/${dpDocument.aadhar_imgfront}`);
-      }
-      if (dpDocument?.aadhar_imgback) {
-        setExistingAadharImgBack(dpDocument.aadhar_imgback);
-        setAadharImgBackPreview(`${uploadUrlBase}/${dpDocument.aadhar_imgback}`);
-      }
-      if (dpDocument?.rc_imgfront) {
-        setExistingRcImgFront(dpDocument.rc_imgfront);
-        setRcImgFrontPreview(`${uploadUrlBase}/${dpDocument.rc_imgfront}`);
-      }
-      if (dpDocument?.rc_imgback) {
-        setExistingRcImgBack(dpDocument.rc_imgback);
-        setRcImgBackPreview(`${uploadUrlBase}/${dpDocument.rc_imgback}`);
-      }
-      if (dpDocument?.dl_imgfront) {
-        setExistingDlImgFront(dpDocument.dl_imgfront);
-        setDlImgFrontPreview(`${uploadUrlBase}/${dpDocument.dl_imgfront}`);
-      }
-      if (dpDocument?.dl_imgback) {
-        setExistingDlImgBack(dpDocument.dl_imgback);
-        setDlImgBackPreview(`${uploadUrlBase}/${dpDocument.dl_imgback}`);
-      }
-      if (dpDocument?.residence_img) {
-        setExistingResidenceImg(dpDocument.residence_img);
-        setResidenceImgPreview(`${uploadUrlBase}/${dpDocument.residence_img}`);
-      }
-      if (dpDocument?.vehicle_img) {
-        setExistingVehicleImg(dpDocument.vehicle_img);
-        setVehicleImgPreview(`${uploadUrlBase}/${dpDocument.vehicle_img}`);
-      }
-      if (dpDocument?.bank_imagefront) {
-        setExistingBankImageFront(dpDocument.bank_imagefront);
-        setBankImageFrontPreview(`${uploadUrlBase}/${dpDocument.bank_imagefront}`);
-      }
-      if (dpDocument?.bank_imgeback) {
-        setExistingBankImgBack(dpDocument.bank_imgeback);
-        setBankImgBackPreview(`${uploadUrlBase}/${dpDocument.bank_imgeback}`);
-      }
     } catch (err) {
       console.error("Failed to fetch DP details", err);
       setValidationError("Failed to load details. Using list summary.");
@@ -361,10 +296,18 @@ export const DeliveryPartners = () => {
     setIsModalOpen(false);
     // Revoke object URLs
     [
-      profileImgPreview, aadharImgFrontPreview, aadharImgBackPreview,
-      rcImgFrontPreview, rcImgBackPreview, dlImgFrontPreview, dlImgBackPreview,
-      residenceImgPreview, vehicleImgPreview, bankImageFrontPreview, bankImgBackPreview
-    ].forEach(p => {
+      profileImgPreview,
+      aadharImgFrontPreview,
+      aadharImgBackPreview,
+      rcImgFrontPreview,
+      rcImgBackPreview,
+      dlImgFrontPreview,
+      dlImgBackPreview,
+      residenceImgPreview,
+      vehicleImgPreview,
+      bankImageFrontPreview,
+      bankImgBackPreview,
+    ].forEach((p) => {
       if (p && p.startsWith("blob:")) {
         URL.revokeObjectURL(p);
       }
@@ -375,13 +318,19 @@ export const DeliveryPartners = () => {
     const file = e.target.files[0];
     if (file) {
       // Basic type & size checks
-      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+      const validTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/jpg",
+        "image/gif",
+        "image/webp",
+      ];
       if (!validTypes.includes(file.type)) {
-        alert('Please upload an image file (JPEG, PNG, GIF, WebP)');
+        alert("Please upload an image file (JPEG, PNG, GIF, WebP)");
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        alert('Image size should not exceed 5MB');
+        alert("Image size should not exceed 5MB");
         return;
       }
 
@@ -405,7 +354,10 @@ export const DeliveryPartners = () => {
         setValidationError("A valid 10-digit Phone Number is required");
         return false;
       }
-      if (!email.trim() || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+      if (
+        !email.trim() ||
+        !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)
+      ) {
         setValidationError("A valid Email Address is required");
         return false;
       }
@@ -441,7 +393,11 @@ export const DeliveryPartners = () => {
       }
     }
     if (step === 3) {
-      if (!aadharNumber.trim() || aadharNumber.length !== 12 || !/^\d+$/.test(aadharNumber)) {
+      if (
+        !aadharNumber.trim() ||
+        aadharNumber.length !== 12 ||
+        !/^\d+$/.test(aadharNumber)
+      ) {
         setValidationError("A valid 12-digit Aadhar Number is required");
         return false;
       }
@@ -478,11 +434,15 @@ export const DeliveryPartners = () => {
         return false;
       }
       if (!bankAccNumber.trim() || !/^\d{6,18}$/.test(bankAccNumber)) {
-        setValidationError("A valid Bank Account Number is required (6-18 digits)");
+        setValidationError(
+          "A valid Bank Account Number is required (6-18 digits)",
+        );
         return false;
       }
       if (!bankIfsc.trim() || !/^[A-Za-z]{4}0[A-Za-z0-9]{6}$/.test(bankIfsc)) {
-        setValidationError("A valid Bank IFSC Code is required (e.g. SBIN0001234)");
+        setValidationError(
+          "A valid Bank IFSC Code is required (e.g. SBIN0001234)",
+        );
         return false;
       }
       if (!selectedPartner && (!bankImageFront || !bankImgBack)) {
@@ -495,16 +455,28 @@ export const DeliveryPartners = () => {
         setValidationError("1st Reference Name is required");
         return false;
       }
-      if (!reference1Phone.trim() || reference1Phone.length !== 10 || !/^\d+$/.test(reference1Phone)) {
-        setValidationError("1st Reference Contact must be a valid 10-digit number");
+      if (
+        !reference1Phone.trim() ||
+        reference1Phone.length !== 10 ||
+        !/^\d+$/.test(reference1Phone)
+      ) {
+        setValidationError(
+          "1st Reference Contact must be a valid 10-digit number",
+        );
         return false;
       }
       if (!reference2Name.trim()) {
         setValidationError("2nd Reference Name is required");
         return false;
       }
-      if (!reference2Phone.trim() || reference2Phone.length !== 10 || !/^\d+$/.test(reference2Phone)) {
-        setValidationError("2nd Reference Contact must be a valid 10-digit number");
+      if (
+        !reference2Phone.trim() ||
+        reference2Phone.length !== 10 ||
+        !/^\d+$/.test(reference2Phone)
+      ) {
+        setValidationError(
+          "2nd Reference Contact must be a valid 10-digit number",
+        );
         return false;
       }
     }
@@ -513,11 +485,17 @@ export const DeliveryPartners = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedPartner) {
       if (!validateStep(4)) return;
     } else {
-      if (!validateStep(1) || !validateStep(2) || !validateStep(3) || !validateStep(4)) return;
+      if (
+        !validateStep(1) ||
+        !validateStep(2) ||
+        !validateStep(3) ||
+        !validateStep(4)
+      )
+        return;
     }
 
     setIsSubmit(true);
@@ -554,7 +532,7 @@ export const DeliveryPartners = () => {
       if (residenceImg) formData.append("residence_img", residenceImg);
       if (vehicleImg) formData.append("vehicle_img", vehicleImg);
       if (bankImageFront) formData.append("bank_imagefront", bankImageFront);
-      if (bankImgBack) formData.append("bank_imgeback", bankImgBack);
+      if (bankImgBack) formData.append("bank_imageback", bankImgBack);
 
       if (selectedPartner) {
         await updatePartner(selectedPartner.id, formData);
@@ -565,7 +543,10 @@ export const DeliveryPartners = () => {
       fetchPartners();
     } catch (err) {
       console.error("Submit failed", err);
-      setValidationError(err.response?.data?.message || "An error occurred during submission. Please check your inputs.");
+      setValidationError(
+        err.response?.data?.message ||
+          "An error occurred during submission. Please check your inputs.",
+      );
     } finally {
       setIsSubmit(false);
     }
@@ -594,7 +575,10 @@ export const DeliveryPartners = () => {
   const handleToggleApproval = async (id, currentApproval) => {
     const newStatus = currentApproval === "Approved" ? "Rejected" : "Approved";
     try {
-      await updateDpApprovalStatus({ userId: id, document_approval: newStatus });
+      await updateDpApprovalStatus({
+        userId: id,
+        document_approval: newStatus,
+      });
       fetchPartners();
     } catch (e) {
       console.error("Failed to toggle approval", e);
@@ -658,33 +642,37 @@ export const DeliveryPartners = () => {
         emptyMessage="No delivery boys registered yet."
         renderRow={(dp) => (
           <tr key={dp.id} className="hover:bg-slate-50/50 transition-colors">
-            <td className="px-5 py-4 text-xs font-bold text-slate-400">
+            <td className="px-5 py-4 text-xs font-bold text-slate-400 whitespace-nowrap">
               #DP-{dp.id}
             </td>
-            <td className="px-5 py-4 text-xs font-bold text-slate-800">
+            <td className="px-5 py-4 text-xs font-bold text-slate-800 whitespace-nowrap">
               {dp.name}
             </td>
-            <td className="px-5 py-4 text-xs text-slate-500">{dp.phone}</td>
-            <td className="px-5 py-4 text-xs text-slate-500">{dp.email}</td>
-            <td className="px-5 py-4 text-xs text-slate-600">
+            <td className="px-5 py-4 text-xs text-slate-500 whitespace-nowrap">{dp.phone}</td>
+            <td className="px-5 py-4 text-xs text-slate-500 whitespace-nowrap">{dp.email}</td>
+            <td className="px-5 py-4 text-xs text-slate-600 whitespace-nowrap">
               {dp.vehicle || "Bike"}
             </td>
-            <td className="px-5 py-4 text-xs">
+            <td className="px-5 py-4 text-xs whitespace-nowrap">
               <Button
-                onClick={() => handleToggleApproval(dp.id, dp.document_approval)}
-                variant={dp.document_approval === "Approved" ? "danger" : "success"}
+                onClick={() =>
+                  handleToggleApproval(dp.id, dp.document_approval)
+                }
+                variant={
+                  dp.document_approval === "Approved" ? "danger" : "success"
+                }
                 size="sm"
                 className="py-1 px-2.5 text-[10px]"
               >
                 {dp.document_approval === "Approved" ? "Reject" : "Approve"}
               </Button>
             </td>
-            <td className="px-5 py-4 text-xs">
+            <td className="px-5 py-4 text-xs whitespace-nowrap">
               <Badge variant={dp.status === "active" ? "success" : "slate"}>
                 {dp.status}
               </Badge>
             </td>
-            <td className="px-5 py-4 text-xs space-x-2">
+            <td className="px-5 py-4 text-xs flex items-center space-x-2 whitespace-nowrap">
               <Button
                 onClick={() => navigate(`/admin/delivery-partners/${dp.id}`)}
                 variant="outline"
@@ -699,16 +687,18 @@ export const DeliveryPartners = () => {
                 variant="secondary"
                 size="sm"
                 className="py-1 px-2.5 text-[10px]"
+                icon={Edit2}
               >
-                ✏️ Edit
+                Edit
               </Button>
               <Button
                 onClick={() => handleTriggerDelete(dp.id)}
                 variant="danger"
                 size="sm"
                 className="py-1 px-2.5 text-[10px]"
+                icon={Trash2}
               >
-                🗑️ Delete
+                Delete
               </Button>
             </td>
           </tr>
@@ -738,7 +728,7 @@ export const DeliveryPartners = () => {
                 <div className="flex items-center justify-between relative">
                   {/* Progress Line */}
                   <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[2px] bg-slate-100 z-0">
-                    <div 
+                    <div
                       className="h-full bg-[#553092] transition-all duration-300"
                       style={{ width: `${((currentStep - 1) / 3) * 100}%` }}
                     ></div>
@@ -749,23 +739,30 @@ export const DeliveryPartners = () => {
                     { step: 1, label: "Basic Details" },
                     { step: 2, label: "Mode of Delivery" },
                     { step: 3, label: "Documents" },
-                    { step: 4, label: "References" }
+                    { step: 4, label: "References" },
                   ].map((s) => (
-                    <div key={s.step} className="flex flex-col items-center z-10 relative">
-                      <div 
+                    <div
+                      key={s.step}
+                      className="flex flex-col items-center z-10 relative"
+                    >
+                      <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border transition-all duration-300 ${
-                          currentStep === s.step 
-                            ? "bg-[#553092] border-[#553092] text-white ring-4 ring-[#553092]/10" 
-                            : currentStep > s.step 
-                            ? "bg-[#553092] border-[#553092] text-white" 
-                            : "bg-white border-slate-200 text-slate-400"
+                          currentStep === s.step
+                            ? "bg-[#553092] border-[#553092] text-white ring-4 ring-[#553092]/10"
+                            : currentStep > s.step
+                              ? "bg-[#553092] border-[#553092] text-white"
+                              : "bg-white border-slate-200 text-slate-400"
                         }`}
                       >
                         {currentStep > s.step ? "✓" : s.step}
                       </div>
-                      <span className={`text-[9px] font-bold mt-1 transition-colors uppercase tracking-wider ${
-                        currentStep >= s.step ? "text-slate-700" : "text-slate-400"
-                      }`}>
+                      <span
+                        className={`text-[9px] font-bold mt-1 transition-colors uppercase tracking-wider ${
+                          currentStep >= s.step
+                            ? "text-slate-700"
+                            : "text-slate-400"
+                        }`}
+                      >
                         {s.label}
                       </span>
                     </div>
@@ -782,15 +779,15 @@ export const DeliveryPartners = () => {
                   {[
                     { id: "basic", label: "Basic Info" },
                     { id: "kyc", label: "KYC & Vehicle" },
-                    { id: "bankRef", label: "Bank & References" }
+                    { id: "bankRef", label: "Bank & References" },
                   ].map((t) => (
                     <button
                       key={t.id}
                       type="button"
                       onClick={() => setActiveTab(t.id)}
                       className={`pb-2.5 text-xs font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
-                        activeTab === t.id 
-                          ? "border-[#553092] text-[#553092]" 
+                        activeTab === t.id
+                          ? "border-[#553092] text-[#553092]"
                           : "border-transparent text-slate-400 hover:text-slate-600"
                       }`}
                     >
@@ -800,26 +797,42 @@ export const DeliveryPartners = () => {
                 </div>
 
                 {isDetailLoading ? (
-                  <div className="text-center py-12 text-slate-400 text-sm font-semibold">Loading details...</div>
+                  <div className="text-center py-12 text-slate-400 text-sm font-semibold">
+                    Loading details...
+                  </div>
                 ) : (
                   <div className="max-h-[55vh] overflow-y-auto pr-2 space-y-4">
                     {/* Basic Info Tab */}
                     {activeTab === "basic" && (
                       <div className="space-y-4">
                         <div className="flex flex-col items-center justify-center pb-2">
-                          <label className="text-xs font-semibold text-slate-600 mb-2">Profile Image</label>
+                          <label className="text-xs font-semibold text-slate-600 mb-2">
+                            Profile Image
+                          </label>
                           <div className="relative group cursor-pointer">
                             <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200 flex items-center justify-center bg-slate-50 group-hover:border-[#553092] transition-colors relative">
                               {profileImgPreview ? (
-                                <img src={profileImgPreview} alt="Profile Preview" className="w-full h-full object-cover" />
+                                <img
+                                  src={profileImgPreview}
+                                  alt="Profile Preview"
+                                  className="w-full h-full object-cover"
+                                />
                               ) : (
-                                <span className="text-slate-400 text-xs font-medium text-center px-2">Click to Upload</span>
+                                <span className="text-slate-400 text-xs font-medium text-center px-2">
+                                  Click to Upload
+                                </span>
                               )}
-                              <input 
-                                type="file" 
-                                accept="image/*" 
-                                onChange={(e) => handleFileChange(e, setProfileImg, setProfileImgPreview)} 
-                                className="absolute inset-0 opacity-0 cursor-pointer" 
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) =>
+                                  handleFileChange(
+                                    e,
+                                    setProfileImg,
+                                    setProfileImgPreview,
+                                  )
+                                }
+                                className="absolute inset-0 opacity-0 cursor-pointer"
                               />
                             </div>
                           </div>
@@ -840,7 +853,9 @@ export const DeliveryPartners = () => {
                             placeholder="10-digit number"
                             maxLength={10}
                             value={phone}
-                            onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                            onChange={(e) =>
+                              setPhone(e.target.value.replace(/\D/g, ""))
+                            }
                             required
                           />
                           <Input
@@ -853,7 +868,10 @@ export const DeliveryPartners = () => {
                             required
                           />
                           <div className="flex flex-col text-left">
-                            <label htmlFor="gender" className="text-xs font-semibold text-slate-600 mb-1.5">
+                            <label
+                              htmlFor="gender"
+                              className="text-xs font-semibold text-slate-600 mb-1.5"
+                            >
                               Gender <span className="text-red-500">*</span>
                             </label>
                             <select
@@ -893,7 +911,10 @@ export const DeliveryPartners = () => {
                     {activeTab === "kyc" && (
                       <div className="space-y-6">
                         <div className="flex flex-col text-left max-w-md">
-                          <label htmlFor="vehicle_type" className="text-xs font-semibold text-slate-600 mb-1.5">
+                          <label
+                            htmlFor="vehicle_type"
+                            className="text-xs font-semibold text-slate-600 mb-1.5"
+                          >
                             Vehicle Type <span className="text-red-500">*</span>
                           </label>
                           <select
@@ -904,16 +925,26 @@ export const DeliveryPartners = () => {
                             required
                           >
                             <option value="">Select Vehicle Type</option>
-                            <option value="By Hand">By Hand</option>
-                            <option value="Two Wheeler">Two Wheeler</option>
-                            <option value="Three Wheeler">Three Wheeler</option>
-                            <option value="Four Wheeler">Four Wheeler</option>
+                            <option value={VEHICLE_TYPES.BY_HAND}>
+                              By Hand
+                            </option>
+                            <option value={VEHICLE_TYPES.TWO_WHEELER}>
+                              Two Wheeler
+                            </option>
+                            <option value={VEHICLE_TYPES.THREE_WHEELER}>
+                              Three Wheeler
+                            </option>
+                            <option value={VEHICLE_TYPES.FOUR_WHEELER}>
+                              Four Wheeler
+                            </option>
                           </select>
                         </div>
 
                         {/* Aadhar details */}
                         <div>
-                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">1. Aadhar Details</h4>
+                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">
+                            1. Aadhar Details
+                          </h4>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Input
                               label="Aadhar Number"
@@ -921,27 +952,45 @@ export const DeliveryPartners = () => {
                               placeholder="12-digit number"
                               maxLength={12}
                               value={aadharNumber}
-                              onChange={(e) => setAadharNumber(e.target.value.replace(/\D/g, ""))}
+                              onChange={(e) =>
+                                setAadharNumber(
+                                  e.target.value.replace(/\D/g, ""),
+                                )
+                              }
                               required
                             />
                             <FileUpload
                               label="Aadhar Front Image"
                               id="aadharImgFront"
                               preview={aadharImgFrontPreview}
-                              onChange={(e) => handleFileChange(e, setAadharImgFront, setAadharImgFrontPreview)}
+                              onChange={(e) =>
+                                handleFileChange(
+                                  e,
+                                  setAadharImgFront,
+                                  setAadharImgFrontPreview,
+                                )
+                              }
                             />
                             <FileUpload
                               label="Aadhar Back Image"
                               id="aadharImgBack"
                               preview={aadharImgBackPreview}
-                              onChange={(e) => handleFileChange(e, setAadharImgBack, setAadharImgBackPreview)}
+                              onChange={(e) =>
+                                handleFileChange(
+                                  e,
+                                  setAadharImgBack,
+                                  setAadharImgBackPreview,
+                                )
+                              }
                             />
                           </div>
                         </div>
 
                         {/* RC Details */}
                         <div>
-                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">2. RC Details</h4>
+                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">
+                            2. RC Details
+                          </h4>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Input
                               label="RC Number"
@@ -955,20 +1004,34 @@ export const DeliveryPartners = () => {
                               label="RC Front Image"
                               id="rcImgFront"
                               preview={rcImgFrontPreview}
-                              onChange={(e) => handleFileChange(e, setRcImgFront, setRcImgFrontPreview)}
+                              onChange={(e) =>
+                                handleFileChange(
+                                  e,
+                                  setRcImgFront,
+                                  setRcImgFrontPreview,
+                                )
+                              }
                             />
                             <FileUpload
                               label="RC Back Image"
                               id="rcImgBack"
                               preview={rcImgBackPreview}
-                              onChange={(e) => handleFileChange(e, setRcImgBack, setRcImgBackPreview)}
+                              onChange={(e) =>
+                                handleFileChange(
+                                  e,
+                                  setRcImgBack,
+                                  setRcImgBackPreview,
+                                )
+                              }
                             />
                           </div>
                         </div>
 
                         {/* DL Details */}
                         <div>
-                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">3. DL Details</h4>
+                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">
+                            3. DL Details
+                          </h4>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Input
                               label="DL Number"
@@ -982,20 +1045,34 @@ export const DeliveryPartners = () => {
                               label="DL Front Image"
                               id="dlImgFront"
                               preview={dlImgFrontPreview}
-                              onChange={(e) => handleFileChange(e, setDlImgFront, setDlImgFrontPreview)}
+                              onChange={(e) =>
+                                handleFileChange(
+                                  e,
+                                  setDlImgFront,
+                                  setDlImgFrontPreview,
+                                )
+                              }
                             />
                             <FileUpload
                               label="DL Back Image"
                               id="dlImgBack"
                               preview={dlImgBackPreview}
-                              onChange={(e) => handleFileChange(e, setDlImgBack, setDlImgBackPreview)}
+                              onChange={(e) =>
+                                handleFileChange(
+                                  e,
+                                  setDlImgBack,
+                                  setDlImgBackPreview,
+                                )
+                              }
                             />
                           </div>
                         </div>
 
                         {/* Vehicle Details */}
                         <div>
-                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">4. Vehicle & Residence Details</h4>
+                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">
+                            4. Vehicle & Residence Details
+                          </h4>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Input
                               label="Vehicle Number"
@@ -1009,13 +1086,25 @@ export const DeliveryPartners = () => {
                               label="Residence Image"
                               id="residenceImg"
                               preview={residenceImgPreview}
-                              onChange={(e) => handleFileChange(e, setResidenceImg, setResidenceImgPreview)}
+                              onChange={(e) =>
+                                handleFileChange(
+                                  e,
+                                  setResidenceImg,
+                                  setResidenceImgPreview,
+                                )
+                              }
                             />
                             <FileUpload
                               label="Vehicle Image"
                               id="vehicleImg"
                               preview={vehicleImgPreview}
-                              onChange={(e) => handleFileChange(e, setVehicleImg, setVehicleImgPreview)}
+                              onChange={(e) =>
+                                handleFileChange(
+                                  e,
+                                  setVehicleImg,
+                                  setVehicleImgPreview,
+                                )
+                              }
                             />
                           </div>
                         </div>
@@ -1027,7 +1116,9 @@ export const DeliveryPartners = () => {
                       <div className="space-y-6">
                         {/* Bank Details */}
                         <div>
-                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">1. Bank Account Details</h4>
+                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">
+                            1. Bank Account Details
+                          </h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <Input
                               label="Bank Name"
@@ -1042,7 +1133,11 @@ export const DeliveryPartners = () => {
                               id="bankAccNumber"
                               placeholder="Enter Account Number"
                               value={bankAccNumber}
-                              onChange={(e) => setBankAccNumber(e.target.value.replace(/\D/g, ""))}
+                              onChange={(e) =>
+                                setBankAccNumber(
+                                  e.target.value.replace(/\D/g, ""),
+                                )
+                              }
                               required
                             />
                             <Input
@@ -1058,13 +1153,25 @@ export const DeliveryPartners = () => {
                                 label="Bank Front Image"
                                 id="bankImageFront"
                                 preview={bankImageFrontPreview}
-                                onChange={(e) => handleFileChange(e, setBankImageFront, setBankImageFrontPreview)}
+                                onChange={(e) =>
+                                  handleFileChange(
+                                    e,
+                                    setBankImageFront,
+                                    setBankImageFrontPreview,
+                                  )
+                                }
                               />
                               <FileUpload
                                 label="Bank Back Image"
                                 id="bankImgBack"
                                 preview={bankImgBackPreview}
-                                onChange={(e) => handleFileChange(e, setBankImgBack, setBankImgBackPreview)}
+                                onChange={(e) =>
+                                  handleFileChange(
+                                    e,
+                                    setBankImgBack,
+                                    setBankImgBackPreview,
+                                  )
+                                }
                               />
                             </div>
                           </div>
@@ -1072,16 +1179,22 @@ export const DeliveryPartners = () => {
 
                         {/* References */}
                         <div>
-                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">2. Reference Details</h4>
+                          <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">
+                            2. Reference Details
+                          </h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="bg-slate-50 p-4 rounded-xl space-y-4 border border-slate-100">
-                              <h5 className="text-xs font-bold text-[#553092] uppercase tracking-wider pb-1 border-b border-slate-200">1st Reference</h5>
+                              <h5 className="text-xs font-bold text-[#553092] uppercase tracking-wider pb-1 border-b border-slate-200">
+                                1st Reference
+                              </h5>
                               <Input
                                 label="Reference Name"
                                 id="reference1Name"
                                 placeholder="Enter Reference Name"
                                 value={reference1Name}
-                                onChange={(e) => setReference1Name(e.target.value)}
+                                onChange={(e) =>
+                                  setReference1Name(e.target.value)
+                                }
                                 required
                               />
                               <Input
@@ -1090,18 +1203,26 @@ export const DeliveryPartners = () => {
                                 placeholder="10-digit phone number"
                                 maxLength={10}
                                 value={reference1Phone}
-                                onChange={(e) => setReference1Phone(e.target.value.replace(/\D/g, ""))}
+                                onChange={(e) =>
+                                  setReference1Phone(
+                                    e.target.value.replace(/\D/g, ""),
+                                  )
+                                }
                                 required
                               />
                             </div>
                             <div className="bg-slate-50 p-4 rounded-xl space-y-4 border border-slate-100">
-                              <h5 className="text-xs font-bold text-[#553092] uppercase tracking-wider pb-1 border-b border-slate-200">2nd Reference</h5>
+                              <h5 className="text-xs font-bold text-[#553092] uppercase tracking-wider pb-1 border-b border-slate-200">
+                                2nd Reference
+                              </h5>
                               <Input
                                 label="Reference Name"
                                 id="reference2Name"
                                 placeholder="Enter Reference Name"
                                 value={reference2Name}
-                                onChange={(e) => setReference2Name(e.target.value)}
+                                onChange={(e) =>
+                                  setReference2Name(e.target.value)
+                                }
                                 required
                               />
                               <Input
@@ -1110,7 +1231,11 @@ export const DeliveryPartners = () => {
                                 placeholder="10-digit phone number"
                                 maxLength={10}
                                 value={reference2Phone}
-                                onChange={(e) => setReference2Phone(e.target.value.replace(/\D/g, ""))}
+                                onChange={(e) =>
+                                  setReference2Phone(
+                                    e.target.value.replace(/\D/g, ""),
+                                  )
+                                }
                                 required
                               />
                             </div>
@@ -1128,19 +1253,33 @@ export const DeliveryPartners = () => {
                 {currentStep === 1 && (
                   <div className="space-y-4">
                     <div className="flex flex-col items-center justify-center pb-2">
-                      <label className="text-xs font-semibold text-slate-600 mb-2">Profile Image *</label>
+                      <label className="text-xs font-semibold text-slate-600 mb-2">
+                        Profile Image *
+                      </label>
                       <div className="relative group cursor-pointer">
                         <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200 flex items-center justify-center bg-slate-50 group-hover:border-[#553092] transition-colors relative">
                           {profileImgPreview ? (
-                            <img src={profileImgPreview} alt="Profile Preview" className="w-full h-full object-cover" />
+                            <img
+                              src={profileImgPreview}
+                              alt="Profile Preview"
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
-                            <span className="text-slate-400 text-xs font-semibold text-center px-2">Click to Upload</span>
+                            <span className="text-slate-400 text-xs font-semibold text-center px-2">
+                              Click to Upload
+                            </span>
                           )}
-                          <input 
-                            type="file" 
-                            accept="image/*" 
-                            onChange={(e) => handleFileChange(e, setProfileImg, setProfileImgPreview)} 
-                            className="absolute inset-0 opacity-0 cursor-pointer" 
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) =>
+                              handleFileChange(
+                                e,
+                                setProfileImg,
+                                setProfileImgPreview,
+                              )
+                            }
+                            className="absolute inset-0 opacity-0 cursor-pointer"
                           />
                         </div>
                       </div>
@@ -1161,7 +1300,9 @@ export const DeliveryPartners = () => {
                         placeholder="10-digit number"
                         maxLength={10}
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                        onChange={(e) =>
+                          setPhone(e.target.value.replace(/\D/g, ""))
+                        }
                         required
                       />
                       <Input
@@ -1174,7 +1315,10 @@ export const DeliveryPartners = () => {
                         required
                       />
                       <div className="flex flex-col text-left">
-                        <label htmlFor="gender" className="text-xs font-semibold text-slate-600 mb-1.5">
+                        <label
+                          htmlFor="gender"
+                          className="text-xs font-semibold text-slate-600 mb-1.5"
+                        >
                           Gender <span className="text-red-500">*</span>
                         </label>
                         <select
@@ -1214,8 +1358,12 @@ export const DeliveryPartners = () => {
                 {currentStep === 2 && (
                   <div className="space-y-4 max-w-md mx-auto pt-6">
                     <div className="flex flex-col text-left">
-                      <label htmlFor="vehicle_type" className="text-xs font-semibold text-slate-600 mb-1.5">
-                        Select Vehicle Type <span className="text-red-500">*</span>
+                      <label
+                        htmlFor="vehicle_type"
+                        className="text-xs font-semibold text-slate-600 mb-1.5"
+                      >
+                        Select Vehicle Type{" "}
+                        <span className="text-red-500">*</span>
                       </label>
                       <select
                         id="vehicle_type"
@@ -1225,10 +1373,16 @@ export const DeliveryPartners = () => {
                         required
                       >
                         <option value="">Select Vehicle Type</option>
-                        <option value="By Hand">By Hand</option>
-                        <option value="Two Wheeler">Two Wheeler</option>
-                        <option value="Three Wheeler">Three Wheeler</option>
-                        <option value="Four Wheeler">Four Wheeler</option>
+                        <option value={VEHICLE_TYPES.BY_HAND}>By Hand</option>
+                        <option value={VEHICLE_TYPES.TWO_WHEELER}>
+                          Two Wheeler
+                        </option>
+                        <option value={VEHICLE_TYPES.THREE_WHEELER}>
+                          Three Wheeler
+                        </option>
+                        <option value={VEHICLE_TYPES.FOUR_WHEELER}>
+                          Four Wheeler
+                        </option>
                       </select>
                     </div>
                   </div>
@@ -1239,7 +1393,9 @@ export const DeliveryPartners = () => {
                   <div className="space-y-6 max-h-[50vh] overflow-y-auto pr-2">
                     {/* Aadhar details */}
                     <div>
-                      <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">1. Aadhar Details</h4>
+                      <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">
+                        1. Aadhar Details
+                      </h4>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Input
                           label="Aadhar Number"
@@ -1247,21 +1403,35 @@ export const DeliveryPartners = () => {
                           placeholder="12-digit number"
                           maxLength={12}
                           value={aadharNumber}
-                          onChange={(e) => setAadharNumber(e.target.value.replace(/\D/g, ""))}
+                          onChange={(e) =>
+                            setAadharNumber(e.target.value.replace(/\D/g, ""))
+                          }
                           required
                         />
                         <FileUpload
                           label="Aadhar Front Image"
                           id="aadharImgFront"
                           preview={aadharImgFrontPreview}
-                          onChange={(e) => handleFileChange(e, setAadharImgFront, setAadharImgFrontPreview)}
+                          onChange={(e) =>
+                            handleFileChange(
+                              e,
+                              setAadharImgFront,
+                              setAadharImgFrontPreview,
+                            )
+                          }
                           required
                         />
                         <FileUpload
                           label="Aadhar Back Image"
                           id="aadharImgBack"
                           preview={aadharImgBackPreview}
-                          onChange={(e) => handleFileChange(e, setAadharImgBack, setAadharImgBackPreview)}
+                          onChange={(e) =>
+                            handleFileChange(
+                              e,
+                              setAadharImgBack,
+                              setAadharImgBackPreview,
+                            )
+                          }
                           required
                         />
                       </div>
@@ -1269,7 +1439,9 @@ export const DeliveryPartners = () => {
 
                     {/* RC Details */}
                     <div>
-                      <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">2. RC Details</h4>
+                      <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">
+                        2. RC Details
+                      </h4>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Input
                           label="RC Number"
@@ -1283,14 +1455,26 @@ export const DeliveryPartners = () => {
                           label="RC Front Image"
                           id="rcImgFront"
                           preview={rcImgFrontPreview}
-                          onChange={(e) => handleFileChange(e, setRcImgFront, setRcImgFrontPreview)}
+                          onChange={(e) =>
+                            handleFileChange(
+                              e,
+                              setRcImgFront,
+                              setRcImgFrontPreview,
+                            )
+                          }
                           required
                         />
                         <FileUpload
                           label="RC Back Image"
                           id="rcImgBack"
                           preview={rcImgBackPreview}
-                          onChange={(e) => handleFileChange(e, setRcImgBack, setRcImgBackPreview)}
+                          onChange={(e) =>
+                            handleFileChange(
+                              e,
+                              setRcImgBack,
+                              setRcImgBackPreview,
+                            )
+                          }
                           required
                         />
                       </div>
@@ -1298,7 +1482,9 @@ export const DeliveryPartners = () => {
 
                     {/* DL Details */}
                     <div>
-                      <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">3. DL Details</h4>
+                      <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">
+                        3. DL Details
+                      </h4>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Input
                           label="DL Number"
@@ -1312,14 +1498,26 @@ export const DeliveryPartners = () => {
                           label="DL Front Image"
                           id="dlImgFront"
                           preview={dlImgFrontPreview}
-                          onChange={(e) => handleFileChange(e, setDlImgFront, setDlImgFrontPreview)}
+                          onChange={(e) =>
+                            handleFileChange(
+                              e,
+                              setDlImgFront,
+                              setDlImgFrontPreview,
+                            )
+                          }
                           required
                         />
                         <FileUpload
                           label="DL Back Image"
                           id="dlImgBack"
                           preview={dlImgBackPreview}
-                          onChange={(e) => handleFileChange(e, setDlImgBack, setDlImgBackPreview)}
+                          onChange={(e) =>
+                            handleFileChange(
+                              e,
+                              setDlImgBack,
+                              setDlImgBackPreview,
+                            )
+                          }
                           required
                         />
                       </div>
@@ -1327,7 +1525,9 @@ export const DeliveryPartners = () => {
 
                     {/* Vehicle Details */}
                     <div>
-                      <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">4. Vehicle & Residence Details</h4>
+                      <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">
+                        4. Vehicle & Residence Details
+                      </h4>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Input
                           label="Vehicle Number"
@@ -1341,14 +1541,26 @@ export const DeliveryPartners = () => {
                           label="Residence Image"
                           id="residenceImg"
                           preview={residenceImgPreview}
-                          onChange={(e) => handleFileChange(e, setResidenceImg, setResidenceImgPreview)}
+                          onChange={(e) =>
+                            handleFileChange(
+                              e,
+                              setResidenceImg,
+                              setResidenceImgPreview,
+                            )
+                          }
                           required
                         />
                         <FileUpload
                           label="Vehicle Image"
                           id="vehicleImg"
                           preview={vehicleImgPreview}
-                          onChange={(e) => handleFileChange(e, setVehicleImg, setVehicleImgPreview)}
+                          onChange={(e) =>
+                            handleFileChange(
+                              e,
+                              setVehicleImg,
+                              setVehicleImgPreview,
+                            )
+                          }
                           required
                         />
                       </div>
@@ -1356,7 +1568,9 @@ export const DeliveryPartners = () => {
 
                     {/* Bank Details */}
                     <div>
-                      <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">5. Bank Account Details</h4>
+                      <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">
+                        5. Bank Account Details
+                      </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Input
                           label="Bank Name"
@@ -1371,7 +1585,9 @@ export const DeliveryPartners = () => {
                           id="bankAccNumber"
                           placeholder="Enter Account Number"
                           value={bankAccNumber}
-                          onChange={(e) => setBankAccNumber(e.target.value.replace(/\D/g, ""))}
+                          onChange={(e) =>
+                            setBankAccNumber(e.target.value.replace(/\D/g, ""))
+                          }
                           required
                         />
                         <Input
@@ -1387,14 +1603,26 @@ export const DeliveryPartners = () => {
                             label="Bank Front Image"
                             id="bankImageFront"
                             preview={bankImageFrontPreview}
-                            onChange={(e) => handleFileChange(e, setBankImageFront, setBankImageFrontPreview)}
+                            onChange={(e) =>
+                              handleFileChange(
+                                e,
+                                setBankImageFront,
+                                setBankImageFrontPreview,
+                              )
+                            }
                             required
                           />
                           <FileUpload
                             label="Bank Back Image"
                             id="bankImgBack"
                             preview={bankImgBackPreview}
-                            onChange={(e) => handleFileChange(e, setBankImgBack, setBankImgBackPreview)}
+                            onChange={(e) =>
+                              handleFileChange(
+                                e,
+                                setBankImgBack,
+                                setBankImgBackPreview,
+                              )
+                            }
                             required
                           />
                         </div>
@@ -1408,7 +1636,9 @@ export const DeliveryPartners = () => {
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="bg-slate-50 p-4 rounded-xl space-y-4 border border-slate-100">
-                        <h5 className="text-xs font-bold text-[#553092] uppercase tracking-wider pb-1 border-b border-slate-200">1st Reference</h5>
+                        <h5 className="text-xs font-bold text-[#553092] uppercase tracking-wider pb-1 border-b border-slate-200">
+                          1st Reference
+                        </h5>
                         <Input
                           label="Reference Name"
                           id="reference1Name"
@@ -1423,12 +1653,18 @@ export const DeliveryPartners = () => {
                           placeholder="10-digit phone number"
                           maxLength={10}
                           value={reference1Phone}
-                          onChange={(e) => setReference1Phone(e.target.value.replace(/\D/g, ""))}
+                          onChange={(e) =>
+                            setReference1Phone(
+                              e.target.value.replace(/\D/g, ""),
+                            )
+                          }
                           required
                         />
                       </div>
                       <div className="bg-slate-50 p-4 rounded-xl space-y-4 border border-slate-100">
-                        <h5 className="text-xs font-bold text-[#553092] uppercase tracking-wider pb-1 border-b border-slate-200">2nd Reference</h5>
+                        <h5 className="text-xs font-bold text-[#553092] uppercase tracking-wider pb-1 border-b border-slate-200">
+                          2nd Reference
+                        </h5>
                         <Input
                           label="Reference Name"
                           id="reference2Name"
@@ -1443,7 +1679,11 @@ export const DeliveryPartners = () => {
                           placeholder="10-digit phone number"
                           maxLength={10}
                           value={reference2Phone}
-                          onChange={(e) => setReference2Phone(e.target.value.replace(/\D/g, ""))}
+                          onChange={(e) =>
+                            setReference2Phone(
+                              e.target.value.replace(/\D/g, ""),
+                            )
+                          }
                           required
                         />
                       </div>
@@ -1463,7 +1703,7 @@ export const DeliveryPartners = () => {
               >
                 Cancel
               </Button>
-              
+
               {selectedPartner ? (
                 /* Edit mode submit buttons */
                 <Button

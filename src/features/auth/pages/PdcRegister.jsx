@@ -6,7 +6,7 @@ import AuthLayout from '../../../components/layout/AuthLayout';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import useAuth from '../../../hooks/useAuth';
-import { ROLES } from '../../../constants/roles';
+import { ROLES } from '../../../constants';
 
 // Clean SVG Icons
 const UserIcon = () => (

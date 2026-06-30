@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { fetchReportsData } from '../../../api/admin.api';
-import { ROLES } from '../../../constants/roles.js';
+import { ROLES } from '../../../constants';
 import Table from '../../../components/common/Table';
 import Badge from '../../../components/common/Badge';
 import Button from '../../../components/common/Button';

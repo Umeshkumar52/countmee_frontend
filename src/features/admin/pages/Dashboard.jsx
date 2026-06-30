@@ -3,6 +3,35 @@ import { useNavigate, Link } from "react-router-dom";
 import { fetchDashboard } from "../../../api/admin.api";
 import Badge from "../../../components/common/Badge";
 import { Truck, Building2, Warehouse, User, Package } from "lucide-react";
+
+const AnimatedCounter = ({ end, duration = 1500 }) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (end === 0) {
+      setCount(0);
+      return;
+    }
+    let startTimestamp = null;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const easeOutQuad = 1 - (1 - progress) * (1 - progress);
+      
+      setCount(Math.floor(easeOutQuad * end));
+      
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        setCount(end);
+      }
+    };
+    window.requestAnimationFrame(step);
+  }, [end, duration]);
+
+  return <>{count}</>;
+};
+
 export const Dashboard = () => {
   const [stats, setStats] = useState({
     deliveryPartnersCount: 0,
@@ -98,7 +127,7 @@ export const Dashboard = () => {
                   {card.name}
                 </span>
                 <h3 className="text-2xl font-extrabold font-display mt-1.5">
-                  {isLoading ? "..." : card.count}
+                  {isLoading ? "..." : <AnimatedCounter end={card.count} />}
                 </h3>
               </div>
               <Icon size={42} className="text-3xl opacity-80" />
