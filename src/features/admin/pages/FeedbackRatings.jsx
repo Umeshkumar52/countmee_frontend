@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ROLES } from '../../../constants/roles.js';
+import { ROLES } from '../../../constants';
 import { fetchRatings } from '../../../api/admin.api';
 import Table from '../../../components/common/Table';
 import Badge from '../../../components/common/Badge';

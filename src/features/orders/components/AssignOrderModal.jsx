@@ -36,8 +36,8 @@ export const AssignOrderModal = ({ isOpen, onClose, orderId, onAssignSuccess }) 
 
     try {
       await assignDeliveryBoy({
-        orderId,
-        dpId: parseInt(selectedDp)
+        order_id: orderId,
+        dp_id: selectedDp
       });
       alert('Order successfully assigned to delivery partner!');
       onAssignSuccess();
@@ -71,8 +71,8 @@ export const AssignOrderModal = ({ isOpen, onClose, orderId, onAssignSuccess }) 
             >
               <option value="">-- Choose Partner --</option>
               {partners.map((dp) => (
-                <option key={dp.id} value={dp.id}>
-                  {dp.name} ({dp.vehicle}) - Rating: ⭐{dp.rating} - Active Orders: {dp.active_orders}
+                <option key={dp.id} value={dp.user?._id || dp.user_id?._id || dp._id}>
+                  {dp.user?.name || dp.user_id?.name || dp.name} ({dp.vehicle_type || dp.vehicle || "Bike"}) - Rating: ⭐{dp.rating || 0} - Active Orders: {dp.active_orders || 0}
                 </option>
               ))}
             </select>

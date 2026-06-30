@@ -73,11 +73,7 @@ export const fetchRatings = () => client.get("/admin/feedback");
 // Charges
 export const fetchCharges = () => client.get("/admin/deliver_charge");
 export const updateVehicleCharges = (data) =>
-  client.post("/admin/update_deliver_charge", data);
-export const updateCommission = (data) =>
-  client.post("/admin/update_delivery_partner_charge", data);
-export const updatePdcCommission = (data) =>
-  client.post("/admin/update_pdc_package_charge", data);
+  client.post("/admin/deliver_charge", data);
 
 export const updateDpApprovalStatus = (data) =>
   client.post("/admin/update-action", data);
@@ -106,7 +102,7 @@ export const updateJoiningBonus = (data) =>
 export const verifyWalletUser = (phone) =>
   client.get(`/admin/wallets/verify-user/${phone}`);
 export const creditIndividual = (data) =>
-  client.post("/admin/wallets/credit/individual", data);
+  client.post("/admin/wallets/credit/customer", data);
 export const creditMass = (data) =>
   client.post("/admin/wallets/credit/mass", data);
 export const fetchUserTransactions = (userId) =>

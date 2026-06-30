@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from "react";
-import {
-  fetchCharges,
-  updateVehicleCharges,
-  updateCommission,
-  updatePdcCommission,
-} from "../../../api/admin.api";
+import { fetchCharges, updateVehicleCharges } from "../../../api/admin.api";
+import { VEHICLE_TYPES } from "../../../constants";
 import Input from "../../../components/common/Input";
 import Button from "../../../components/common/Button";
 import Table from "../../../components/common/Table";
@@ -13,31 +9,44 @@ export const Charges = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [chargesData, setChargesData] = useState(null);
 
-  // Form 1: Vehicle pricing states
+  // Form: Vehicle pricing states
   const [vehicleType, setVehicleType] = useState("1"); // 1, 2, 3, 4
   const [baseDistance, setBaseDistance] = useState("");
   const [basePrice, setBasePrice] = useState("");
   const [perKmPrice, setPerKmPrice] = useState("");
+  const [dpComm, setDpComm] = useState("");
+  const [pdcComm, setPdcComm] = useState("");
+  const [maxWeight, setMaxWeight] = useState("");
+  const [maxHeight, setMaxHeight] = useState("");
+  const [maxWidth, setMaxWidth] = useState("");
+  const [maxLength, setMaxLength] = useState("");
+  const [dimensionUnit, setDimensionUnit] = useState("cm");
   const [isUpdatingVehicle, setIsUpdatingVehicle] = useState(false);
 
-  // Form 2: DP Commission
-  const [dpComm, setDpComm] = useState("");
-  const [isUpdatingDp, setIsUpdatingDp] = useState(false);
+  const vehicleNameMap = {
+    "1": VEHICLE_TYPES.BY_HAND,
+    "2": VEHICLE_TYPES.TWO_WHEELER,
+    "3": VEHICLE_TYPES.THREE_WHEELER,
+    "4": VEHICLE_TYPES.FOUR_WHEELER,
+  };
 
-  // Form 3: PDC Commission
-  const [pdcComm, setPdcComm] = useState("");
-  const [isUpdatingPdc, setIsUpdatingPdc] = useState(false);
+  const headers = [
+    "Vehicle",
+    "Base Dist.",
+    "Base Price",
+    "Per KM",
+    "DP Comm.",
+    "PDC Comm.",
+    "Capacity",
+  ];
 
   const loadCharges = async () => {
     setIsLoading(true);
     try {
       const response = await fetchCharges();
-      const data = response.data.data || response.data;
+      const data = response.data?.data || response.data;
       if (data) {
         setChargesData(data);
-        setDpComm(data.dp_commission || "");
-        setPdcComm(data.pdc_commission || "");
-
         prefillVehicleForm(data.vehicle_charges, vehicleType);
       }
     } catch (e) {
@@ -49,11 +58,35 @@ export const Charges = () => {
 
   const prefillVehicleForm = (vehicleCharges, typeId) => {
     if (!vehicleCharges) return;
-    const target = vehicleCharges.find((vc) => vc.id === parseInt(typeId));
+    const mappedName = vehicleNameMap[typeId];
+    const target = vehicleCharges.find((vc) => 
+      vc.vehicle_type === typeId || 
+      vc.vehicle_type === mappedName || 
+      vc.id === typeId || 
+      vc.id === parseInt(typeId)
+    );
     if (target) {
       setBaseDistance(target.base_distance || "");
       setBasePrice(target.base_price || "");
       setPerKmPrice(target.per_km_price || "");
+      setDpComm(target.dp_commission !== undefined ? target.dp_commission : "");
+      setPdcComm(target.pdc_commission !== undefined ? target.pdc_commission : "");
+      setMaxWeight(target.max_weight || "");
+      setMaxHeight(target.max_height || "");
+      setMaxWidth(target.max_width || "");
+      setMaxLength(target.max_length || "");
+      setDimensionUnit(target.dimension_unit || "cm");
+    } else {
+      setBaseDistance("");
+      setBasePrice("");
+      setPerKmPrice("");
+      setDpComm("");
+      setPdcComm("");
+      setMaxWeight("");
+      setMaxHeight("");
+      setMaxWidth("");
+      setMaxLength("");
+      setDimensionUnit("cm");
     }
   };
 
@@ -72,14 +105,26 @@ export const Charges = () => {
   const handleSaveVehicleCharges = async (e) => {
     e.preventDefault();
     setIsUpdatingVehicle(true);
+    
+    // Ensure we send the actual vehicle name (e.g. "Two Wheeler") instead of "2" 
+    // to match the existing database records and prevent duplicates.
+    const mappedType = vehicleNameMap[vehicleType] || vehicleType;
+    
     try {
       await updateVehicleCharges({
-        vehicle_type: vehicleType,
+        vehicle_type: mappedType,
         base_distance: parseFloat(baseDistance),
         base_price: parseFloat(basePrice),
         per_km_price: parseFloat(perKmPrice),
+        dp_commission: parseFloat(dpComm),
+        pdc_commission: parseFloat(pdcComm),
+        max_weight: parseFloat(maxWeight) || 0,
+        max_height: parseFloat(maxHeight) || 0,
+        max_width: parseFloat(maxWidth) || 0,
+        max_length: parseFloat(maxLength) || 0,
+        dimension_unit: dimensionUnit,
       });
-      alert("Vehicle payout parameters updated successfully!");
+      alert("Vehicle configuration updated successfully!");
       loadCharges();
     } catch (e) {
       console.error(e);
@@ -89,232 +134,237 @@ export const Charges = () => {
     }
   };
 
-  const handleSaveDpCommission = async (e) => {
-    e.preventDefault();
-    setIsUpdatingDp(true);
-    try {
-      await updateCommission({
-        type: "dp",
-        commission: parseFloat(dpComm),
-      });
-      alert("Delivery Partner Commission saved successfully!");
-      loadCharges();
-    } catch (e) {
-      console.error(e);
-      alert("Failed to update DP commission");
-    } finally {
-      setIsUpdatingDp(false);
-    }
-  };
-
-  const handleSavePdcCommission = async (e) => {
-    e.preventDefault();
-    setIsUpdatingPdc(true);
-    try {
-      await updatePdcCommission({
-        type: "pdc",
-        commission: parseFloat(pdcComm),
-      });
-      alert("PDC Package Commission saved successfully!");
-      loadCharges();
-    } catch (e) {
-      console.error(e);
-      alert("Failed to update PDC commission");
-    } finally {
-      setIsUpdatingPdc(false);
-    }
-  };
-
   return (
     <div className="space-y-6 text-left page-transition">
       <div>
-        <h2 className="text-xl font-bold text-slate-800">Charges Settings</h2>
+        <h2 className="text-xl font-bold text-slate-800">Charges Configuration</h2>
         <p className="text-xs text-slate-400 mt-1">
-          Configure partner commissions, package delivery fees, and per-vehicle
-          rates
+          Configure partner commissions, package delivery fees, and per-vehicle rates dynamically.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Columns: Vehicle Rates setup & Table */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-xs space-y-4">
-            <h3 className="font-bold text-slate-800 text-sm">
-              Vehicle Payout Configuration
-            </h3>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Form Column */}
+        <div className="xl:col-span-1">
+          <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs space-y-5">
+            <div>
+              <h3 className="font-bold text-slate-800 text-sm">
+                Edit Configuration
+              </h3>
+              <p className="text-xs text-slate-400 mt-1">Select a vehicle type to customize its specific payout structure.</p>
+            </div>
 
             <form
               onSubmit={handleSaveVehicleCharges}
-              className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end"
+              className="space-y-5"
             >
-              <div className="flex flex-col">
-                <label className="text-xs font-semibold text-slate-600 mb-1.5">
+              <div className="flex flex-col group">
+                <label className="text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide group-focus-within:text-brand-purple transition-colors">
                   Vehicle Type
                 </label>
-                <select
-                  value={vehicleType}
-                  onChange={handleVehicleTypeChange}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs transition-all outline-none focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple cursor-pointer font-medium"
-                >
-                  <option value="1">By Hand</option>
-                  <option value="2">Two Wheeler</option>
-                  <option value="3">Three Wheeler</option>
-                  <option value="4">Four Wheeler</option>
-                </select>
+                <div className="relative">
+                  <select
+                    value={vehicleType}
+                    onChange={handleVehicleTypeChange}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm transition-all outline-none focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple font-semibold text-slate-700 cursor-pointer"
+                  >
+                    <option value="1">{VEHICLE_TYPES.BY_HAND}</option>
+                    <option value="2">{VEHICLE_TYPES.TWO_WHEELER}</option>
+                    <option value="3">{VEHICLE_TYPES.THREE_WHEELER}</option>
+                    <option value="4">{VEHICLE_TYPES.FOUR_WHEELER}</option>
+                  </select>
+                </div>
               </div>
 
-              <Input
-                label="Base Distance (KM)"
-                id="baseDistance"
-                type="number"
-                step="0.1"
-                placeholder="e.g. 2"
-                value={baseDistance}
-                onChange={(e) => setBaseDistance(e.target.value)}
-                required
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="group">
+                  <Input
+                    label="Base Distance (KM)"
+                    id="baseDistance"
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 2"
+                    value={baseDistance}
+                    onChange={(e) => setBaseDistance(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="group">
+                  <Input
+                    label="Base Price (₹)"
+                    id="basePrice"
+                    type="number"
+                    placeholder="e.g. 30"
+                    value={basePrice}
+                    onChange={(e) => setBasePrice(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
 
-              <Input
-                label="Base Price (₹)"
-                id="basePrice"
-                type="number"
-                placeholder="e.g. 30"
-                value={basePrice}
-                onChange={(e) => setBasePrice(e.target.value)}
-                required
-              />
+              <div className="group">
+                <Input
+                  label="Per KM Price (₹)"
+                  id="perKmPrice"
+                  type="number"
+                  placeholder="e.g. 10"
+                  value={perKmPrice}
+                  onChange={(e) => setPerKmPrice(e.target.value)}
+                  required
+                />
+              </div>
 
-              <Input
-                label="Per KM Price (₹)"
-                id="perKmPrice"
-                type="number"
-                placeholder="e.g. 10"
-                value={perKmPrice}
-                onChange={(e) => setPerKmPrice(e.target.value)}
-                required
-              />
+              <div className="border-t border-slate-100 pt-4 mt-2">
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4">Commission Distribution</h4>
+                
+                <div className="space-y-4">
+                  <div className="group relative">
+                    <Input
+                      label="DP Commission (%)"
+                      id="dpComm"
+                      type="number"
+                      step="0.1"
+                      placeholder="e.g. 35"
+                      value={dpComm}
+                      onChange={(e) => setDpComm(e.target.value)}
+                      required
+                    />
+                  </div>
 
-              <div className="sm:col-span-4 text-right pt-2">
+                  <div className="group relative">
+                    <Input
+                      label="PDC Commission (%)"
+                      id="pdcComm"
+                      type="number"
+                      step="0.1"
+                      placeholder="e.g. 15"
+                      value={pdcComm}
+                      onChange={(e) => setPdcComm(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-100 pt-4 mt-2">
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4">Capacity Limits</h4>
+                
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      label="Max Weight (kg)"
+                      id="maxWeight"
+                      type="number"
+                      step="0.1"
+                      placeholder="e.g. 50"
+                      value={maxWeight}
+                      onChange={(e) => setMaxWeight(e.target.value)}
+                    />
+                    <div className="flex flex-col text-left">
+                      <label className="text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Dimension Unit</label>
+                      <select
+                        value={dimensionUnit}
+                        onChange={(e) => setDimensionUnit(e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm transition-all outline-none focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple"
+                      >
+                        <option value="cm">cm</option>
+                        <option value="m">m</option>
+                        <option value="ft">ft</option>
+                        <option value="inch">inch</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <Input
+                      label="Height"
+                      id="maxHeight"
+                      type="number"
+                      step="0.1"
+                      placeholder="H"
+                      value={maxHeight}
+                      onChange={(e) => setMaxHeight(e.target.value)}
+                    />
+                    <Input
+                      label="Width"
+                      id="maxWidth"
+                      type="number"
+                      step="0.1"
+                      placeholder="W"
+                      value={maxWidth}
+                      onChange={(e) => setMaxWidth(e.target.value)}
+                    />
+                    <Input
+                      label="Length"
+                      id="maxLength"
+                      type="number"
+                      step="0.1"
+                      placeholder="L"
+                      value={maxLength}
+                      onChange={(e) => setMaxLength(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2">
                 <Button
                   type="submit"
                   isLoading={isUpdatingVehicle}
                   variant="primary"
                   size="sm"
-                  className="px-6 py-2.5"
+                  className="w-full py-2.5"
                 >
-                  Save Vehicle Parameters
+                  Save Configuration
                 </Button>
               </div>
             </form>
           </div>
+        </div>
 
-          {/* Configured Vehicle Table */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold text-slate-500 pl-1 uppercase tracking-wider">
-              Active Vehicle Pricing Parameters
-            </h4>
+        {/* Table Column */}
+        <div className="xl:col-span-2">
+          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs">
+            <h3 className="font-bold text-slate-800 text-sm mb-4">
+              Active Delivery Profiles
+            </h3>
 
             <Table
-              headers={[
-                "Vehicle Mode Type",
-                "Base Distance (KM)",
-                "Base Price Payout",
-                "Extra KM Rate",
-              ]}
+              headers={headers}
               data={chargesData?.vehicle_charges || []}
               isLoading={isLoading}
-              emptyMessage="No vehicle charges parameterized."
+              emptyMessage="No vehicle charges parameterized yet."
               renderRow={(item) => (
                 <tr
                   key={item.id}
-                  className="hover:bg-slate-50/50 transition-colors"
+                  className="hover:bg-slate-50/50 transition-colors group border-b last:border-0 border-slate-50"
                 >
-                  <td className="px-5 py-4 text-xs font-bold text-slate-800">
-                    {item.vehicle_type}
+                  <td className="px-5 py-4 text-xs font-bold text-slate-800 whitespace-nowrap">
+                    {vehicleNameMap[item.vehicle_type] || item.vehicle_type}
                   </td>
-                  <td className="px-5 py-4 text-xs text-slate-600 font-semibold">
+                  <td className="px-5 py-4 text-xs text-slate-500 font-medium whitespace-nowrap">
                     {item.base_distance} KM
                   </td>
-                  <td className="px-5 py-4 text-xs font-bold text-slate-700">
+                  <td className="px-5 py-4 text-xs font-bold text-slate-700 whitespace-nowrap">
                     ₹ {item.base_price.toFixed(2)}
                   </td>
-                  <td className="px-5 py-4 text-xs font-bold text-brand-purple">
-                    ₹ {item.per_km_price.toFixed(2)} / KM
+                  <td className="px-5 py-4 text-xs font-bold text-brand-purple whitespace-nowrap">
+                    ₹ {item.per_km_price.toFixed(2)}
+                  </td>
+                  <td className="px-5 py-4 text-xs font-bold text-blue-600 bg-blue-50/30 group-hover:bg-blue-50/60 transition-colors whitespace-nowrap">
+                    {item.dp_commission}%
+                  </td>
+                  <td className="px-5 py-4 text-xs font-bold text-emerald-600 bg-emerald-50/30 group-hover:bg-emerald-50/60 transition-colors whitespace-nowrap">
+                    {item.pdc_commission}%
+                  </td>
+                  <td className="px-5 py-4 text-xs font-medium text-slate-600 whitespace-nowrap">
+                    {item.max_weight ? `${item.max_weight}kg` : '-'}
+                    {item.max_height || item.max_width || item.max_length ? 
+                      ` • ${item.max_length || 0}x${item.max_width || 0}x${item.max_height || 0} ${item.dimension_unit || 'cm'}` 
+                    : ''}
                   </td>
                 </tr>
               )}
             />
-          </div>
-        </div>
-
-        {/* Right 1 Column: Commissions Configs Forms */}
-        <div className="lg:col-span-1 space-y-6">
-          {/* DP Commission Form */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-xs space-y-4">
-            <h3 className="font-bold text-slate-800 text-sm">
-              Delivery Partner Rate
-            </h3>
-            <p className="text-xs text-slate-400">
-              Update the standard commission payout allocated per kilometer to
-              pilot drivers.
-            </p>
-
-            <form onSubmit={handleSaveDpCommission} className="space-y-4 pt-2">
-              <Input
-                label="Set Delivery Partner Commission (%)"
-                id="dpComm"
-                type="number"
-                step="0.1"
-                placeholder="e.g. 35"
-                value={dpComm}
-                onChange={(e) => setDpComm(e.target.value)}
-                required
-              />
-
-              <Button
-                type="submit"
-                isLoading={isUpdatingDp}
-                variant="primary"
-                size="sm"
-                className="w-full"
-              >
-                Save Partner Rates
-              </Button>
-            </form>
-          </div>
-
-          {/* PDC Commission Form */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-xs space-y-4">
-            <h3 className="font-bold text-slate-800 text-sm">
-              PDC Package Commission
-            </h3>
-            <p className="text-xs text-slate-400">
-              Update the packaging collection incentive paid to the PDC centers
-              per order.
-            </p>
-
-            <form onSubmit={handleSavePdcCommission} className="space-y-4 pt-2">
-              <Input
-                label="Set PDC Commission (%)"
-                id="pdcComm"
-                type="number"
-                step="0.1"
-                placeholder="e.g. 15"
-                value={pdcComm}
-                onChange={(e) => setPdcComm(e.target.value)}
-                required
-              />
-
-              <Button
-                type="submit"
-                isLoading={isUpdatingPdc}
-                variant="primary"
-                size="sm"
-                className="w-full"
-              >
-                Save Package Rates
-              </Button>
-            </form>
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { ROLES } from '../constants/roles.js';
+import { ROLES } from '../constants';
 
 export const useAuth = () => {
   const { token, user, pdcDocument, isLoading, error } = useSelector((state) => state.auth);

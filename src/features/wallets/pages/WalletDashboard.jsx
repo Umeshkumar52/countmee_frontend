@@ -165,7 +165,7 @@ export const WalletDashboard = () => {
     setIsTxsLoading(true);
     try {
       const txs = await fetchUserTransactions(customer.id);
-      setTransactionsList(txs.data || []);
+      setTransactionsList(txs.data?.data?.transactions || txs.data?.transactions || []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -207,7 +207,7 @@ export const WalletDashboard = () => {
     setIsRecipientsLoading(true);
     try {
       const res = await fetchMassCreditRecipients(log.id);
-      setRecipientsList(res.data || []);
+      setRecipientsList(res.data?.data?.recipients || res.data?.recipients || []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -216,13 +216,14 @@ export const WalletDashboard = () => {
   };
 
   // Security check verification success handler
-  const handleVerificationSuccess = async () => {
+  const handleVerificationSuccess = async (verificationToken) => {
     if (verifyActionType === 'individual') {
       try {
         await creditIndividual({
           user_id: selectedCustomer.id,
           amount: parseFloat(creditAmount),
-          description: creditDesc
+          description: creditDesc,
+          verificationToken
         });
         alert(`Successfully credited ₹${creditAmount} to ${selectedCustomer.name}'s wallet!`);
         setIsAddMoneyOpen(false);
@@ -232,7 +233,10 @@ export const WalletDashboard = () => {
       }
     } else if (verifyActionType === 'joining_bonus') {
       try {
-        await updateJoiningBonus({ amount: parseFloat(bonusInput) });
+        await updateJoiningBonus({ 
+          amount: parseFloat(bonusInput),
+          verificationToken 
+        });
         alert(`Successfully updated joining bonus to ₹${bonusInput}`);
         loadInitialData();
       } catch (err) {
@@ -242,7 +246,8 @@ export const WalletDashboard = () => {
       try {
         await creditMass({
           amount: parseFloat(massAmount),
-          description: massDesc
+          description: massDesc,
+          verificationToken
         });
         alert(`Mass credit operation completed. Credited ₹${massAmount} to all active customers.`);
         setMassAmount('');
@@ -665,14 +670,19 @@ export const WalletDashboard = () => {
         <WalletVerificationModal
           isOpen={isVerifyOpen}
           onClose={() => setIsVerifyOpen(false)}
-          onVerificationSuccess={handleVerificationSuccess}
           actionLabel={
-            verifyActionType === 'individual'
-              ? `Credit ₹${creditAmount} to ${selectedCustomer?.name}`
-              : verifyActionType === 'joining_bonus'
-              ? `Update Sign-up Bonus to ₹${bonusInput}`
-              : `Mass credit ₹${massAmount} to all customers`
+            verifyActionType === 'individual' ? 'Credit Individual Wallet' :
+            verifyActionType === 'joining_bonus' ? 'Update Joining Bonus' : 'Mass Wallet Credit'
           }
+          actionType={
+            verifyActionType === 'individual' ? 'Customer Wallet Credit' :
+            verifyActionType === 'joining_bonus' ? 'Update Joining Bonus' : 'Mass Credit'
+          }
+          amount={
+            verifyActionType === 'individual' ? parseFloat(creditAmount) :
+            verifyActionType === 'joining_bonus' ? parseFloat(bonusInput) : parseFloat(massAmount)
+          }
+          onVerificationSuccess={handleVerificationSuccess}
         />
       )}
     </div>

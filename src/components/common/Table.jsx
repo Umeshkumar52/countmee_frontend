@@ -14,7 +14,7 @@ export const Table = ({
           <thead>
             <tr className="bg-slate-50 border-b border-slate-100">
               {headers.map((h, i) => (
-                <th key={i} className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-500">
+                <th key={i} className="px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-slate-500 whitespace-nowrap">
                   {h}
                 </th>
               ))}

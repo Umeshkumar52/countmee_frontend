@@ -4,7 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import RoleGuard from "./RoleGuard";
 import PdcKycGuard from "./PdcKycGuard";
-import { ROLES } from "../constants/roles.js";
+import { ROLES } from "../constants";
 
 // Layouts
 import AdminLayout from "../components/layout/AdminLayout";
