@@ -35,7 +35,7 @@ export const PdcInnerRegister = () => {
         // Optimistic update with form values
         dispatch(updatePdcDocumentState({ name, phone, email }));
       }
-      navigate('/pdc/submit_pdc_documents');
+      navigate('/pdc/profile_setup');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update business details. Try again.');
     } finally {
@@ -107,7 +107,7 @@ export const PdcInnerRegister = () => {
               isLoading={isLoading}
               className="w-full mt-4 py-3 bg-brand-purple hover:bg-brand-purple-dark text-white font-bold"
             >
-              Save & Continue to Documents →
+              Save Details
             </Button>
           </form>
         </div>

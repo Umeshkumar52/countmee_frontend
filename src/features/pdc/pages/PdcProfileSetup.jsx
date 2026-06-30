@@ -82,7 +82,7 @@ export const PdcProfileSetup = () => {
   const { user, pdcDocument, onboardingStep, isKycVerified } = useAuth();
 
   // Derive step states
-  const step1Status = pdcDocument?.city && pdcDocument?.address ? 'done' : 'active';
+  const step1Status = pdcDocument?.name && pdcDocument?.phone ? 'done' : 'active';
   const step2Status =
     step1Status !== 'done'
       ? 'locked'
@@ -148,7 +148,7 @@ export const PdcProfileSetup = () => {
         <StepCard
           number={1}
           title="My Account"
-          description="Fill in your store name, mobile number, city and address."
+          description="Review and confirm your store name and contact details."
           status={step1Status}
           onClick={handleStep1}
           disabled={false}

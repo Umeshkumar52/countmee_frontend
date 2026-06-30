@@ -91,7 +91,7 @@ export const PdcSubmitDocs = () => {
         account_no, ifsc, city, district, state, pincode, address,
       }));
 
-      navigate('/pdc/documentStatus');
+      navigate('/pdc/profile_setup');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to submit documents. Try again.');
     } finally {
