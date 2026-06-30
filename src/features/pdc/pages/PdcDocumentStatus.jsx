@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { updatePdcDocumentState } from '../../auth/authSlice';
 import { fetchPdcDocStatus } from '../../../api/pdc.api';
+import { ArrowLeft } from 'lucide-react';
 import useAuth from '../../../hooks/useAuth';
 import Badge from '../../../components/common/Badge';
 import Button from '../../../components/common/Button';
@@ -40,42 +41,76 @@ export const PdcDocumentStatus = () => {
     }
   }, [isKycVerified, navigate]);
 
-  const getStatusDisplay = (status, reason) => {
-    switch (status) {
-      case 'approved':
-        return <Badge variant="success">Approved</Badge>;
-      case 'pending':
-        return <Badge variant="warning">Pending Verification</Badge>;
-      case 'rejected':
-        return (
-          <div className="flex flex-col items-start gap-1">
-            <Badge variant="danger">Rejected</Badge>
-            {reason && (
-              <span className="text-[10px] text-red-500 font-semibold bg-red-50 p-1.5 rounded-lg border border-red-100">
-                Reason: {reason}
-              </span>
-            )}
-          </div>
-        );
-      default:
-        return <Badge variant="slate">Not Submitted</Badge>;
+  const getStatusDisplay = (status, docUrl, reason) => {
+    const normalizedStatus = status ? status.toLowerCase() : '';
+
+    if (normalizedStatus === 'approved' || normalizedStatus === 'accept') {
+      return <Badge variant="success">Approved</Badge>;
     }
+
+    if (normalizedStatus === 'rejected' || normalizedStatus === 'reject') {
+      return (
+        <div className="flex flex-col items-start gap-1">
+          <Badge variant="danger">Rejected</Badge>
+          {reason && (
+            <span className="text-[10px] text-red-500 font-semibold bg-red-50 p-1.5 rounded-lg border border-red-100">
+              Reason: {reason}
+            </span>
+          )}
+        </div>
+      );
+    }
+
+    // If status is 'pending' explicitly, OR if there's no final status yet but a file is uploaded
+    if (normalizedStatus === 'pending' || docUrl) {
+      return <Badge variant="warning">Pending Verification</Badge>;
+    }
+
+    return <Badge variant="slate">Not Submitted</Badge>;
   };
 
   const docList = [
-    { name: 'Aadhar Card Proof', status: pdcDocument?.aadhar_status, reason: pdcDocument?.aadhar_reject_reason },
-    { name: 'PAN Card Proof', status: pdcDocument?.pancard_status || pdcDocument?.pan_status, reason: pdcDocument?.pan_reject_reason },
-    { name: 'GST Certificate (Business Registration)', status: pdcDocument?.gst_status, reason: pdcDocument?.gst_reject_reason },
-    { name: 'Bank Details (Passbook/Cheque)', status: pdcDocument?.bank_status, reason: pdcDocument?.bank_reject_reason },
+    { 
+      name: 'Aadhar Card Proof', 
+      status: pdcDocument?.aadhar_status, 
+      url: pdcDocument?.aadhar_front_image, 
+      reason: pdcDocument?.aadhar_reject_reason 
+    },
+    { 
+      name: 'PAN Card Proof', 
+      status: pdcDocument?.pancard_status || pdcDocument?.pan_status, 
+      url: pdcDocument?.pancard_image, 
+      reason: pdcDocument?.pan_reject_reason 
+    },
+    { 
+      name: 'GST Certificate (Business Registration)', 
+      status: pdcDocument?.gst_status, 
+      url: pdcDocument?.gst_doc, 
+      reason: pdcDocument?.gst_reject_reason 
+    },
+    { 
+      name: 'Bank Details (Passbook/Cheque)', 
+      status: pdcDocument?.bank_status, 
+      url: pdcDocument?.passbook_image, 
+      reason: pdcDocument?.bank_reject_reason 
+    },
   ];
 
   return (
     <div className="max-w-xl mx-auto my-12 px-4 page-transition text-left">
       <div className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
-        <div className="bg-gradient-to-r from-[#9073be] to-[#522f89] p-6 text-white flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-bold font-display uppercase tracking-wider">KYC Status</h2>
-            <p className="text-xs text-white/80 mt-1">Check document verification updates</p>
+        <div className="bg-gradient-to-r from-[#9073be] to-[#522f89] p-6 text-white flex justify-between items-center relative">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => navigate('/pdc/profile_setup')}
+              className="p-2 hover:bg-white/20 rounded-full transition-colors -ml-2"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h2 className="text-xl font-bold font-display uppercase tracking-wider">KYC Status</h2>
+              <p className="text-xs text-white/80 mt-1">Check document verification updates</p>
+            </div>
           </div>
           <Button
             onClick={checkStatus}
@@ -101,7 +136,7 @@ export const PdcDocumentStatus = () => {
             {docList.map((doc, idx) => (
               <div key={idx} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                 <span className="text-sm font-semibold text-slate-700">{doc.name}</span>
-                <div>{getStatusDisplay(doc.status, doc.reason)}</div>
+                <div>{getStatusDisplay(doc.status, doc.url, doc.reason)}</div>
               </div>
             ))}
           </div>

@@ -1,22 +1,22 @@
 import { useState, useEffect } from "react";
 import { NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Home, Coins, History, PhoneCall, Bell, Menu, Circle, LogOut, X } from "lucide-react";
+import { Home, Coins, History, PhoneCall, Bell, Menu, Circle, LogOut, X, MapPin } from "lucide-react";
 import {
   logoutUser,
   toggleOnlineStatus,
-  updatePdcDocumentState,
 } from "../../features/auth/authSlice";
 import {
   fetchNotifications,
   markAsRead,
 } from "../../features/notifications/notificationSlice";
 import useAuth from "../../hooks/useAuth";
-import useGeolocation from "../../hooks/useGeolocation";
 import { updatePdcLocationCoords } from "../../api/pdc.api";
+import Modal from "../common/Modal";
+import Button from "../common/Button";
 
 export const PdcLayout = () => {
-  const { user, pdcDocument } = useAuth();
+  const { user, pdcDocument, isKycVerified } = useAuth();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -24,10 +24,9 @@ export const PdcLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-
-  // Location alert banner feedback state
-  const [locationStatus, setLocationStatus] = useState(null);
-
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [isUpdatingLocation, setIsUpdatingLocation] = useState(false);
+  const [locationUpdateSuccess, setLocationUpdateSuccess] = useState(false);
   const { notifications } = useSelector((state) => state.notifications);
   const unreadNotifs = notifications?.filter((n) => n.read_at === null);
 
@@ -40,11 +39,20 @@ export const PdcLayout = () => {
     navigate("/");
   };
 
+  // Run location updates if PDC is Online
+  const isOnline = pdcDocument?.online === true;
+
   const handleToggleOnline = async () => {
     if (!pdcDocument) return;
-    const newStatus = pdcDocument.online === 1 ? 0 : 1;
+    const docId = pdcDocument._id || pdcDocument.id;
+    if (!docId) {
+      console.error("Missing PDC Document ID. Cannot toggle online status.");
+      return;
+    }
+    
+    const newStatus = !isOnline;
     await dispatch(
-      toggleOnlineStatus({ id: pdcDocument.id, online: newStatus }),
+      toggleOnlineStatus({ id: docId, online: newStatus }),
     );
   };
 
@@ -52,35 +60,40 @@ export const PdcLayout = () => {
     dispatch(markAsRead(id));
   };
 
-  // Run location updates if PDC is Online (online === 1)
-  const isOnline = pdcDocument?.online === 1;
-
-  const handleLocationUpdate = async (coords) => {
-    try {
-      await updatePdcLocationCoords({
-        pdcAuthId: user.id,
-        latitude: coords.latitude,
-        longitude: coords.longitude,
-      });
-      setLocationStatus(
-        `Location updated: ${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`,
-      );
-      // Update local Redux state coordinate cache
-      dispatch(
-        updatePdcDocumentState({
-          latitude: coords.latitude.toString(),
-          longitude: coords.longitude.toString(),
-        }),
-      );
-
-      // Auto-hide location banner after 3 seconds
-      setTimeout(() => setLocationStatus(null), 3000);
-    } catch (e) {
-      console.error("Location update failed", e);
-    }
+  const handleUpdateLocationClick = () => {
+    setIsProfileOpen(false);
+    setIsLocationModalOpen(true);
+    setLocationUpdateSuccess(false);
   };
 
-  const { error: geoError } = useGeolocation(isOnline, handleLocationUpdate);
+  const confirmLocationUpdate = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+    
+    setIsUpdatingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          await updatePdcLocationCoords({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          });
+          setLocationUpdateSuccess(true);
+        } catch (error) {
+          alert(error.response?.data?.message || "Failed to update location");
+        } finally {
+          setIsUpdatingLocation(false);
+        }
+      },
+      (error) => {
+        setIsUpdatingLocation(false);
+        alert("Failed to get location. Please ensure location permissions are granted.");
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
 
   // Close menus on path navigation
   useEffect(() => {
@@ -89,7 +102,7 @@ export const PdcLayout = () => {
     setIsProfileOpen(false);
   }, [location.pathname]);
 
-  const isKycVerified = Number(pdcDocument?.status) === 1;
+
 
   const pdcMenuItems = [
     { name: "Home", path: "/pdc/home", icon: <Home size={20} /> },
@@ -111,18 +124,6 @@ export const PdcLayout = () => {
     <div
       className={`min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800 ${isOnboardingPage ? "" : "pb-20 lg:pb-0"}`}
     >
-      {/* Geolocation Alert Messages banner */}
-      {locationStatus && (
-        <div className="fixed top-18 left-1/2 -translate-x-1/2 bg-slate-900/90 text-brand-success text-xs font-semibold px-4 py-2 rounded-full z-50 shadow-md">
-          🟢 {locationStatus}
-        </div>
-      )}
-      {geoError && isOnline && (
-        <div className="fixed top-18 left-1/2 -translate-x-1/2 bg-red-600/90 text-white text-xs font-semibold px-4 py-2 rounded-full z-50 shadow-md">
-          ⚠️ {geoError}
-        </div>
-      )}
-
       {/* Header Bar */}
       <header className="sticky top-0 z-40 bg-[#522e90] border-b-[3px] border-[#4a2a82] text-white shadow-[0_4px_6px_rgba(0,0,0,0.1)] rounded-b-[15px]">
         <div className="max-w-7xl mx-auto px-4">
@@ -275,36 +276,67 @@ export const PdcLayout = () => {
                   className="flex items-center gap-1.5 p-1 hover:bg-white/10 rounded-lg transition-colors border border-transparent"
                 >
                   <div className="w-8 h-8 rounded-full border-2 border-white bg-indigo-200 overflow-hidden flex items-center justify-center">
-                    <span className="text-brand-purple font-bold text-xs uppercase">
-                      {user?.name?.slice(0, 2) || "PD"}
-                    </span>
+                    {pdcDocument?.profile_image ? (
+                      <img 
+                        src={pdcDocument.profile_image} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover" 
+                      />
+                    ) : (
+                      <span className="text-brand-purple font-bold text-xs uppercase">
+                        {user?.name?.slice(0, 2) || "PD"}
+                      </span>
+                    )}
                   </div>
                 </button>
 
                 {isProfileOpen && (
                   <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-100 text-slate-800 rounded-xl shadow-xl z-50 overflow-hidden page-transition">
-                    <div className="p-4 border-b border-slate-100 text-left">
-                      <p className="font-semibold text-sm text-slate-800">
-                        {user?.name}
-                      </p>
-                      <p className="text-xs text-slate-500">{user?.phone}</p>
-                      <p className="text-xs text-slate-400 truncate mt-0.5">
-                        {user?.email}
-                      </p>
-                      {pdcDocument && (
-                        <div className="mt-2 flex items-center justify-between text-[11px] font-medium bg-slate-50 p-2 rounded-lg border border-slate-100">
+                    <div className="p-4 border-b border-slate-100 flex items-start gap-3">
+                      <div className="w-12 h-12 rounded-full border border-slate-200 bg-indigo-50 overflow-hidden flex items-center justify-center flex-shrink-0">
+                        {pdcDocument?.profile_image ? (
+                          <img 
+                            src={pdcDocument.profile_image} 
+                            alt="Profile" 
+                            className="w-full h-full object-cover" 
+                          />
+                        ) : (
+                          <span className="text-brand-purple font-bold text-sm uppercase">
+                            {user?.name?.slice(0, 2) || "PD"}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-left overflow-hidden">
+                        <p className="font-semibold text-sm text-slate-800 truncate">
+                          {user?.name}
+                        </p>
+                        <p className="text-xs text-slate-500 truncate">{user?.phone}</p>
+                        <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                          {user?.email}
+                        </p>
+                      </div>
+                    </div>
+                    {pdcDocument && (
+                      <div className="px-4 py-3 border-b border-slate-100">
+                        <div className="flex items-center justify-between text-[11px] font-medium bg-slate-50 p-2 rounded-lg border border-slate-100">
                           <span className="text-slate-500">KYC Status:</span>
                           <span
-                            className={`capitalize ${isOnline ? "text-emerald-600 font-bold" : "text-slate-600"}`}
+                            className={`capitalize ${isKycVerified ? "text-emerald-600 font-bold" : "text-amber-600 font-bold"}`}
                           >
-                            {pdcDocument.aadhar_status === "approved"
-                              ? "Verified"
-                              : "Pending"}
+                            {isKycVerified ? "Verified" : "Pending"}
                           </span>
                         </div>
+                      </div>
+                    )}
+                    <div className="p-2 space-y-1">
+                      {isKycVerified && (
+                        <button
+                          onClick={handleUpdateLocationClick}
+                          className="w-full text-left px-3 py-2 text-sm text-brand-purple hover:bg-brand-purple-soft rounded-lg flex items-center gap-2 transition-colors font-medium"
+                        >
+                          <MapPin size={16} /> Update Exact Location
+                        </button>
                       )}
-                    </div>
-                    <div className="p-2">
                       <button
                         onClick={handleLogout}
                         className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 transition-colors font-medium"
@@ -410,6 +442,68 @@ export const PdcLayout = () => {
           ))}
         </footer>
       )}
+
+      {/* Location Confirmation Modal */}
+      <Modal 
+        isOpen={isLocationModalOpen} 
+        onClose={() => {
+          if (!isUpdatingLocation) setIsLocationModalOpen(false);
+        }} 
+        title={locationUpdateSuccess ? "Success!" : "Update Exact Store Location"}
+        size="md"
+      >
+        <div className="p-2 text-center">
+          {locationUpdateSuccess ? (
+            <div className="flex flex-col items-center">
+              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
+                <span className="text-2xl">✅</span>
+              </div>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">Location Updated</h3>
+              <p className="text-sm text-slate-500 mb-6">
+                Your precise GPS coordinates have been saved successfully. Delivery partners will now be able to find your store more easily.
+              </p>
+              <Button 
+                onClick={() => setIsLocationModalOpen(false)}
+                className="w-full bg-slate-800 hover:bg-slate-900 text-white"
+              >
+                Close
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center text-left">
+              <div className="w-16 h-16 bg-brand-purple-soft rounded-full flex items-center justify-center mb-4 text-brand-purple">
+                <MapPin size={32} />
+              </div>
+              <p className="text-sm text-slate-600 mb-4 leading-relaxed text-center">
+                To ensure delivery partners can navigate directly to your storefront without any confusion, we need to capture your exact GPS coordinates.
+              </p>
+              <div className="bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold p-3 rounded-lg mb-6 text-center w-full">
+                ⚠️ Please ensure you are currently standing inside your PDC location before proceeding.
+              </div>
+              
+              <div className="flex gap-3 w-full">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsLocationModalOpen(false)}
+                  disabled={isUpdatingLocation}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="button" 
+                  onClick={confirmLocationUpdate}
+                  isLoading={isUpdatingLocation}
+                  className="flex-1 bg-brand-purple hover:bg-brand-purple-dark text-white"
+                >
+                  {isUpdatingLocation ? "Capturing..." : "Confirm & Capture"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };

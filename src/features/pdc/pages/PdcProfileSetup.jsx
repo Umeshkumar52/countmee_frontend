@@ -79,7 +79,7 @@ const StepCard = ({ number, title, description, status, onClick, disabled }) => 
 
 export const PdcProfileSetup = () => {
   const navigate = useNavigate();
-  const { user, pdcDocument, onboardingStep } = useAuth();
+  const { user, pdcDocument, onboardingStep, isKycVerified } = useAuth();
 
   // Derive step states
   const step1Status = pdcDocument?.city && pdcDocument?.address ? 'done' : 'active';
@@ -92,9 +92,11 @@ export const PdcProfileSetup = () => {
   const step3Status =
     step2Status === 'locked' || step2Status === 'active'
       ? 'locked'
+      : isKycVerified
+      ? 'done'
       : onboardingStep === 'status'
       ? 'pending'
-      : 'done';
+      : 'active';
 
   const handleStep1 = () => navigate('/pdc/inner_registered');
   const handleStep2 = () => {
@@ -171,8 +173,20 @@ export const PdcProfileSetup = () => {
         />
       </div>
 
+      {/* Proceed Button if fully approved */}
+      {isKycVerified && (
+        <div className="w-full max-w-lg mt-6">
+          <button
+            onClick={() => navigate('/pdc/home')}
+            className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg transition-transform hover:-translate-y-1 active:translate-y-0 text-lg flex items-center justify-center gap-2"
+          >
+            Proceed to Dashboard →
+          </button>
+        </div>
+      )}
+
       {/* Status Banner */}
-      {onboardingStep === 'status' && (
+      {!isKycVerified && onboardingStep === 'status' && (
         <div className="mt-6 w-full max-w-lg bg-blue-50 border border-blue-200 rounded-2xl p-4 text-center">
           <span className="text-2xl">⏳</span>
           <h4 className="font-bold text-blue-800 text-sm mt-2">Documents Under Review</h4>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { updatePdcDocumentState } from '../../auth/authSlice';
 import { updatePdcInnerRegister } from '../../../api/pdc.api';
+import { ArrowLeft } from 'lucide-react';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import useAuth from '../../../hooks/useAuth';
@@ -45,7 +46,13 @@ export const PdcInnerRegister = () => {
   return (
     <div className="max-w-lg mx-auto my-10 px-4 page-transition">
       <div className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
-        <div className="bg-gradient-to-r from-[#9073be] to-[#522f89] p-6 text-white text-center">
+        <div className="bg-gradient-to-r from-[#9073be] to-[#522f89] p-6 text-white relative flex flex-col items-center">
+          <button 
+            onClick={() => navigate('/pdc/profile_setup')}
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-2 hover:bg-white/20 rounded-full transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
           <h2 className="text-xl font-bold font-display uppercase tracking-wider">My Account</h2>
           <p className="text-xs text-white/80 mt-1">
             Step 1 of 3 — Fill in your store and contact details

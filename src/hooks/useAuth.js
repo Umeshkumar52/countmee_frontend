@@ -8,8 +8,22 @@ export const useAuth = () => {
   const isAdmin = user?.role === ROLES.ADMIN;
   const isPdc = user?.role === ROLES.PDC;
 
-  // Overall KYC approved: admin sets pdcDocument.status = 1
-  const isKycVerified = isPdc && pdcDocument && Number(pdcDocument.status) === 1;
+  // Helper to check if a single doc status is approved
+  const isDocApproved = (statusStr) => {
+    if (!statusStr) return false;
+    const s = statusStr.toLowerCase();
+    return s === 'accept' || s === 'approved';
+  };
+
+  // Check if ALL individual required docs are approved
+  const allDocsApproved = isPdc && pdcDocument && 
+    isDocApproved(pdcDocument.aadhar_status) &&
+    (isDocApproved(pdcDocument.pan_status) || isDocApproved(pdcDocument.pancard_status)) &&
+    isDocApproved(pdcDocument.gst_status) &&
+    isDocApproved(pdcDocument.bank_status);
+
+  // Overall KYC approved: all individual docs are accepted
+  const isKycVerified = isPdc && pdcDocument && allDocsApproved;
 
   // Individual document submission check (any required doc uploaded = status submitted)
   const hasSubmittedDocs = isPdc && pdcDocument && (
