@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchPdcOrders } from '../../../api/pdc.api';
+import { fetchPdcDashboard, actionDrop } from '../../../api/pdc.api';
 import useAuth from '../../../hooks/useAuth';
 import useSocket from '../../../hooks/useSocket';
 import Modal from '../../../components/common/Modal';
@@ -26,8 +26,8 @@ const StatsSkeleton = () => (
   </div>
 );
 
-// ── Reusable Table Component ──────────────────────────────────────────────────
-const OrderTable = ({ title, orders, isLoading, onViewPackage, onViewDp, otpKey }) => {
+// ── Reusable// ── List Component ──────────────────────────────────────────────────────────────
+const OrderTable = ({ title, orders, isLoading, onViewPackage, onViewDp, otpKey, onActionDrop }) => {
   const headers = ['OrderId', 'User Name', 'Package Details', 'Package Count', 'Pickup Location', 'Drop Location', 'Mode of Transport', 'OTP', 'Dp Details'];
   if (!isLoading && orders.length === 0) return null;
 
@@ -74,9 +74,26 @@ const OrderTable = ({ title, orders, isLoading, onViewPackage, onViewDp, otpKey 
                     </td>
                     <td className="text-center p-3 capitalize max-h-[10vh] overflow-hidden">{raw.mode_of_transport || '-'}</td>
                     <td className="text-center p-3 max-h-[10vh] overflow-hidden">
-                      <button className="px-3 py-1 text-white text-sm rounded bg-gradient-to-b from-[#9073be] to-[#522f89] hover:opacity-90 transition-opacity">
-                        {otp}
-                      </button>
+                      {raw.orderReq?.status === 'Pending' ? (
+                        <div className="flex justify-center gap-2">
+                          <button
+                            onClick={() => onActionDrop(order, 'accept')}
+                            className="px-3 py-1 text-white text-sm rounded bg-green-500 hover:bg-green-600 transition-colors"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            onClick={() => onActionDrop(order, 'reject')}
+                            className="px-3 py-1 text-white text-sm rounded bg-red-500 hover:bg-red-600 transition-colors"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      ) : (
+                        <button className="px-3 py-1 text-white text-sm rounded bg-gradient-to-b from-[#9073be] to-[#522f89] hover:opacity-90 transition-opacity">
+                          {otp}
+                        </button>
+                      )}
                     </td>
                     <td className="text-center p-3 max-h-[10vh] overflow-hidden">
                       <button
@@ -139,12 +156,15 @@ const DpModal = ({ isOpen, onClose, order }) => {
   if (!order) return null;
   const raw = order._raw || order;
   const req = raw.orderReq || {};
-  const effectiveDp = req.dp || req.requestedUser || {};
-  const effectiveDpLoc = req.dpLocation || req.requestedDpLocation || {};
+  const effectiveDp = raw.effectiveDp || req.dp || req.requestedUser || {};
+  const effectiveDpLoc = raw.effectiveDpLoc || req.dpLocation || req.requestedDpLocation || {};
+  console.log("DpModal raw object:", raw);
+  console.log("effectiveDp:", effectiveDp);
   const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-  const dpImg = effectiveDpLoc.profile_img ? `${baseUrl}/uploads/${effectiveDpLoc.profile_img}` : '/default-user.png';
+  const imgSource = raw.dpProfileImg || effectiveDpLoc.profile_img;
+  const dpImg = imgSource ? (imgSource.startsWith('http') ? imgSource : `${baseUrl}/uploads/${imgSource}`) : '/default-user.png';
 
-  const stars = effectiveDpLoc.rating?.avg?.stars ?? 0;
+  const stars = raw.stars ?? effectiveDpLoc.rating?.avg?.stars ?? 0;
   const fullStars = Math.floor(stars);
   const halfStar = stars - fullStars > 0;
   const blankStars = 5 - fullStars - (halfStar ? 1 : 0);
@@ -179,7 +199,7 @@ const DpModal = ({ isOpen, onClose, order }) => {
 const DpListModal = ({ isOpen, onClose, order }) => {
   if (!order) return null;
   const raw = order._raw || order;
-  const list = raw.orderReqList || [];
+  const list = raw.broadcast?.dpUsersList || raw.orderReqList || [];
   const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
   return (
@@ -197,10 +217,11 @@ const DpListModal = ({ isOpen, onClose, order }) => {
           </thead>
           <tbody>
             {list.map((req, i) => {
-              const dp = req.dp || req.requestedUser || {};
-              const loc = req.dpLocation || req.requestedDpLocation || {};
-              const dpImg = loc.profile_img ? `${baseUrl}/uploads/${loc.profile_img}` : '/default-user.png';
-              const stars = loc.rating?.avg?.stars ?? 0;
+              const dp = req.dp || req.requestedUser || req || {};
+              const loc = req.dpLocation || req.requestedDpLocation || req.dpDetail || {};
+              const imgSource = req.dpProfileImg || loc.profile_img;
+              const dpImg = imgSource ? (imgSource.startsWith('http') ? imgSource : `${baseUrl}/uploads/${imgSource}`) : '/default-user.png';
+              const stars = req.stars ?? loc.rating?.avg?.stars ?? 0;
               const fullStars = Math.floor(stars);
               const halfStar = stars - fullStars > 0;
               const blankStars = 5 - fullStars - (halfStar ? 1 : 0);
@@ -247,24 +268,11 @@ export const PdcHome = () => {
   const fetchDashboard = async () => {
     setIsLoading(true);
     try {
-      const response = await fetchPdcOrders();
-      const orders = response.data?.data?.orders || response.data?.orders || [];
+      const response = await fetchPdcDashboard();
+      const data = response.data?.data || response.data || {};
       
-      const receive = [];
-      const broadcast = [];
-
-      orders.forEach(o => {
-        if (!['pending', 'assigned', 'intransit', 'broadcasted'].includes(o.status_completed)) return;
-        const raw = o._raw || o;
-        if (raw.order_category === 1 || raw.order_category === 4) {
-          receive.push(o);
-        } else {
-          broadcast.push(o);
-        }
-      });
-
-      setOrdersToReceive(receive);
-      setOrdersToBroadcast(broadcast);
+      setOrdersToReceive(data.ordersToReceive || []);
+      setOrdersToBroadcast(data.broadcastedOrders || []);
     } catch (e) {
       console.error('Failed to load dashboard', e);
     } finally {
@@ -272,9 +280,22 @@ export const PdcHome = () => {
     }
   };
 
+  const handleActionDrop = async (order, action) => {
+    try {
+      setIsLoading(true);
+      await actionDrop({ order_id: order._id || order._raw?._id, action });
+      fetchDashboard();
+    } catch (error) {
+      console.error(`Failed to ${action} drop-off:`, error);
+      alert(error.response?.data?.message || `Failed to ${action} drop-off`);
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => { fetchDashboard(); }, []);
   useSocket('order:assigned', fetchDashboard);
   useSocket('order:created', fetchDashboard);
+  useSocket('notification:received', fetchDashboard);
 
   return (
     <div className="w-full space-y-6 text-left page-transition pb-10">
@@ -316,6 +337,7 @@ export const PdcHome = () => {
         onViewPackage={(o) => { setSelectedOrder(o); setPackageModalOpen(true); }}
         onViewDp={(o) => { setSelectedOrder(o); setDpModalOpen(true); }}
         otpKey="drop_otp"
+        onActionDrop={handleActionDrop}
       />
 
       {/* ── Orders To Broadcast ────────────────────────────────────────── */}

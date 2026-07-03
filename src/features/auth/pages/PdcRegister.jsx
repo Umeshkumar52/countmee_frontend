@@ -89,7 +89,7 @@ export const PdcRegister = () => {
 
     dispatch(
       registerPdc({
-        first_name: name,
+        name,
         email,
         phone,
         password,
@@ -117,10 +117,10 @@ export const PdcRegister = () => {
 
       <form onSubmit={handleSubmit} className="w-full space-y-4 text-left">
         <Input
-          label="Full Name"
+          label="Shop Name"
           id="name"
           type="text"
-          placeholder="Enter Full Name"
+          placeholder="Enter Shop Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required

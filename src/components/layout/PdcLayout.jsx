@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Home, Coins, History, PhoneCall, Bell, Menu, Circle, LogOut, X, MapPin } from "lucide-react";
+import { Home, Coins, History, PhoneCall, Bell, Menu, Circle, LogOut, X, MapPin, CheckCircle2, CheckCheck } from "lucide-react";
 import {
   logoutUser,
   toggleOnlineStatus,
@@ -58,6 +58,12 @@ export const PdcLayout = () => {
 
   const handleReadNotif = (id) => {
     dispatch(markAsRead(id));
+  };
+
+  const handleMarkAllAsRead = () => {
+    unreadNotifs.forEach(notif => {
+      dispatch(markAsRead(notif._id || notif.id));
+    });
   };
 
   const handleUpdateLocationClick = () => {
@@ -230,10 +236,23 @@ export const PdcLayout = () => {
                 {isNotifOpen && (
                   <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-100 text-slate-800 rounded-xl shadow-xl z-50 overflow-hidden page-transition">
                     <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                      <h4 className="font-semibold text-sm">Notifications</h4>
-                      <span className="text-xs bg-brand-purple-soft text-brand-purple px-2 py-0.5 rounded-full font-medium">
-                        {unreadNotifs.length} new
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold text-sm">Notifications</h4>
+                        {unreadNotifs.length > 0 && (
+                          <span className="text-xs bg-brand-purple-soft text-brand-purple px-2 py-0.5 rounded-full font-medium">
+                            {unreadNotifs.length} new
+                          </span>
+                        )}
+                      </div>
+                      {unreadNotifs.length > 0 && (
+                        <button
+                          onClick={handleMarkAllAsRead}
+                          className="text-[11px] text-brand-purple hover:text-brand-purple-dark font-medium flex items-center gap-1 transition-colors"
+                          title="Mark all as read"
+                        >
+                          <CheckCheck size={14} /> Mark all read
+                        </button>
+                      )}
                     </div>
                     <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
                       {notifications.length === 0 ? (
@@ -243,21 +262,36 @@ export const PdcLayout = () => {
                       ) : (
                         notifications.map((notif) => (
                           <div
-                            key={notif.id}
-                            onClick={() => handleReadNotif(notif.id)}
-                            className={`p-3 text-left hover:bg-slate-50 transition-colors cursor-pointer ${
-                              notif.read_at === null ? "bg-indigo-50/30" : ""
+                            key={notif._id || notif.id}
+                            className={`p-3 text-left transition-colors relative group ${
+                              notif.read_at === null ? "bg-indigo-50/30 hover:bg-indigo-50/50" : "hover:bg-slate-50"
                             }`}
                           >
-                            <h5 className="font-semibold text-xs text-slate-800">
-                              {notif.title}
-                            </h5>
-                            <p className="text-slate-500 text-[11px] mt-0.5">
-                              {notif.message}
-                            </p>
-                            <span className="text-[9px] text-slate-400 block mt-1">
-                              {new Date(notif.created_at).toLocaleTimeString()}
-                            </span>
+                            <div className="flex justify-between items-start gap-2">
+                              <div className="flex-1">
+                                <h5 className="font-semibold text-xs text-slate-800 pr-6">
+                                  {notif.title}
+                                </h5>
+                                <p className="text-slate-500 text-[11px] mt-0.5">
+                                  {notif.message}
+                                </p>
+                                <span className="text-[9px] text-slate-400 block mt-1">
+                                  {new Date(notif.created_at).toLocaleTimeString()}
+                                </span>
+                              </div>
+                              {notif.read_at === null && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleReadNotif(notif._id || notif.id);
+                                  }}
+                                  className="text-slate-300 hover:text-brand-purple p-1 rounded-full hover:bg-brand-purple-soft transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                  title="Mark as read"
+                                >
+                                  <CheckCircle2 size={16} />
+                                </button>
+                              )}
+                            </div>
                           </div>
                         ))
                       )}

@@ -6,6 +6,9 @@ import client from './client';
  */
 export const fetchPdcProfile = () => client.get('/pdc/profile');
 
+/** Fetch the Dashboard data (Orders To Receive, Broadcasts, Stats) */
+export const fetchPdcDashboard = () => client.get('/pdc/home');
+
 /**
  * Step 1 — Update inner account details (name, phone, email).
  * Sends JSON.
@@ -28,8 +31,11 @@ export const updatePdcLocationCoords = (data) =>
 /** Fetch earnings history */
 export const fetchPdcEarnings = () => client.get('/pdc/earning');
 
-/** Rate a delivery partner */
-export const rateDeliveryPartner = (data) => client.post('/pdc/rate-dp', data);
+/** Submit a rating for a DP */
+export const rateDpApi = (data) => client.post('/pdc/rate-dp', data);
+
+/** Accept or reject a drop-off request */
+export const actionDrop = (data) => client.post('/pdc/action-drop', data);
 
 /** Toggle online / offline status */
 export const toggleOnline = (id, online) =>
