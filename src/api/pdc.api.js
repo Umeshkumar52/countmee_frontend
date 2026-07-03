@@ -37,6 +37,9 @@ export const rateDpApi = (data) => client.post('/pdc/rate-dp', data);
 /** Accept or reject a drop-off request */
 export const actionDrop = (data) => client.post('/pdc/action-drop', data);
 
+/** Manually trigger broadcast to nearby DPs */
+export const broadcastOrder = (data) => client.post('/pdc/broadcast', data);
+
 /** Toggle online / offline status */
 export const toggleOnline = (id, online) =>
   client.put(`/pdc/online/${id}/${online}`);

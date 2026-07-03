@@ -268,19 +268,19 @@ export const PdcOrderHistory = () => {
               </div>
               <div>
                 <p className="text-[10px] capitalize text-slate-400 font-bold mb-1">Type of Product</p>
-                <p className="text-sm font-semibold text-slate-800">{parcelModal.order.raw?.packageDetail?.product_type || 'N/A'}</p>
+                <p className="text-sm font-semibold text-slate-800">{parcelModal.order.raw?.packageDetail?.types_of_product || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-[10px] capitalize text-slate-400 font-bold mb-1">Size</p>
-                <p className="text-sm font-semibold text-slate-800">{parcelModal.order.raw?.packageDetail?.size || 'N/A'}</p>
+                <p className="text-sm font-semibold text-slate-800">{parcelModal.order.raw?.packageDetail?.size_of_package || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-[10px] capitalize text-slate-400 font-bold mb-1">Weight</p>
-                <p className="text-sm font-semibold text-slate-800">{parcelModal.order.raw?.packageDetail?.weight || 'N/A'}</p>
+                <p className="text-sm font-semibold text-slate-800">{parcelModal.order.raw?.packageDetail?.product_weight || 'N/A'}</p>
               </div>
               <div className="col-span-2">
                 <p className="text-[10px] capitalize text-slate-400 font-bold mb-1">No. of Items</p>
-                <p className="text-sm font-semibold text-slate-800">{parcelModal.order.items_count}</p>
+                <p className="text-sm font-semibold text-slate-800">{parcelModal.order.raw?.packageDetail?.no_of_items || parcelModal.order.items_count || 'N/A'}</p>
               </div>
             </div>
           </div>

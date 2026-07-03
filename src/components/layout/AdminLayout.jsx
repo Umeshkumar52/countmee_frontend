@@ -19,6 +19,7 @@ import {
   FileBarChart2,
   BadgeIndianRupee,
   Bell,
+  Car,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser } from "../../features/auth/authSlice";
@@ -73,6 +74,7 @@ export const AdminLayout = () => {
     { name: "Wallets", path: "/admin/wallets", icon: Wallet },
     { name: "Reports", path: "/admin/reports", icon: Landmark },
     { name: "Charges", path: "/admin/charges", icon: BadgeIndianRupee },
+    { name: "Vehicles", path: "/admin/vehicles", icon: Car },
   ];
 
   return (

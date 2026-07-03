@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchPdcDashboard, actionDrop } from '../../../api/pdc.api';
+import { fetchPdcDashboard, actionDrop, broadcastOrder } from '../../../api/pdc.api';
 import useAuth from '../../../hooks/useAuth';
 import useSocket from '../../../hooks/useSocket';
 import Modal from '../../../components/common/Modal';
@@ -27,8 +27,11 @@ const StatsSkeleton = () => (
 );
 
 // ── Reusable// ── List Component ──────────────────────────────────────────────────────────────
-const OrderTable = ({ title, orders, isLoading, onViewPackage, onViewDp, otpKey, onActionDrop }) => {
-  const headers = ['OrderId', 'User Name', 'Package Details', 'Package Count', 'Pickup Location', 'Drop Location', 'Mode of Transport', 'OTP', 'Dp Details'];
+const OrderTable = ({ title, orders, isLoading, onViewPackage, onViewDp, otpKey, onActionDrop, onBroadcast }) => {
+  const isBroadcastTable = title === 'Orders To Broadcast';
+  const headers = ['OrderId', 'User Name', 'Package Details', 'Package Count', 'Pickup Location', 'Drop Location', 'Mode of Transport'];
+  if (isBroadcastTable) headers.push('Broadcast Status');
+  headers.push('OTP', 'Dp Details');
   if (!isLoading && orders.length === 0) return null;
 
   return (
@@ -47,13 +50,18 @@ const OrderTable = ({ title, orders, isLoading, onViewPackage, onViewDp, otpKey,
           </thead>
           <tbody className="align-middle">
             {isLoading ? (
-              Array.from({ length: 4 }).map((_, i) => <TableShimmerRow key={i} cols={9} />)
+              Array.from({ length: 4 }).map((_, i) => <TableShimmerRow key={i} cols={headers.length} />)
             ) : (
               orders.map((order, idx) => {
                 const raw = order._raw || order;
                 const otp = otpKey === 'drop_otp'
                   ? (raw.broadcast?.drop_otp || 'Wait for Delivery')
                   : (raw.broadcast?.pickup_otp || '-');
+                
+                let statusColor = "bg-slate-500";
+                if (raw.broadcast?.status === "Pending") statusColor = "bg-yellow-500";
+                else if (raw.broadcast?.status === "Broadcasting") statusColor = "bg-blue-500";
+                else if (raw.broadcast?.status === "Accepted") statusColor = "bg-green-500";
                 const stripe = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50';
                 return (
                   <tr key={order._id || order.id} className={`${stripe} hover:bg-purple-50/40 transition-colors text-center text-sm text-slate-600`}>
@@ -73,6 +81,13 @@ const OrderTable = ({ title, orders, isLoading, onViewPackage, onViewDp, otpKey,
                       <div className="max-h-[7vh] overflow-y-auto cursor-ns-resize scrollbar-thin scrollbar-thumb-purple-200">{raw.drop_location || raw.delivery_location || '-'}</div>
                     </td>
                     <td className="text-center p-3 capitalize max-h-[10vh] overflow-hidden">{raw.mode_of_transport || '-'}</td>
+                    {isBroadcastTable && (
+                      <td className="text-center p-3 capitalize max-h-[10vh] overflow-hidden">
+                        <span className={`px-2 py-1 text-xs text-white rounded-full ${statusColor}`}>
+                          {raw.broadcast?.status || 'Pending'}
+                        </span>
+                      </td>
+                    )}
                     <td className="text-center p-3 max-h-[10vh] overflow-hidden">
                       {raw.orderReq?.status === 'Pending' ? (
                         <div className="flex justify-center gap-2">
@@ -89,6 +104,13 @@ const OrderTable = ({ title, orders, isLoading, onViewPackage, onViewDp, otpKey,
                             Reject
                           </button>
                         </div>
+                      ) : (isBroadcastTable && raw.broadcast?.status === 'Pending') ? (
+                        <button
+                          onClick={() => onBroadcast(order)}
+                          className="px-4 py-1 text-white text-sm font-bold rounded shadow bg-gradient-to-r from-orange-400 to-red-500 hover:from-orange-500 hover:to-red-600 transition-all transform hover:scale-105"
+                        >
+                          Broadcast Now
+                        </button>
                       ) : (
                         <button className="px-3 py-1 text-white text-sm rounded bg-gradient-to-b from-[#9073be] to-[#522f89] hover:opacity-90 transition-opacity">
                           {otp}
@@ -254,6 +276,8 @@ export const PdcHome = () => {
   const { user } = useAuth();
   const [ordersToReceive, setOrdersToReceive] = useState([]);
   const [ordersToBroadcast, setOrdersToBroadcast] = useState([]);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [pendingOrders, setPendingOrders] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
   // Modal states
@@ -261,9 +285,6 @@ export const PdcHome = () => {
   const [dpModalOpen, setDpModalOpen] = useState(false);
   const [dpListModalOpen, setDpListModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
-
-  const totalOrders = ordersToReceive.length + ordersToBroadcast.length;
-  const pendingOrders = totalOrders; // All these are technically pending/active
 
   const fetchDashboard = async () => {
     setIsLoading(true);
@@ -273,6 +294,8 @@ export const PdcHome = () => {
       
       setOrdersToReceive(data.ordersToReceive || []);
       setOrdersToBroadcast(data.broadcastedOrders || []);
+      setTotalOrders(data.totalOrders || 0);
+      setPendingOrders(data.pendingOrders || 0);
     } catch (e) {
       console.error('Failed to load dashboard', e);
     } finally {
@@ -288,6 +311,19 @@ export const PdcHome = () => {
     } catch (error) {
       console.error(`Failed to ${action} drop-off:`, error);
       alert(error.response?.data?.message || `Failed to ${action} drop-off`);
+      setIsLoading(false);
+    }
+  };
+
+  const handleBroadcast = async (order) => {
+    try {
+      setIsLoading(true);
+      const res = await broadcastOrder({ order_id: order._id || order._raw?._id });
+      fetchDashboard();
+      alert(res.data?.message || 'Broadcast successful!');
+    } catch (error) {
+      console.error('Failed to broadcast:', error);
+      alert(error.response?.data?.message || 'Failed to broadcast order');
       setIsLoading(false);
     }
   };
@@ -348,6 +384,7 @@ export const PdcHome = () => {
         onViewPackage={(o) => { setSelectedOrder(o); setPackageModalOpen(true); }}
         onViewDp={(o) => { setSelectedOrder(o); setDpListModalOpen(true); }}
         otpKey="pickup_otp"
+        onBroadcast={handleBroadcast}
       />
 
       {/* ── Modals ─────────────────────────────────────────────────────── */}

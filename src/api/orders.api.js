@@ -8,24 +8,11 @@ const mapOrder = (o) => {
     customer_name: o.user_id?.name || o.sender_name || "N/A",
     customer_phone: o.user_id?.phone || o.sender_phone || "N/A",
     pickup_address: o.pickup_address || o.pickup_location || "N/A",
-    delivery_address: o.delivery_address || o.delivery_location || "N/A",
+    delivery_address: o.delivery_address || o.delivery_location || o.drop_location || "N/A",
     pdc_name: o.pdc_id?.shop_name || o.pdc_name || "Direct",
     dp_name: o.pickup_dp_id?.name || o.delivery_dp_id?.name || o.dp_name || "",
     amount: o.charges || o.amount || 0,
-    status: (() => {
-      let st = o.status;
-      if (typeof st === "number") {
-        const sm = {
-          0: "pending",
-          1: "assigned",
-          2: "cancelled",
-          3: "intransit",
-          4: "delivered",
-        };
-        return sm[st] || "pending";
-      }
-      return typeof st === "string" ? st.toLowerCase() : "pending";
-    })(),
+    status: typeof o.status === "string" ? o.status.toLowerCase() : "pending",
     drop_otp: o.drop_otp || "",
     items_count: o.items_count || 1,
     payment_status:

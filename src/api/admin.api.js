@@ -116,3 +116,12 @@ export const verifyOtp = (data) =>
 // Reports
 export const fetchReportsData = (data) =>
   client.post("/admin/reportdata", data);
+
+// Vehicle Subcategories
+export const fetchVehicleConfigurations = () => client.get("/admin/vehicleTypes?type=all");
+export const createVehicleConfiguration = (data) =>
+  client.post("/admin/vehicle_subcategories", data);
+export const updateVehicleConfiguration = (id, data) =>
+  client.put(`/admin/vehicle_subcategories/${id}`, data);
+export const deleteVehicleConfiguration = (id) =>
+  client.delete(`/admin/vehicle_subcategories/${id}`);

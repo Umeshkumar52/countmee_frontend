@@ -43,6 +43,7 @@ import FinanceOverview from "../features/payments/pages/FinanceOverview";
 import WalletDashboard from "../features/wallets/pages/WalletDashboard";
 import Reports from "../features/admin/pages/Reports";
 import Charges from "../features/admin/pages/Charges";
+import VehicleConfigurations from "../features/admin/pages/VehicleConfigurations";
 
 export const AppRoutes = () => {
   return (
@@ -105,6 +106,7 @@ export const AppRoutes = () => {
         <Route path="wallets" element={<WalletDashboard />} />
         <Route path="reports" element={<Reports />} />
         <Route path="charges" element={<Charges />} />
+        <Route path="vehicles" element={<VehicleConfigurations />} />
       </Route>
 
       {/* Fallback Redirect */}
