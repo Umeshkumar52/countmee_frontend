@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { X, CheckCircle2, XCircle, AlertCircle, RefreshCw, UserCheck } from "lucide-react";
-import { fetchBundleResponses, assignBundleFinal } from "../../../api/orders.api";
+import {
+  X,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  RefreshCw,
+  UserCheck,
+  Clock,
+} from "lucide-react";
+import {
+  fetchBundleResponses,
+  assignBundleFinal,
+} from "../../../api/orders.api";
 import Button from "../../../components/common/Button";
 import Badge from "../../../components/common/Badge";
 
@@ -28,8 +39,13 @@ const BundleResponsesModal = ({ bundleId, onClose, onAssigned }) => {
   }, [bundleId]);
 
   const handleAssign = async (dpId) => {
-    if (!window.confirm("Are you sure you want to assign this bundle to this Delivery Partner?")) return;
-    
+    if (
+      !window.confirm(
+        "Are you sure you want to assign this bundle to this Delivery Partner?",
+      )
+    )
+      return;
+
     setIsAssigning(true);
     setError("");
     try {
@@ -48,7 +64,9 @@ const BundleResponsesModal = ({ bundleId, onClose, onAssigned }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-100">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Bundle Responses</h2>
+            <h2 className="text-xl font-bold text-slate-900">
+              Bundle Responses
+            </h2>
             <p className="text-sm text-slate-500 mt-1">ID: {bundleId}</p>
           </div>
           <button
@@ -74,7 +92,9 @@ const BundleResponsesModal = ({ bundleId, onClose, onAssigned }) => {
               <p>Loading responses...</p>
             </div>
           ) : !bundle ? (
-            <div className="text-center py-12 text-slate-500">Bundle not found.</div>
+            <div className="text-center py-12 text-slate-500">
+              Bundle not found.
+            </div>
           ) : (
             <div className="space-y-6">
               {/* Accepted DPs */}
@@ -87,19 +107,30 @@ const BundleResponsesModal = ({ bundleId, onClose, onAssigned }) => {
                 </div>
                 <div className="divide-y divide-emerald-50">
                   {bundle.accepted_dps?.length === 0 ? (
-                    <p className="p-4 text-sm text-slate-500 text-center">No delivery partners have approved this bundle yet.</p>
+                    <p className="p-4 text-sm text-slate-500 text-center">
+                      No delivery partners have approved this bundle yet.
+                    </p>
                   ) : (
-                    bundle.accepted_dps.map(dp => (
-                      <div key={dp._id} className="p-4 flex items-center justify-between hover:bg-slate-50">
+                    bundle.accepted_dps.map((dp) => (
+                      <div
+                        key={dp._id}
+                        className="p-4 flex items-center justify-between hover:bg-slate-50"
+                      >
                         <div>
-                          <p className="font-medium text-slate-900">{dp.name}</p>
-                          <p className="text-sm text-slate-500">{dp.phone} &bull; {dp.email}</p>
+                          <p className="font-medium text-slate-900">
+                            {dp.name}
+                          </p>
+                          <p className="text-sm text-slate-500">
+                            {dp.phone} &bull; {dp.email}
+                          </p>
                         </div>
                         <Button
                           variant="primary"
                           size="sm"
                           onClick={() => handleAssign(dp._id)}
-                          disabled={isAssigning || bundle.status !== 'broadcasting'}
+                          disabled={
+                            isAssigning || bundle.status !== "broadcasting"
+                          }
                           className="flex items-center gap-2"
                         >
                           <UserCheck className="w-4 h-4" />
@@ -121,12 +152,16 @@ const BundleResponsesModal = ({ bundleId, onClose, onAssigned }) => {
                 </div>
                 <div className="divide-y divide-rose-50">
                   {bundle.rejected_dps?.length === 0 ? (
-                    <p className="p-4 text-sm text-slate-500 text-center">No delivery partners have rejected this bundle yet.</p>
+                    <p className="p-4 text-sm text-slate-500 text-center">
+                      No delivery partners have rejected this bundle yet.
+                    </p>
                   ) : (
-                    bundle.rejected_dps.map(dp => (
+                    bundle.rejected_dps.map((dp) => (
                       <div key={dp._id} className="p-4 hover:bg-slate-50">
                         <p className="font-medium text-slate-900">{dp.name}</p>
-                        <p className="text-sm text-slate-500">{dp.phone} &bull; {dp.email}</p>
+                        <p className="text-sm text-slate-500">
+                          {dp.phone} &bull; {dp.email}
+                        </p>
                       </div>
                     ))
                   )}
@@ -138,11 +173,11 @@ const BundleResponsesModal = ({ bundleId, onClose, onAssigned }) => {
                 <div className="bg-slate-50 px-4 py-3 border-b border-slate-100 flex items-center gap-2">
                   <Clock className="w-5 h-5 text-slate-500" />
                   <h3 className="font-semibold text-slate-700">
-                    Pending Response ({
-                      (bundle.notified_dps?.length || 0) - 
-                      (bundle.accepted_dps?.length || 0) - 
-                      (bundle.rejected_dps?.length || 0)
-                    })
+                    Pending Response (
+                    {(bundle.notified_dps?.length || 0) -
+                      (bundle.accepted_dps?.length || 0) -
+                      (bundle.rejected_dps?.length || 0)}
+                    )
                   </h3>
                 </div>
                 <div className="p-4 text-sm text-slate-500 text-center">
