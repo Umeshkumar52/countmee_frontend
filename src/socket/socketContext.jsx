@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { io } from "socket.io-client";
 import {
@@ -10,19 +10,19 @@ import { ROLES } from "../constants";
 const SocketContext = createContext(null);
 
 export const SocketProvider = ({ children }) => {
-  const socketRef = useRef(null);
+  const [socket, setSocket] = useState(null);
   const token = useSelector((state) => state.auth.token);
   const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
 
   useEffect(() => {
     if (!token || !user) {
-      if (socketRef.current) {
-        if (typeof socketRef.current.disconnect === "function") {
-          socketRef.current.disconnect();
+      setSocket((prevSocket) => {
+        if (prevSocket && typeof prevSocket.disconnect === "function") {
+          prevSocket.disconnect();
         }
-        socketRef.current = null;
-      }
+        return null;
+      });
       return;
     }
 
@@ -30,12 +30,14 @@ export const SocketProvider = ({ children }) => {
       import.meta.env.VITE_API_URL || "http://localhost:3008/api"
     ).replace(/\/api\/?$/, "");
     
-    socketRef.current = io(baseUrl, {
+    const newSocket = io(baseUrl, {
       auth: { token },
       transports: ["websocket"],
     });
 
-    socketRef.current.on("connect", () => {
+    setSocket(newSocket);
+
+    newSocket.on("connect", () => {
       console.log("[Socket] Connected to real-time notifications server");
     });
 
@@ -64,7 +66,7 @@ export const SocketProvider = ({ children }) => {
       }
     };
 
-    socketRef.current.on("notification:received", handleNotification);
+    newSocket.on("notification:received", handleNotification);
 
     // Initialize Firebase FCM token request and foreground messaging listener
     requestFcmToken();
@@ -74,18 +76,18 @@ export const SocketProvider = ({ children }) => {
       if (typeof unsubscribeFCM === "function") {
         unsubscribeFCM();
       }
-      if (socketRef.current) {
-        socketRef.current.off("notification:received", handleNotification);
-        if (typeof socketRef.current.disconnect === "function") {
-          socketRef.current.disconnect();
+      if (newSocket) {
+        newSocket.off("notification:received", handleNotification);
+        if (typeof newSocket.disconnect === "function") {
+          newSocket.disconnect();
         }
-        socketRef.current = null;
       }
+      setSocket(null);
     };
   }, [token, user, dispatch]);
 
   return (
-    <SocketContext.Provider value={socketRef.current}>
+    <SocketContext.Provider value={socket}>
       {children}
     </SocketContext.Provider>
   );
