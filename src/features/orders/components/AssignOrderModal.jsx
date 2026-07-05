@@ -19,7 +19,7 @@ export const AssignOrderModal = ({ isOpen, onClose, orderId, onAssignSuccess }) 
         const dpList = response.data?.data?.dpList || response.data?.data || [];
         
         // Filter active or online partners
-        setPartners(dpList.filter(d => d.status === 'active' || d.online === 1));
+        setPartners(dpList.filter(d => d.status === 'active' || d.online === true || d.online === 1));
       } catch (e) {
         console.error('Failed to load partners', e);
       } finally {

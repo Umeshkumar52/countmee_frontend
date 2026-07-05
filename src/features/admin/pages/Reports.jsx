@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { fetchReportsData } from '../../../api/admin.api';
 import { ROLES } from '../../../constants';
 import Table from '../../../components/common/Table';
@@ -17,23 +17,20 @@ export const Reports = () => {
   
   const [reportData, setReportData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [searched, setSearched] = useState(false);
+  const [searched, setSearched] = useState(true); // always true now since it auto-fetches
 
-  const handleFetchReport = async (e) => {
-    e.preventDefault();
+  const handleFetchReport = useCallback(async () => {
     if (!startDate || !endDate) {
-      alert('Please select start and end dates');
       return;
     }
     setIsLoading(true);
-    setSearched(true);
     setReportData([]);
 
     try {
       const response = await fetchReportsData({
-        deliveryPartner: reportType,
-        startdate: startDate,
-        enddate: endDate
+        report_type: reportType,
+        start_date: startDate,
+        end_date: endDate
       });
       const data = response.data.data || response.data;
       setReportData(Array.isArray(data) ? data : []);
@@ -43,7 +40,11 @@ export const Reports = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [reportType, startDate, endDate]);
+
+  useEffect(() => {
+    handleFetchReport();
+  }, [handleFetchReport]);
 
   const handleExportCSV = () => {
     if (reportData.length === 0) return;
@@ -55,7 +56,7 @@ export const Reports = () => {
     if (reportType === 'order') {
       headers = [
         'Order ID', 'Order Number', 'Customer', 'PDC Name', 'Pickup Location', 
-        'Drop Location', 'Order Date', 'Amount w/o GST', 'GST Amount', 'Payout Cost Incurred', 'Status'
+        'Drop Location', 'Order Date', 'Amount w/o GST', 'GST Amount', 'Status'
       ];
       rows = reportData.map(o => [
         o.id,
@@ -67,8 +68,7 @@ export const Reports = () => {
         o.created_at,
         (o.amountWithoutGst || 0).toFixed(2),
         (o.gstAmount || 0).toFixed(2),
-        (o.payoutCost || 0).toFixed(2),
-        o.status
+        o.status || 'N/A'
       ]);
       filename = `orders_report_${startDate}_to_${endDate}.csv`;
     } else if (reportType === 'user') {
@@ -112,7 +112,7 @@ export const Reports = () => {
     if (reportType === 'order') {
       return [
         'Order ID', 'Pickup Location', 'Drop Location', 'Transport Mode', 
-        'Order Date', 'Amount w/o GST', 'GST Amount', 'Payout Cost Incurred'
+        'Order Date', 'Amount w/o GST', 'GST Amount', 'Order Status'
       ];
     } else if (reportType === 'user') {
       return ['User ID', 'User Type', 'Full Name', 'Mobile Number', 'Email Address', 'Register Date'];
@@ -131,7 +131,7 @@ export const Reports = () => {
 
       {/* Date filter form */}
       <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs">
-        <form onSubmit={handleFetchReport} className="flex flex-col md:flex-row md:items-end gap-4">
+        <div className="flex flex-col md:flex-row md:items-end gap-4">
           <div className="flex-1 flex flex-col">
             <label className="text-xs font-bold text-slate-500 mb-1.5">Report Category Criteria</label>
             <select
@@ -168,16 +168,13 @@ export const Reports = () => {
           </div>
 
           <div className="flex gap-2 w-full md:w-auto">
-            <Button type="submit" isLoading={isLoading} variant="primary" size="sm" className="w-full md:w-auto py-2.5 px-6">
-              Generate Report
-            </Button>
-            {searched && reportData.length > 0 && (
+            {reportData.length > 0 && (
               <Button onClick={handleExportCSV} variant="success" size="sm" className="w-full md:w-auto py-2.5 px-6">
-                📥 Download CSV / Excel
+                ⬇ Download CSV / Excel
               </Button>
             )}
           </div>
-        </form>
+        </div>
       </div>
 
       {/* Filtered records table */}
@@ -219,8 +216,10 @@ export const Reports = () => {
                     <td className="px-5 py-3.5 text-xs font-bold text-slate-500">
                       ₹ {(item.gstAmount || 0).toFixed(2)}
                     </td>
-                    <td className="px-5 py-3.5 text-xs font-extrabold text-red-600">
-                      ₹ {(item.payoutCost || 0).toFixed(2)}
+                    <td className="px-5 py-3.5 text-xs font-bold">
+                      <Badge variant={item.status === 'completed' ? 'success' : item.status === 'cancelled' ? 'danger' : 'indigo'}>
+                        {item.status ? item.status.toUpperCase() : 'UNKNOWN'}
+                      </Badge>
                     </td>
                   </tr>
                 );

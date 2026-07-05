@@ -19,6 +19,7 @@ import {
   FileBarChart2,
   BadgeIndianRupee,
   Bell,
+  CalendarClock,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser } from "../../features/auth/authSlice";
@@ -68,6 +69,11 @@ export const AdminLayout = () => {
     { name: "PDC", path: "/admin/pdc-list", icon: Warehouse },
     { name: "Broadcast", path: "/admin/broadcast", icon: Megaphone },
     { name: "Orders", path: "/admin/orders", icon: Package },
+    {
+      name: "Scheduled Orders",
+      path: "/admin/scheduled-orders",
+      icon: CalendarClock,
+    },
     { name: "Feedbacks", path: "/admin/feedbacks", icon: MessageSquareWarning },
     { name: "Finance", path: "/admin/finance", icon: FileBarChart2 },
     { name: "Wallets", path: "/admin/wallets", icon: Wallet },
@@ -99,14 +105,14 @@ export const AdminLayout = () => {
                   key={item.name}
                   to={item.path}
                   className={({ isActive }) =>
-                    `px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors ${
+                    `px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap ${
                       isActive
                         ? "bg-brand-purple-soft text-brand-purple"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     }`
                   }
                 >
-                  <item.icon size={18} />
+                  <item.icon size={18} className="shrink-0" />
                   <span>{item.name}</span>
                 </NavLink>
               ))}
@@ -134,41 +140,49 @@ export const AdminLayout = () => {
 
                 {/* Notifications Dropdown */}
                 {isNotifOpen && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-100 rounded-xl shadow-xl z-50 overflow-hidden page-transition">
-                    <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                      <h4 className="font-semibold text-sm">Notifications</h4>
-                      <span className="text-xs bg-brand-purple-soft text-brand-purple px-2 py-0.5 rounded-full font-medium">
-                        {unreadNotifs.length} new
-                      </span>
-                    </div>
-                    <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
-                      {notifications.length === 0 ? (
-                        <div className="p-4 text-center text-slate-400 text-xs">
-                          No notifications found
-                        </div>
-                      ) : (
-                        notifications.map((notif) => (
-                          <div
-                            key={notif.id}
-                            onClick={() => handleReadNotif(notif.id)}
-                            className={`p-3 text-left hover:bg-slate-50 transition-colors cursor-pointer ${
-                              notif.read_at === null ? "bg-indigo-50/30" : ""
-                            }`}
-                          >
-                            <h5 className="font-semibold text-xs text-slate-800">
-                              {notif.title}
-                            </h5>
-                            <p className="text-slate-500 text-[11px] mt-0.5">
-                              {notif.message}
-                            </p>
-                            <span className="text-[9px] text-slate-400 block mt-1">
-                              {new Date(notif.created_at).toLocaleTimeString()}
-                            </span>
+                  <>
+                    <div
+                      className="fixed inset-0 z-40 cursor-default"
+                      onClick={() => setIsNotifOpen(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-100 rounded-xl shadow-xl z-50 overflow-hidden page-transition">
+                      <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                        <h4 className="font-semibold text-sm">Notifications</h4>
+                        <span className="text-xs bg-brand-purple-soft text-brand-purple px-2 py-0.5 rounded-full font-medium">
+                          {unreadNotifs.length} new
+                        </span>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
+                        {notifications.length === 0 ? (
+                          <div className="p-4 text-center text-slate-400 text-xs">
+                            No notifications found
                           </div>
-                        ))
-                      )}
+                        ) : (
+                          notifications.map((notif) => (
+                            <div
+                              key={notif.id}
+                              onClick={() => handleReadNotif(notif.id)}
+                              className={`p-3 text-left hover:bg-slate-50 transition-colors cursor-pointer ${
+                                notif.read_at === null ? "bg-indigo-50/30" : ""
+                              }`}
+                            >
+                              <h5 className="font-semibold text-xs text-slate-800">
+                                {notif.title}
+                              </h5>
+                              <p className="text-slate-500 text-[11px] mt-0.5">
+                                {notif.message}
+                              </p>
+                              <span className="text-[9px] text-slate-400 block mt-1">
+                                {new Date(
+                                  notif.created_at,
+                                ).toLocaleTimeString()}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
 
@@ -190,24 +204,30 @@ export const AdminLayout = () => {
                 </button>
 
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-100 rounded-xl shadow-xl z-50 overflow-hidden page-transition">
-                    <div className="p-4 border-b border-slate-100 text-left">
-                      <p className="font-semibold text-sm text-slate-800">
-                        Admin User
-                      </p>
-                      <p className="text-xs text-slate-500 truncate">
-                        {user?.email}
-                      </p>
+                  <>
+                    <div
+                      className="fixed inset-0 z-40 cursor-default"
+                      onClick={() => setIsProfileOpen(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-100 rounded-xl shadow-xl z-50 overflow-hidden page-transition">
+                      <div className="p-4 border-b border-slate-100 text-left">
+                        <p className="font-semibold text-sm text-slate-800">
+                          Admin User
+                        </p>
+                        <p className="text-xs text-slate-500 truncate">
+                          {user?.email}
+                        </p>
+                      </div>
+                      <div className="p-2">
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 transition-colors font-medium"
+                        >
+                          <span>🚪</span> Log Out
+                        </button>
+                      </div>
                     </div>
-                    <div className="p-2">
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 transition-colors font-medium"
-                      >
-                        <span>🚪</span> Log Out
-                      </button>
-                    </div>
-                  </div>
+                  </>
                 )}
               </div>
 

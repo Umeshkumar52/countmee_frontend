@@ -14,6 +14,7 @@ export const Charges = () => {
   const [baseDistance, setBaseDistance] = useState("");
   const [basePrice, setBasePrice] = useState("");
   const [perKmPrice, setPerKmPrice] = useState("");
+  const [waitingCharge, setWaitingCharge] = useState("");
   const [dpComm, setDpComm] = useState("");
   const [pdcComm, setPdcComm] = useState("");
   const [maxWeight, setMaxWeight] = useState("");
@@ -24,10 +25,10 @@ export const Charges = () => {
   const [isUpdatingVehicle, setIsUpdatingVehicle] = useState(false);
 
   const vehicleNameMap = {
-    "1": VEHICLE_TYPES.BY_HAND,
-    "2": VEHICLE_TYPES.TWO_WHEELER,
-    "3": VEHICLE_TYPES.THREE_WHEELER,
-    "4": VEHICLE_TYPES.FOUR_WHEELER,
+    1: VEHICLE_TYPES.BY_HAND,
+    2: VEHICLE_TYPES.TWO_WHEELER,
+    3: VEHICLE_TYPES.THREE_WHEELER,
+    4: VEHICLE_TYPES.FOUR_WHEELER,
   };
 
   const headers = [
@@ -35,6 +36,7 @@ export const Charges = () => {
     "Base Dist.",
     "Base Price",
     "Per KM",
+    "Waiting Char.",
     "DP Comm.",
     "PDC Comm.",
     "Capacity",
@@ -59,18 +61,22 @@ export const Charges = () => {
   const prefillVehicleForm = (vehicleCharges, typeId) => {
     if (!vehicleCharges) return;
     const mappedName = vehicleNameMap[typeId];
-    const target = vehicleCharges.find((vc) => 
-      vc.vehicle_type === typeId || 
-      vc.vehicle_type === mappedName || 
-      vc.id === typeId || 
-      vc.id === parseInt(typeId)
+    const target = vehicleCharges.find(
+      (vc) =>
+        vc.vehicle_type === typeId ||
+        vc.vehicle_type === mappedName ||
+        vc.id === typeId ||
+        vc.id === parseInt(typeId),
     );
     if (target) {
       setBaseDistance(target.base_distance || "");
       setBasePrice(target.base_price || "");
       setPerKmPrice(target.per_km_price || "");
+      setWaitingCharge(target.waiting_charge || "");
       setDpComm(target.dp_commission !== undefined ? target.dp_commission : "");
-      setPdcComm(target.pdc_commission !== undefined ? target.pdc_commission : "");
+      setPdcComm(
+        target.pdc_commission !== undefined ? target.pdc_commission : "",
+      );
       setMaxWeight(target.max_weight || "");
       setMaxHeight(target.max_height || "");
       setMaxWidth(target.max_width || "");
@@ -80,6 +86,7 @@ export const Charges = () => {
       setBaseDistance("");
       setBasePrice("");
       setPerKmPrice("");
+      setWaitingCharge("");
       setDpComm("");
       setPdcComm("");
       setMaxWeight("");
@@ -105,17 +112,18 @@ export const Charges = () => {
   const handleSaveVehicleCharges = async (e) => {
     e.preventDefault();
     setIsUpdatingVehicle(true);
-    
-    // Ensure we send the actual vehicle name (e.g. "Two Wheeler") instead of "2" 
+
+    // Ensure we send the actual vehicle name (e.g. "Two Wheeler") instead of "2"
     // to match the existing database records and prevent duplicates.
     const mappedType = vehicleNameMap[vehicleType] || vehicleType;
-    
+
     try {
       await updateVehicleCharges({
         vehicle_type: mappedType,
         base_distance: parseFloat(baseDistance),
         base_price: parseFloat(basePrice),
         per_km_price: parseFloat(perKmPrice),
+        waiting_charge: parseFloat(waitingCharge) || 0,
         dp_commission: parseFloat(dpComm),
         pdc_commission: parseFloat(pdcComm),
         max_weight: parseFloat(maxWeight) || 0,
@@ -137,9 +145,12 @@ export const Charges = () => {
   return (
     <div className="space-y-6 text-left page-transition">
       <div>
-        <h2 className="text-xl font-bold text-slate-800">Charges Configuration</h2>
+        <h2 className="text-xl font-bold text-slate-800">
+          Charges Configuration
+        </h2>
         <p className="text-xs text-slate-400 mt-1">
-          Configure partner commissions, package delivery fees, and per-vehicle rates dynamically.
+          Configure partner commissions, package delivery fees, and per-vehicle
+          rates dynamically.
         </p>
       </div>
 
@@ -151,13 +162,13 @@ export const Charges = () => {
               <h3 className="font-bold text-slate-800 text-sm">
                 Edit Configuration
               </h3>
-              <p className="text-xs text-slate-400 mt-1">Select a vehicle type to customize its specific payout structure.</p>
+              <p className="text-xs text-slate-400 mt-1">
+                Select a vehicle type to customize its specific payout
+                structure.
+              </p>
             </div>
 
-            <form
-              onSubmit={handleSaveVehicleCharges}
-              className="space-y-5"
-            >
+            <form onSubmit={handleSaveVehicleCharges} className="space-y-5">
               <div className="flex flex-col group">
                 <label className="text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide group-focus-within:text-brand-purple transition-colors">
                   Vehicle Type
@@ -202,21 +213,35 @@ export const Charges = () => {
                 </div>
               </div>
 
-              <div className="group">
-                <Input
-                  label="Per KM Price (₹)"
-                  id="perKmPrice"
-                  type="number"
-                  placeholder="e.g. 10"
-                  value={perKmPrice}
-                  onChange={(e) => setPerKmPrice(e.target.value)}
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="group">
+                  <Input
+                    label="Per KM Price (₹)"
+                    id="perKmPrice"
+                    type="number"
+                    placeholder="e.g. 10"
+                    value={perKmPrice}
+                    onChange={(e) => setPerKmPrice(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="group">
+                  <Input
+                    label="Waiting Charge/Min.(₹)"
+                    id="waitingCharge"
+                    type="number"
+                    placeholder="e.g. 15"
+                    value={waitingCharge}
+                    onChange={(e) => setWaitingCharge(e.target.value)}
+                  />
+                </div>
               </div>
 
               <div className="border-t border-slate-100 pt-4 mt-2">
-                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4">Commission Distribution</h4>
-                
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4">
+                  Commission Distribution
+                </h4>
+
                 <div className="space-y-4">
                   <div className="group relative">
                     <Input
@@ -247,8 +272,10 @@ export const Charges = () => {
               </div>
 
               <div className="border-t border-slate-100 pt-4 mt-2">
-                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4">Capacity Limits</h4>
-                
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4">
+                  Capacity Limits
+                </h4>
+
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <Input
@@ -261,7 +288,9 @@ export const Charges = () => {
                       onChange={(e) => setMaxWeight(e.target.value)}
                     />
                     <div className="flex flex-col text-left">
-                      <label className="text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Dimension Unit</label>
+                      <label className="text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
+                        Dimension Unit
+                      </label>
                       <select
                         value={dimensionUnit}
                         onChange={(e) => setDimensionUnit(e.target.value)}
@@ -350,6 +379,9 @@ export const Charges = () => {
                   <td className="px-5 py-4 text-xs font-bold text-brand-purple whitespace-nowrap">
                     ₹ {item.per_km_price.toFixed(2)}
                   </td>
+                  <td className="px-5 py-4 text-xs font-bold text-orange-600 whitespace-nowrap">
+                    ₹ {(item.waiting_charge || 0).toFixed(2)}
+                  </td>
                   <td className="px-5 py-4 text-xs font-bold text-blue-600 bg-blue-50/30 group-hover:bg-blue-50/60 transition-colors whitespace-nowrap">
                     {item.dp_commission}%
                   </td>
@@ -357,10 +389,10 @@ export const Charges = () => {
                     {item.pdc_commission}%
                   </td>
                   <td className="px-5 py-4 text-xs font-medium text-slate-600 whitespace-nowrap">
-                    {item.max_weight ? `${item.max_weight}kg` : '-'}
-                    {item.max_height || item.max_width || item.max_length ? 
-                      ` • ${item.max_length || 0}x${item.max_width || 0}x${item.max_height || 0} ${item.dimension_unit || 'cm'}` 
-                    : ''}
+                    {item.max_weight ? `${item.max_weight}kg` : "-"}
+                    {item.max_height || item.max_width || item.max_length
+                      ? ` • ${item.max_length || 0}x${item.max_width || 0}x${item.max_height || 0} ${item.dimension_unit || "cm"}`
+                      : ""}
                   </td>
                 </tr>
               )}

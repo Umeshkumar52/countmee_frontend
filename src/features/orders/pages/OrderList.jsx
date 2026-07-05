@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, Truck } from "lucide-react";
 import {
+  fetchPaginatedOrders,
   fetchAllOrders,
   fetchPendingOrders,
   fetchAssignedOrders,
@@ -20,52 +21,33 @@ export const OrderList = () => {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [activeTab, setActiveTab] = useState("all"); // all, pending, assigned, intransit, delivered, broadcasted, cancelled
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
   const navigate = useNavigate();
 
   // Assignment states
   const [assignOrderId, setAssignOrderId] = useState(null);
 
-  const loadOrdersForTab = async (tab) => {
+  const loadPaginatedOrders = async (tab, page) => {
     setIsLoading(true);
     try {
-      let response;
-      switch (tab) {
-        case "pending":
-          response = await fetchPendingOrders();
-          break;
-        case "assigned":
-          response = await fetchAssignedOrders();
-          break;
-        case "intransit":
-          response = await fetchIntransitOrders();
-          break;
-        case "delivered":
-          response = await fetchDeliveredOrders();
-          break;
-        case "broadcasted":
-          response = await fetchBroadcastedOrders();
-          break;
-        case "cancelled":
-          response = await fetchCancelledOrders();
-          break;
-        case "all":
-        default:
-          response = await fetchAllOrders();
-          break;
-      }
-      console.log("Fetched orders for tab", tab, response);
-      setOrders(response.data);
-      setFilteredOrders(response.data);
+      const response = await fetchPaginatedOrders(tab, page, 10, "normal");
+      setOrders(response.data.orders);
+      setFilteredOrders(response.data.orders);
+      setCurrentPage(response.data.page);
+      setTotalPages(response.data.totalPages);
+      setTotalOrders(response.data.total);
     } catch (e) {
-      console.error("Failed to load orders", e);
+      console.error("Failed to load paginated orders", e);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    loadOrdersForTab(activeTab);
-  }, [activeTab]);
+    loadPaginatedOrders(activeTab, currentPage);
+  }, [activeTab, currentPage]);
 
   const getStatusVariant = (status) => {
     switch (status) {
@@ -76,6 +58,7 @@ export const OrderList = () => {
       case "assigned":
         return "primary";
       case "pending":
+      case "created":
         return "warning";
       case "broadcasted":
         return "info";
@@ -95,10 +78,11 @@ export const OrderList = () => {
   ];
 
   const headers = [
-    "Order Number",
+    "Order Id",
     "Date",
-    "Customer Name",
-    "PDC Center",
+    "Sender Details",
+    "Receiver Details",
+    // "PDC Center",
     "Delivery Partner",
     "Amount",
     "Status",
@@ -120,7 +104,10 @@ export const OrderList = () => {
         {tabs.map((tab) => (
           <button
             key={tab.value}
-            onClick={() => setActiveTab(tab.value)}
+            onClick={() => {
+              setActiveTab(tab.value);
+              setCurrentPage(1);
+            }}
             className={`px-4 py-2.5 text-xs font-bold capitalize transition-colors rounded-lg cursor-pointer ${
               activeTab === tab.value
                 ? "bg-brand-purple text-white"
@@ -139,33 +126,46 @@ export const OrderList = () => {
         emptyMessage={`No orders found with status "${activeTab}".`}
         renderRow={(order) => (
           <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
-            <td className="px-5 py-4 text-xs font-bold text-slate-500">
+            <td className="px-5 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">
               {order.order_number}
             </td>
-            <td className="px-5 py-4 text-xs text-slate-500">
+            <td className="px-5 py-4 text-xs text-slate-500 whitespace-nowrap">
               {order.created_at}
             </td>
-            <td className="px-5 py-4 text-xs font-semibold text-slate-800">
-              {order.customer_name}
+            <td className="px-5 py-4 text-xs font-semibold text-slate-800 whitespace-nowrap">
+              <div>{order.customer_name}</div>
+              {order.customer_phone && order.customer_phone !== "N/A" && (
+                <div className="text-[10px] text-slate-500 font-normal mt-0.5">
+                  {order.customer_phone}
+                </div>
+              )}
             </td>
-            <td className="px-5 py-4 text-xs text-slate-600">
+            <td className="px-5 py-4 text-xs font-semibold text-slate-800 whitespace-nowrap">
+              <div>{order.receiver_name}</div>
+              {order.receiver_phone && order.receiver_phone !== "N/A" && (
+                <div className="text-[10px] text-slate-500 font-normal mt-0.5">
+                  {order.receiver_phone}
+                </div>
+              )}
+            </td>
+            {/* <td className="px-5 py-4 text-xs text-slate-600 whitespace-nowrap">
               {order.pdc_name}
-            </td>
-            <td className="px-5 py-4 text-xs text-slate-600">
+            </td> */}
+            <td className="px-5 py-4 text-xs text-slate-600 whitespace-nowrap">
               {order.dp_name || (
                 <span className="text-slate-400 font-medium">Unassigned</span>
               )}
             </td>
-            <td className="px-5 py-4 text-xs font-bold text-slate-700">
+            <td className="px-5 py-4 text-xs font-bold text-slate-700 whitespace-nowrap">
               ₹ {order.amount}
             </td>
-            <td className="px-5 py-4 text-xs">
+            <td className="px-5 py-4 text-xs whitespace-nowrap">
               <Badge variant={getStatusVariant(order?.status)}>
                 {order?.status}
               </Badge>
             </td>
-            <td className="px-5 py-4 text-xs">
-              <div className="flex flex-wrap items-center gap-2">
+            <td className="px-5 py-4 text-xs whitespace-nowrap">
+              <div className="flex items-center gap-2">
                 <Button
                   onClick={() => navigate(`/admin/orders/${order.id}`)}
                   variant="outline"
@@ -174,7 +174,8 @@ export const OrderList = () => {
                 >
                   <Eye className="w-3 h-3" /> View details
                 </Button>
-                {order?.status === "pending" && (
+                {(order?.status === "pending" ||
+                  order?.status === "created") && (
                   <Button
                     onClick={() => setAssignOrderId(order.id)}
                     variant="primary"
@@ -190,13 +191,45 @@ export const OrderList = () => {
         )}
       />
 
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between py-4 border-t border-slate-100">
+          <p className="text-xs text-slate-500">
+            Showing page{" "}
+            <span className="font-bold text-slate-700">{currentPage}</span> of{" "}
+            <span className="font-bold text-slate-700">{totalPages}</span>
+            <span className="ml-1 opacity-70">
+              ({totalOrders} total orders)
+            </span>
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1 || isLoading}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages || isLoading}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Assign Delivery Boy Modal */}
       {assignOrderId && (
         <AssignOrderModal
           isOpen={!!assignOrderId}
           onClose={() => setAssignOrderId(null)}
           orderId={assignOrderId}
-          onAssignSuccess={() => loadOrdersForTab(activeTab)}
+          onAssignSuccess={() => loadPaginatedOrders(activeTab, currentPage)}
         />
       )}
     </div>

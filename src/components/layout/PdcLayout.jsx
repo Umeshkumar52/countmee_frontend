@@ -227,41 +227,44 @@ export const PdcLayout = () => {
                 </button>
 
                 {isNotifOpen && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-100 text-slate-800 rounded-xl shadow-xl z-50 overflow-hidden page-transition">
-                    <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                      <h4 className="font-semibold text-sm">Notifications</h4>
-                      <span className="text-xs bg-brand-purple-soft text-brand-purple px-2 py-0.5 rounded-full font-medium">
-                        {unreadNotifs.length} new
-                      </span>
-                    </div>
-                    <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
-                      {notifications.length === 0 ? (
-                        <div className="p-4 text-center text-slate-400 text-xs">
-                          No notifications found
-                        </div>
-                      ) : (
-                        notifications.map((notif) => (
-                          <div
-                            key={notif.id}
-                            onClick={() => handleReadNotif(notif.id)}
-                            className={`p-3 text-left hover:bg-slate-50 transition-colors cursor-pointer ${
-                              notif.read_at === null ? "bg-indigo-50/30" : ""
-                            }`}
-                          >
-                            <h5 className="font-semibold text-xs text-slate-800">
-                              {notif.title}
-                            </h5>
-                            <p className="text-slate-500 text-[11px] mt-0.5">
-                              {notif.message}
-                            </p>
-                            <span className="text-[9px] text-slate-400 block mt-1">
-                              {new Date(notif.created_at).toLocaleTimeString()}
-                            </span>
+                  <>
+                    <div className="fixed inset-0 z-40 cursor-default" onClick={() => setIsNotifOpen(false)} />
+                    <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-100 text-slate-800 rounded-xl shadow-xl z-50 overflow-hidden page-transition">
+                      <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                        <h4 className="font-semibold text-sm">Notifications</h4>
+                        <span className="text-xs bg-brand-purple-soft text-brand-purple px-2 py-0.5 rounded-full font-medium">
+                          {unreadNotifs.length} new
+                        </span>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
+                        {notifications.length === 0 ? (
+                          <div className="p-4 text-center text-slate-400 text-xs">
+                            No notifications found
                           </div>
-                        ))
-                      )}
+                        ) : (
+                          notifications.map((notif) => (
+                            <div
+                              key={notif.id}
+                              onClick={() => handleReadNotif(notif.id)}
+                              className={`p-3 text-left hover:bg-slate-50 transition-colors cursor-pointer ${
+                                notif.read_at === null ? "bg-indigo-50/30" : ""
+                              }`}
+                            >
+                              <h5 className="font-semibold text-xs text-slate-800">
+                                {notif.title}
+                              </h5>
+                              <p className="text-slate-500 text-[11px] mt-0.5">
+                                {notif.message}
+                              </p>
+                              <span className="text-[9px] text-slate-400 block mt-1">
+                                {new Date(notif.created_at).toLocaleTimeString()}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
 
@@ -282,37 +285,40 @@ export const PdcLayout = () => {
                 </button>
 
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-100 text-slate-800 rounded-xl shadow-xl z-50 overflow-hidden page-transition">
-                    <div className="p-4 border-b border-slate-100 text-left">
-                      <p className="font-semibold text-sm text-slate-800">
-                        {user?.name}
-                      </p>
-                      <p className="text-xs text-slate-500">{user?.phone}</p>
-                      <p className="text-xs text-slate-400 truncate mt-0.5">
-                        {user?.email}
-                      </p>
-                      {pdcDocument && (
-                        <div className="mt-2 flex items-center justify-between text-[11px] font-medium bg-slate-50 p-2 rounded-lg border border-slate-100">
-                          <span className="text-slate-500">KYC Status:</span>
-                          <span
-                            className={`capitalize ${isOnline ? "text-emerald-600 font-bold" : "text-slate-600"}`}
-                          >
-                            {pdcDocument.aadhar_status === "approved"
-                              ? "Verified"
-                              : "Pending"}
-                          </span>
-                        </div>
-                      )}
+                  <>
+                    <div className="fixed inset-0 z-40 cursor-default" onClick={() => setIsProfileOpen(false)} />
+                    <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-100 text-slate-800 rounded-xl shadow-xl z-50 overflow-hidden page-transition">
+                      <div className="p-4 border-b border-slate-100 text-left">
+                        <p className="font-semibold text-sm text-slate-800">
+                          {user?.name}
+                        </p>
+                        <p className="text-xs text-slate-500">{user?.phone}</p>
+                        <p className="text-xs text-slate-400 truncate mt-0.5">
+                          {user?.email}
+                        </p>
+                        {pdcDocument && (
+                          <div className="mt-2 flex items-center justify-between text-[11px] font-medium bg-slate-50 p-2 rounded-lg border border-slate-100">
+                            <span className="text-slate-500">KYC Status:</span>
+                            <span
+                              className={`capitalize ${isOnline ? "text-emerald-600 font-bold" : "text-slate-600"}`}
+                            >
+                              {pdcDocument.aadhar_status === "approved"
+                                ? "Verified"
+                                : "Pending"}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-2">
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 transition-colors font-medium"
+                        >
+                          <LogOut size={16} /> Log Out
+                        </button>
+                      </div>
                     </div>
-                    <div className="p-2">
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 transition-colors font-medium"
-                      >
-                        <LogOut size={16} /> Log Out
-                      </button>
-                    </div>
-                  </div>
+                  </>
                 )}
               </div>
             </div>

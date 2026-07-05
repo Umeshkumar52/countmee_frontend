@@ -528,39 +528,49 @@ export const WalletDashboard = () => {
           isOpen={isAddMoneyOpen}
           onClose={() => setIsAddMoneyOpen(false)}
           title={`Credit Wallet: ${selectedCustomer.name}`}
+          size="2xl"
         >
-          <form onSubmit={triggerIndividualCredit} className="space-y-4 text-left">
-            <div className="bg-slate-50 p-4 rounded-xl space-y-1">
-              <p className="text-xs text-slate-500 font-semibold">User Details</p>
-              <p className="text-sm font-bold text-slate-800">{selectedCustomer.name}</p>
-              <p className="text-xs text-slate-400">Phone: {selectedCustomer.phone}</p>
-              <p className="text-xs text-slate-600 font-medium mt-1">Current Balance: ₹ {(selectedCustomer.wallet?.balance || 0).toFixed(2)}</p>
+          <form onSubmit={triggerIndividualCredit} className="space-y-6 text-left">
+            <div className="flex justify-between items-center bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">User Details</p>
+                <p className="text-sm font-bold text-slate-800">{selectedCustomer.name}</p>
+                <p className="text-xs text-slate-500 font-medium">Phone: {selectedCustomer.phone}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Current Balance</p>
+                <Badge variant="success" className="font-extrabold text-sm px-4 py-2 rounded-xl">
+                  ₹ {(selectedCustomer.wallet?.balance || 0).toFixed(2)}
+                </Badge>
+              </div>
             </div>
 
-            <Input
-              label="Add Balance Amount (₹)"
-              id="creditAmount"
-              type="number"
-              placeholder="Enter amount to add"
-              value={creditAmount}
-              onChange={(e) => setCreditAmount(e.target.value)}
-              required
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Input
+                label="Add Balance Amount (₹)"
+                id="creditAmount"
+                type="number"
+                placeholder="Enter amount to add"
+                value={creditAmount}
+                onChange={(e) => setCreditAmount(e.target.value)}
+                required
+              />
 
-            <Input
-              label="Credit Description"
-              id="creditDesc"
-              placeholder="Reason for balance adjustments"
-              value={creditDesc}
-              onChange={(e) => setCreditDesc(e.target.value)}
-              required
-            />
+              <Input
+                label="Credit Description"
+                id="creditDesc"
+                placeholder="Reason for balance adjustments"
+                value={creditDesc}
+                onChange={(e) => setCreditDesc(e.target.value)}
+                required
+              />
+            </div>
 
-            <div className="flex justify-end gap-2 pt-2">
-              <Button onClick={() => setIsAddMoneyOpen(false)} variant="secondary" size="sm">
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <Button onClick={() => setIsAddMoneyOpen(false)} variant="secondary" size="md">
                 Cancel
               </Button>
-              <Button type="submit" variant="primary" size="sm">
+              <Button type="submit" variant="primary" size="md" className="px-6">
                 Save Payout
               </Button>
             </div>
@@ -574,43 +584,64 @@ export const WalletDashboard = () => {
           isOpen={isHistoryOpen}
           onClose={() => setIsHistoryOpen(false)}
           title={`Wallet Ledger: ${selectedCustHistory.name}`}
+          size="4xl"
         >
-          <div className="space-y-4 max-h-[450px] overflow-y-auto pr-1 text-left">
-            <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl">
+          <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2 text-left">
+            <div className="flex justify-between items-center bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
               <div>
-                <p className="text-xs font-bold text-slate-800">{selectedCustHistory.name}</p>
-                <p className="text-[10px] text-slate-400">Phone: {selectedCustHistory.phone}</p>
+                <p className="text-sm font-bold text-slate-800">{selectedCustHistory.name}</p>
+                <p className="text-xs text-slate-500 mt-0.5">Phone: {selectedCustHistory.phone}</p>
               </div>
-              <Badge variant="success" className="font-extrabold text-[12px] px-3.5 py-1.5 rounded-lg">
-                Current: ₹ {(selectedCustHistory.wallet?.balance || 0).toFixed(2)}
-              </Badge>
+              <div className="text-right">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Current Balance</p>
+                <Badge variant="success" className="font-extrabold text-sm px-4 py-2 rounded-xl">
+                  ₹ {(selectedCustHistory.wallet?.balance || 0).toFixed(2)}
+                </Badge>
+              </div>
             </div>
 
-            <Table
-              headers={['TX ID', 'Date & Time', 'Amount', 'Reason']}
-              data={transactionsList}
-              isLoading={isTxsLoading}
-              emptyMessage="No transactions found in this wallet ledger."
-              renderRow={(tx) => (
-                <tr key={tx.id} className="hover:bg-slate-50/50">
-                  <td className="p-3 text-xs font-bold text-slate-400">
-                    #TX-{tx.id}
-                  </td>
-                  <td className="p-3 text-xs text-slate-500">
-                    {tx.created_at}
-                  </td>
-                  <td className="p-3 text-xs font-extrabold text-emerald-600">
-                    + ₹ {tx.amount.toFixed(2)}
-                  </td>
-                  <td className="p-3 text-xs text-slate-700 font-semibold max-w-48 truncate">
-                    {tx.description}
-                  </td>
-                </tr>
-              )}
-            />
+            <div>
+              <Table
+                headers={['TX ID', 'Date & Time', 'Type', 'Amount', 'Reason']}
+                data={transactionsList}
+                isLoading={isTxsLoading}
+                emptyMessage="No transactions found in this wallet ledger."
+                renderRow={(tx) => {
+                  const isCredit = tx.type === 'credit';
+                  return (
+                    <tr key={tx.id || tx._id} className="hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0">
+                      <td className="p-4 text-xs font-bold text-slate-400">
+                        #TX-{String(tx.id || tx._id).slice(-6).toUpperCase()}
+                      </td>
+                      <td className="p-4 text-xs text-slate-500 font-medium whitespace-nowrap">
+                        {new Date(tx.created_at || tx.createdAt).toLocaleString('en-IN', {
+                          day: '2-digit', month: 'short', year: 'numeric',
+                          hour: '2-digit', minute: '2-digit'
+                        })}
+                      </td>
+                      <td className="p-4 text-xs">
+                        <span className={`px-2.5 py-1 rounded-md font-bold text-[10px] uppercase tracking-wider ${
+                          isCredit ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                        }`}>
+                          {tx.type || 'credit'}
+                        </span>
+                      </td>
+                      <td className={`p-4 text-sm font-extrabold whitespace-nowrap ${
+                        isCredit ? 'text-emerald-600' : 'text-rose-600'
+                      }`}>
+                        {isCredit ? '+' : '-'} ₹ {(tx.amount || 0).toFixed(2)}
+                      </td>
+                      <td className="p-4 text-xs text-slate-700 font-semibold max-w-[450px]">
+                        {tx.description}
+                      </td>
+                    </tr>
+                  );
+                }}
+              />
+            </div>
 
             <div className="flex justify-end pt-2">
-              <Button onClick={() => setIsHistoryOpen(false)} variant="secondary" size="sm">
+              <Button onClick={() => setIsHistoryOpen(false)} variant="secondary" size="md" className="px-6">
                 Close Ledger
               </Button>
             </div>

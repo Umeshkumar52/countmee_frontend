@@ -44,6 +44,14 @@ export const SocketProvider = ({ children }) => {
       // Direct reducer dispatch to append
       dispatch({ type: "notifications/addNotification", payload: notif });
 
+      // Show native system notification if permission is granted
+      if (Notification.permission === "granted") {
+        new Notification(notif.title || "New Notification", {
+          body: notif.message || "",
+          icon: "/countMe_logo.png",
+        });
+      }
+
       // Play a soft beep sound
       try {
         const audio = new Audio(
