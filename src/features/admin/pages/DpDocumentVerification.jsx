@@ -8,7 +8,7 @@ import Button from "../../../components/common/Button";
 import Badge from "../../../components/common/Badge";
 import Input from "../../../components/common/Input";
 import Modal from "../../../components/common/Modal";
-import { CheckCircle, XCircle, Eye, ChevronLeft, FileText } from "lucide-react";
+import { CheckCircle, XCircle, Eye, ChevronLeft, FileText, Download } from "lucide-react";
 
 export const DpDocumentVerification = () => {
   const { id } = useParams();
@@ -57,6 +57,47 @@ export const DpDocumentVerification = () => {
       title: `View Document: ${name}`,
       images: images.filter(Boolean), // remove empty images
     });
+  };
+
+  const handleDownloadDocument = (docs) => {
+    docs.forEach(doc => {
+      const path = doc.img || doc.path;
+      if (path) {
+        const url = getImageUrl(path);
+        fetch(url)
+          .then(response => response.blob())
+          .then(blob => {
+            const blobUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = blobUrl;
+            const filename = path.split('/').pop() || `document-${doc.label}.jpg`;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(blobUrl);
+            document.body.removeChild(a);
+          })
+          .catch(err => console.error("Download failed", err));
+      }
+    });
+  };
+
+  const handleDownloadAll = () => {
+    if (!dpDocument) return;
+    const allDocs = [
+      { label: "Aadhar Front", img: dpDocument.aadhar_imgfront },
+      { label: "Aadhar Back", img: dpDocument.aadhar_imgback },
+      { label: "DL Front", img: dpDocument.dl_imgfront },
+      { label: "DL Back", img: dpDocument.dl_imgback },
+      { label: "RC Front", img: dpDocument.rc_imgfront },
+      { label: "RC Back", img: dpDocument.rc_imgback },
+      { label: "Bank Front", img: dpDocument.bank_imagefront },
+      { label: "Bank Back", img: dpDocument.bank_imageback },
+      { label: "Residence", img: dpDocument.residence_img },
+      { label: "Vehicle", img: dpDocument.vehicle_img }
+    ].filter(doc => doc.img);
+    handleDownloadDocument(allDocs);
   };
 
   const fetchDetails = async () => {
@@ -119,13 +160,7 @@ export const DpDocumentVerification = () => {
             )}
           </div>
           <div>
-            {status === "Accept" ? (
-              <Badge variant="success">Approved</Badge>
-            ) : status === "Reject" ? (
-              <Badge variant="danger">Rejected</Badge>
-            ) : (
-              <Badge variant="warning">Pending</Badge>
-            )}
+            {/* Badge removed as button text now reflects status */}
           </div>
         </div>
 
@@ -148,6 +183,17 @@ export const DpDocumentVerification = () => {
           </Button>
 
           <Button
+            onClick={() => handleDownloadDocument(docs)}
+            variant="outline"
+            size="sm"
+            icon={Download}
+            disabled={docs.every(d => !d.img)}
+            className="text-xs py-1 h-8"
+          >
+            Download
+          </Button>
+
+          <Button
             onClick={() => handleDocumentAction(type, "Accept")}
             variant="success"
             size="sm"
@@ -155,7 +201,7 @@ export const DpDocumentVerification = () => {
             className="text-xs py-1 h-8 ml-auto"
             disabled={status === "Accept"}
           >
-            Approve
+            {status === "Accept" ? "Approved" : "Approve"}
           </Button>
 
           <Button
@@ -166,7 +212,7 @@ export const DpDocumentVerification = () => {
             className="text-xs py-1 h-8"
             disabled={status === "Reject"}
           >
-            Reject
+            {status === "Reject" ? "Rejected" : "Reject"}
           </Button>
         </div>
 
@@ -279,9 +325,16 @@ export const DpDocumentVerification = () => {
 
         {/* Documents */}
         <div className="lg:col-span-2 space-y-4">
-          <h3 className="font-bold text-slate-500 text-xs uppercase tracking-wide pl-1">
-            Submitted KYC Files
-          </h3>
+          <div className="flex items-center justify-between pl-1">
+            <h3 className="font-bold text-slate-500 text-xs uppercase tracking-wide">
+              Submitted KYC Files
+            </h3>
+            {dpDocument && (
+              <Button onClick={handleDownloadAll} variant="outline" size="sm" icon={Download} className="text-xs h-8">
+                Download All
+              </Button>
+            )}
+          </div>
 
           {dpDocument ? (
             <div className="grid grid-cols-1 gap-4">

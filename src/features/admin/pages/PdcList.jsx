@@ -8,12 +8,14 @@ import {
 import Table from "../../../components/common/Table";
 import Badge from "../../../components/common/Badge";
 import Button from "../../../components/common/Button";
-import { Eye, Search } from "lucide-react";
+import { Eye, Search, Plus } from "lucide-react";
+import AddPdcModal from "../components/AddPdcModal";
 
 export const PdcList = () => {
   const [pdcs, setPdcs] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const fetchPdcs = async (params = {}) => {
@@ -91,7 +93,6 @@ export const PdcList = () => {
   };
 
   const headers = [
-    "PDC ID",
     "Store Name",
     "Phone",
     "Email",
@@ -111,6 +112,14 @@ export const PdcList = () => {
             outlets
           </p>
         </div>
+        <Button
+          onClick={() => setIsAddModalOpen(true)}
+          variant="primary"
+          className="flex items-center gap-2"
+        >
+          <Plus size={18} />
+          Add PDC
+        </Button>
       </div>
 
       {/* Search Bar */}
@@ -137,9 +146,6 @@ export const PdcList = () => {
         emptyMessage="No PDC hubs registered yet."
         renderRow={(pdc) => (
           <tr key={pdc.id} className="hover:bg-slate-50/50 transition-colors">
-            <td className="px-5 py-4 text-xs font-bold text-slate-400">
-              #PDC-{pdc.id}
-            </td>
             <td className="px-5 py-4 text-xs font-bold text-slate-800">
               {pdc.userDetails?.name || "N/A"}
             </td>
@@ -167,7 +173,7 @@ export const PdcList = () => {
               >
                 <Eye size={16} /> View
               </Button>
-              <Button
+              {/* <Button
                 onClick={() => handleActivate(pdc.id)}
                 variant="success"
                 size="sm"
@@ -182,10 +188,16 @@ export const PdcList = () => {
                 className="py-1 px-2.5 text-[10px]"
               >
                 Deactivate
-              </Button>
+              </Button> */}
             </td>
           </tr>
         )}
+      />
+
+      <AddPdcModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={() => fetchPdcs({ search: searchQuery })}
       />
     </div>
   );

@@ -7,8 +7,11 @@ const mapOrder = (o) => {
     order_number: o.order_id || o._id,
     customer_name: o.user_id?.name || o.sender_name || "N/A",
     customer_phone: o.user_id?.phone || o.sender_phone || "N/A",
+    receiver_name: o.receiver_name || "N/A",
+    receiver_phone: o.receiver_phone || "N/A",
     pickup_address: o.pickup_address || o.pickup_location || "N/A",
-    delivery_address: o.delivery_address || o.delivery_location || o.drop_location || "N/A",
+    delivery_address:
+      o.delivery_address || o.delivery_location || o.drop_location || "N/A",
     pdc_name: o.pdc_id?.shop_name || o.pdc_name || "Direct",
     dp_name: o.pickup_dp_id?.name || o.delivery_dp_id?.name || o.dp_name || "",
     amount: o.charges || o.amount || 0,
@@ -20,6 +23,9 @@ const mapOrder = (o) => {
     created_at: o.createdAt
       ? new Date(o.createdAt).toISOString().split("T")[0]
       : o.created_at || "N/A",
+    schedule_date: o.schedule_date || "N/A",
+    schedule_time: o.schedule_time || "N/A",
+    vehicle_type: o.mode_of_transport || "N/A",
     packageDetail: o.package_id || null,
     raw: o, // Keep raw object for nested details (packageDetail, pdcEarning, etc)
   };
@@ -106,12 +112,81 @@ export const fetchCancelledOrders = async () => {
   return { data: merged.map(mapOrder) };
 };
 
+export const fetchPaginatedOrders = async (
+  status,
+  page = 1,
+  limit = 10,
+  orderType = null,
+  search = "",
+  scheduleDate = "",
+  extraFilters = {},
+) => {
+  const params = { status, page, limit };
+  if (orderType) params.orderType = orderType;
+  if (search) params.search = search;
+  if (scheduleDate) params.scheduleDate = scheduleDate;
+  if (extraFilters.pickupPin) params.pickupPin = extraFilters.pickupPin;
+  if (extraFilters.deliveryPin) params.deliveryPin = extraFilters.deliveryPin;
+  if (extraFilters.vehicleType) params.vehicleType = extraFilters.vehicleType;
+
+  const response = await client.get(`/admin/orders/paginated`, { params });
+  const data = response.data.data || response.data;
+  const rawOrders = data.orders || [];
+  return {
+    ...response,
+    data: {
+      orders: Array.isArray(rawOrders) ? rawOrders.map(mapOrder) : [],
+      total: data.total || 0,
+      page: data.page || page,
+      totalPages: data.totalPages || 1,
+    },
+  };
+};
+
 export const fetchOrderDetails = async (id) => {
   const response = await client.get(`/admin/orderview/${id}`);
   const data = response.data.data || response.data;
   const rawOrder = data.order || data;
   return {
     ...response,
-    data: mapOrder(rawOrder),
+    data: rawOrder,
   };
+};
+
+export const fetchScheduledStats = async () => {
+  const response = await client.get("/admin/orders/scheduled-stats");
+  return response.data.data;
+};
+
+export const fetchScheduledFilters = async () => {
+  const response = await client.get("/admin/orders/scheduled-filters");
+  return response.data.data;
+};
+
+// Bundle Broadcast APIs
+export const fetchActiveBundles = async () => {
+  const response = await client.get("/admin/orders/bundles");
+  return response.data.data;
+};
+
+export const fetchBundleResponses = async (bundle_id) => {
+  const response = await client.get(
+    `/admin/orders/bundle-responses/${bundle_id}`,
+  );
+  return response.data.data;
+};
+
+export const assignBundleFinal = async (bundle_id, dp_id) => {
+  const response = await client.post("/admin/orders/assign-bundle-final", {
+    bundle_id,
+    dp_id,
+  });
+  return response.data.data;
+};
+
+export const fetchBundleTracking = async (bundle_id) => {
+  const response = await client.get(
+    `/admin/orders/bundle-tracking/${bundle_id}`,
+  );
+  return response.data.data;
 };

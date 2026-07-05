@@ -38,12 +38,17 @@ import PdcList from "../features/admin/pages/PdcList";
 import PdcDetails from "../features/admin/pages/PdcDetails";
 import Broadcast from "../features/admin/pages/Broadcast";
 import OrderList from "../features/orders/pages/OrderList";
+import BroadcastBundlesPage from "../features/orders/pages/BroadcastBundlesPage";
+import BundleResponsesPage from "../features/orders/pages/BundleResponsesPage";
+import BundleTrackingPage from "../features/orders/pages/BundleTrackingPage";
 import FeedbackRatings from "../features/admin/pages/FeedbackRatings";
 import FinanceOverview from "../features/payments/pages/FinanceOverview";
 import WalletDashboard from "../features/wallets/pages/WalletDashboard";
 import Reports from "../features/admin/pages/Reports";
 import Charges from "../features/admin/pages/Charges";
 import VehicleConfigurations from "../features/admin/pages/VehicleConfigurations";
+import { ScheduledOrders } from "../features/orders/pages/ScheduledOrders";
+import RecommendDpPage from "../features/orders/pages/RecommendDpPage";
 
 export const AppRoutes = () => {
   return (
@@ -94,12 +99,32 @@ export const AppRoutes = () => {
       >
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="delivery-partners" element={<DeliveryPartners />} />
-        <Route path="delivery-partners/:id" element={<DpDocumentVerification />} />
+        <Route
+          path="delivery-partners/:id"
+          element={<DpDocumentVerification />}
+        />
         <Route path="customers" element={<Customers />} />
         <Route path="pdc-list" element={<PdcList />} />
         <Route path="pdcs/:id" element={<PdcDetails />} />
         <Route path="broadcast" element={<Broadcast />} />
         <Route path="orders" element={<OrderList />} />
+        <Route path="scheduled-orders" element={<ScheduledOrders />} />
+        <Route
+          path="scheduled-orders/recommend-dp"
+          element={<RecommendDpPage />}
+        />
+        <Route
+          path="scheduled-orders/broadcasts"
+          element={<BroadcastBundlesPage />}
+        />
+        <Route
+          path="scheduled-orders/broadcasts/:bundleId"
+          element={<BundleResponsesPage />}
+        />
+        <Route
+          path="scheduled-orders/broadcasts/:bundleId/track"
+          element={<BundleTrackingPage />}
+        />
         <Route path="orders/:id" element={<OrderView />} />
         <Route path="feedbacks" element={<FeedbackRatings />} />
         <Route path="finance" element={<FinanceOverview />} />

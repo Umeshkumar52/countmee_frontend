@@ -3,30 +3,37 @@ import { ROLES } from '../../../constants';
 import { fetchRatings } from '../../../api/admin.api';
 import Table from '../../../components/common/Table';
 import Badge from '../../../components/common/Badge';
+import Button from '../../../components/common/Button';
 
 export const FeedbackRatings = () => {
   const [feedbacks, setFeedbacks] = useState([]);
+  const [activeTab, setActiveTab] = useState(ROLES.USER);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalFeedbacks, setTotalFeedbacks] = useState(0);
 
   useEffect(() => {
-    const fetchFeedbacks = async () => {
+    const loadFeedbacks = async () => {
       setIsLoading(true);
       try {
-        const response = await fetchRatings();
-        const rawList = response.data.ratings || response.data.data?.ratings || [];
+        const response = await fetchRatings(activeTab, currentPage, 10);
+        // The backend returns: { ratings, total, page, totalPages } wrapped in success structure
+        const resData = response.data.data || response.data;
+        const rawList = resData.ratings || [];
+        
         const formatted = rawList.map(r => {
           let name = 'System';
-          let role = ROLES.USER;
-          if (r.from_customer) {
+          let role = activeTab; // We know it belongs to the active tab
+          
+          if (r.from_customer && activeTab === ROLES.USER) {
             name = r.from_customer.name || 'Customer';
-            role = ROLES.USER;
-          } else if (r.from_dp) {
+          } else if (r.from_dp && activeTab === ROLES.DP) {
             name = r.from_dp.name || 'Delivery Partner';
-            role = ROLES.DP;
-          } else if (r.from_pdc) {
+          } else if (r.from_pdc && activeTab === ROLES.PDC) {
             name = r.from_pdc.name || 'PDC Hub';
-            role = ROLES.PDC;
           }
+          
           return {
             id: r._id,
             user_name: name,
@@ -35,15 +42,18 @@ export const FeedbackRatings = () => {
             comment: r.message || ''
           };
         });
+        
         setFeedbacks(formatted);
+        setTotalPages(resData.totalPages || 1);
+        setTotalFeedbacks(resData.total || 0);
       } catch (e) {
         console.error('Failed to load feedbacks', e);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchFeedbacks();
-  }, []);
+    loadFeedbacks();
+  }, [activeTab, currentPage]);
 
   const renderStars = (score) => {
     return (
@@ -55,11 +65,36 @@ export const FeedbackRatings = () => {
 
   const headers = ['Feedback ID', 'Submitted By', 'User Role', 'Rating Score', 'Comments'];
 
+  const tabs = [
+    { name: "Customer Ratings", value: ROLES.USER },
+    { name: "DP Ratings", value: ROLES.DP },
+    { name: "PDC Ratings", value: ROLES.PDC }
+  ];
+
   return (
     <div className="space-y-6 text-left page-transition">
       <div>
         <h2 className="text-xl font-bold text-slate-800">Feedbacks & Ratings</h2>
         <p className="text-xs text-slate-400 mt-1">Review score ratings and feedback remarks submitted by clients and partners</p>
+      </div>
+
+      <div className="flex flex-wrap gap-2 border-b border-slate-100 pb-2">
+        {tabs.map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => {
+              setActiveTab(tab.value);
+              setCurrentPage(1);
+            }}
+            className={`px-4 py-2.5 text-xs font-bold transition-colors rounded-lg cursor-pointer ${
+              activeTab === tab.value
+                ? "bg-brand-purple text-white"
+                : "text-slate-500 hover:bg-slate-100"
+            }`}
+          >
+            {tab.name}
+          </button>
+        ))}
       </div>
 
       <Table
@@ -89,6 +124,34 @@ export const FeedbackRatings = () => {
           </tr>
         )}
       />
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between py-4 border-t border-slate-100">
+          <p className="text-xs text-slate-500">
+            Showing page <span className="font-semibold text-slate-800">{currentPage}</span> of{" "}
+            <span className="font-semibold text-slate-800">{totalPages}</span> ({totalFeedbacks} total logs)
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1 || isLoading}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages || isLoading}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

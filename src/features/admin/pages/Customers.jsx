@@ -23,7 +23,6 @@ export const Customers = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [status, setStatus] = useState("active");
   const [isSubmit, setIsSubmit] = useState(false);
 
   // Delete Modal states
@@ -64,7 +63,6 @@ export const Customers = () => {
     setName(customer.name);
     setEmail(customer.email);
     setPhone(customer.phone);
-    setStatus(customer.status || "active");
     setIsModalOpen(true);
   };
 
@@ -74,7 +72,7 @@ export const Customers = () => {
     setIsSubmit(true);
 
     try {
-      await updateCustomer(selectedCustomer.id, { name, email, phone, status });
+      await updateCustomer(selectedCustomer.id, { name, email, phone });
       setIsModalOpen(false);
       fetchCustomers();
     } catch (err) {
@@ -105,11 +103,9 @@ export const Customers = () => {
   };
 
   const headers = [
-    "Customer ID",
     "Name",
     "Phone",
     "Email",
-    "Status",
     "Actions",
   ];
 
@@ -146,14 +142,12 @@ export const Customers = () => {
         data={customers}
         isLoading={isLoading}
         emptyMessage="No customers found in directory."
+        tableClassName="table-fixed"
         renderRow={(customer) => (
           <tr
             key={customer.id}
             className="hover:bg-slate-50/50 transition-colors"
           >
-            <td className="px-5 py-4 text-xs font-bold text-slate-400">
-              #CUST-{customer.id}
-            </td>
             <td className="px-5 py-4 text-xs font-bold text-slate-800">
               {customer.name}
             </td>
@@ -164,29 +158,24 @@ export const Customers = () => {
               {customer.email}
             </td>
             <td className="px-5 py-4 text-xs">
-              <Badge
-                variant={customer.status === "active" ? "success" : "slate"}
-              >
-                {customer.status}
-              </Badge>
-            </td>
-            <td className="px-5 py-4 text-xs space-x-2">
-              <Button
-                onClick={() => handleOpenEditModal(customer)}
-                variant="secondary"
-                size="sm"
-                className="py-1 px-2.5 text-[10px]"
-              >
-                ✏️ Edit
-              </Button>
-              <Button
-                onClick={() => handleTriggerDelete(customer.id)}
-                variant="danger"
-                size="sm"
-                className="py-1 px-2.5 text-[10px]"
-              >
-                🗑️ Delete
-              </Button>
+              <div className="flex items-center gap-2 whitespace-nowrap">
+                <Button
+                  onClick={() => handleOpenEditModal(customer)}
+                  variant="secondary"
+                  size="sm"
+                  className="py-1 px-2.5 text-[10px]"
+                >
+                  ✏️ Edit
+                </Button>
+                <Button
+                  onClick={() => handleTriggerDelete(customer.id)}
+                  variant="danger"
+                  size="sm"
+                  className="py-1 px-2.5 text-[10px]"
+                >
+                  🗑️ Delete
+                </Button>
+              </div>
             </td>
           </tr>
         )}
@@ -223,20 +212,6 @@ export const Customers = () => {
               onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
               required
             />
-            <div className="flex flex-col">
-              <label className="text-xs font-semibold text-slate-600 mb-1.5">
-                Status
-              </label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm transition-all outline-none focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple"
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-
             <div className="flex justify-end gap-2 pt-2">
               <Button
                 onClick={() => setIsModalOpen(false)}

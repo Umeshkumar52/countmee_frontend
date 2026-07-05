@@ -48,6 +48,15 @@ const FileUpload = ({ label, id, preview, onChange, required }) => (
 );
 
 export const DeliveryPartners = () => {
+  const getImageUrl = (path) => {
+    if (!path) return "";
+    if (path.startsWith("http://") || path.startsWith("https://")) return path;
+    const apiBase = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+    const serverBase = apiBase.replace(/\/api\/?$/, "");
+    const cleanPath = path.replace(/^\/?(uploads\/)?/, "");
+    return `${serverBase}/uploads/${cleanPath}`;
+  };
+
   const [partners, setPartners] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -93,8 +102,6 @@ export const DeliveryPartners = () => {
   // References
   const [reference1Name, setReference1Name] = useState("");
   const [reference1Phone, setReference1Phone] = useState("");
-  const [reference2Name, setReference2Name] = useState("");
-  const [reference2Phone, setReference2Phone] = useState("");
 
   // Files state (raw file uploads and preview URLs)
   const [profileImg, setProfileImg] = useState(null);
@@ -110,6 +117,27 @@ export const DeliveryPartners = () => {
   const [bankImageFrontPreview, setBankImageFrontPreview] = useState("");
   const [bankImgBackPreview, setBankImgBackPreview] = useState("");
 
+  const [dlExpiryDate, setDlExpiryDate] = useState("");
+  const [reference2Name, setReference2Name] = useState("");
+  const [reference2Phone, setReference2Phone] = useState("");
+
+  const [subVehicleType, setSubVehicleType] = useState("");
+  const [otherVehicleDetails, setOtherVehicleDetails] = useState("");
+  const [vehicleMinCapacity, setVehicleMinCapacity] = useState("");
+  const [vehicleMaxCapacity, setVehicleMaxCapacity] = useState("");
+  const [insuranceExpiryDate, setInsuranceExpiryDate] = useState("");
+  const [emissionExpiryDate, setEmissionExpiryDate] = useState("");
+  const [isNewVehicle, setIsNewVehicle] = useState(false);
+  const [vehicleRegistrationDate, setVehicleRegistrationDate] = useState("");
+  const [travelPermitStates, setTravelPermitStates] = useState("");
+
+  const [insuranceDocument, setInsuranceDocument] = useState(null);
+  const [emissionCertificateDocument, setEmissionCertificateDocument] = useState(null);
+  const [permitDocument, setPermitDocument] = useState(null);
+
+  const [insuranceDocumentPreview, setInsuranceDocumentPreview] = useState("");
+  const [emissionCertificateDocumentPreview, setEmissionCertificateDocumentPreview] = useState("");
+  const [permitDocumentPreview, setPermitDocumentPreview] = useState("");
   // Step state (1: Basic, 2: Vehicle, 3: KYC Docs & Bank, 4: References)
   const [currentStep, setCurrentStep] = useState(1);
   const [validationError, setValidationError] = useState("");
@@ -172,8 +200,18 @@ export const DeliveryPartners = () => {
     setBankIfsc("");
     setReference1Name("");
     setReference1Phone("");
+    setDlExpiryDate("");
     setReference2Name("");
     setReference2Phone("");
+    setSubVehicleType("");
+    setOtherVehicleDetails("");
+    setVehicleMinCapacity("");
+    setVehicleMaxCapacity("");
+    setInsuranceExpiryDate("");
+    setEmissionExpiryDate("");
+    setIsNewVehicle(false);
+    setVehicleRegistrationDate("");
+    setTravelPermitStates("");
 
     // Clear file states
     setProfileImg(null);
@@ -187,6 +225,9 @@ export const DeliveryPartners = () => {
     setVehicleImg(null);
     setBankImageFront(null);
     setBankImgBack(null);
+    setInsuranceDocument(null);
+    setEmissionCertificateDocument(null);
+    setPermitDocument(null);
 
     // Clear previews
     setProfileImgPreview("");
@@ -200,6 +241,9 @@ export const DeliveryPartners = () => {
     setVehicleImgPreview("");
     setBankImageFrontPreview("");
     setBankImgBackPreview("");
+    setInsuranceDocumentPreview("");
+    setEmissionCertificateDocumentPreview("");
+    setPermitDocumentPreview("");
 
     setIsModalOpen(true);
   };
@@ -228,8 +272,18 @@ export const DeliveryPartners = () => {
     setBankIfsc("");
     setReference1Name("");
     setReference1Phone("");
+    setDlExpiryDate("");
     setReference2Name("");
     setReference2Phone("");
+    setSubVehicleType("");
+    setOtherVehicleDetails("");
+    setVehicleMinCapacity("");
+    setVehicleMaxCapacity("");
+    setInsuranceExpiryDate("");
+    setEmissionExpiryDate("");
+    setIsNewVehicle(false);
+    setVehicleRegistrationDate("");
+    setTravelPermitStates("");
 
     // Clear previews/files
     setProfileImg(null);
@@ -243,6 +297,9 @@ export const DeliveryPartners = () => {
     setVehicleImg(null);
     setBankImageFront(null);
     setBankImgBack(null);
+    setInsuranceDocument(null);
+    setEmissionCertificateDocument(null);
+    setPermitDocument(null);
 
     setProfileImgPreview("");
     setAadharImgFrontPreview("");
@@ -255,6 +312,9 @@ export const DeliveryPartners = () => {
     setVehicleImgPreview("");
     setBankImageFrontPreview("");
     setBankImgBackPreview("");
+    setInsuranceDocumentPreview("");
+    setEmissionCertificateDocumentPreview("");
+    setPermitDocumentPreview("");
 
     try {
       const response = await fetchDpDetails(partner.id);
@@ -264,7 +324,13 @@ export const DeliveryPartners = () => {
       setName(dpDetail?.user_id?.name || partner.name || "");
       setEmail(dpDetail?.user_id?.email || partner.email || "");
       setPhone(dpDetail?.user_id?.phone || partner.phone || "");
-      setDob(dpDetail?.dob ? dpDetail.dob.split("T")[0] : "");
+      setDob(
+        dpDetail?.user_id?.dob
+          ? dpDetail.user_id.dob.split("T")[0]
+          : dpDetail?.dob
+            ? dpDetail.dob.split("T")[0]
+            : "",
+      );
       setGender(dpDetail?.gender || "");
       setAddress(dpDetail?.address || "");
       setVehicle(
@@ -282,8 +348,48 @@ export const DeliveryPartners = () => {
       setBankIfsc(dpDocument?.bank_ifsc || "");
       setReference1Name(dpDocument?.reference1_name || "");
       setReference1Phone(dpDocument?.reference1_phone || "");
+      setDlExpiryDate(dpDocument?.dl_expiry_date || "");
       setReference2Name(dpDocument?.reference2_name || "");
       setReference2Phone(dpDocument?.reference2_phone || "");
+      setSubVehicleType(dpDocument?.sub_vehicle_type || "");
+      setOtherVehicleDetails(dpDocument?.other_vehicle_details || "");
+      setVehicleMinCapacity(dpDocument?.vehicle_min_capacity || "");
+      setVehicleMaxCapacity(dpDocument?.vehicle_max_capacity || "");
+      setInsuranceExpiryDate(dpDocument?.insurance_expiry_date || "");
+      setEmissionExpiryDate(dpDocument?.emission_expiry_date || "");
+      setIsNewVehicle(dpDocument?.is_new_vehicle || false);
+      setVehicleRegistrationDate(dpDocument?.vehicle_registration_date || "");
+      setTravelPermitStates(dpDocument?.travel_permit_states?.join(", ") || "");
+
+      // Set image previews
+      if (dpDetail?.profile_img)
+        setProfileImgPreview(getImageUrl(dpDetail.profile_img));
+      if (dpDocument?.aadhar_imgfront)
+        setAadharImgFrontPreview(getImageUrl(dpDocument.aadhar_imgfront));
+      if (dpDocument?.aadhar_imgback)
+        setAadharImgBackPreview(getImageUrl(dpDocument.aadhar_imgback));
+      if (dpDocument?.rc_imgfront)
+        setRcImgFrontPreview(getImageUrl(dpDocument.rc_imgfront));
+      if (dpDocument?.rc_imgback)
+        setRcImgBackPreview(getImageUrl(dpDocument.rc_imgback));
+      if (dpDocument?.dl_imgfront)
+        setDlImgFrontPreview(getImageUrl(dpDocument.dl_imgfront));
+      if (dpDocument?.dl_imgback)
+        setDlImgBackPreview(getImageUrl(dpDocument.dl_imgback));
+      if (dpDocument?.residence_img)
+        setResidenceImgPreview(getImageUrl(dpDocument.residence_img));
+      if (dpDocument?.vehicle_img)
+        setVehicleImgPreview(getImageUrl(dpDocument.vehicle_img));
+      if (dpDocument?.bank_imagefront)
+        setBankImageFrontPreview(getImageUrl(dpDocument.bank_imagefront));
+      if (dpDocument?.bank_imageback)
+        setBankImgBackPreview(getImageUrl(dpDocument.bank_imageback));
+      if (dpDocument?.insurance_document)
+        setInsuranceDocumentPreview(getImageUrl(dpDocument.insurance_document));
+      if (dpDocument?.emission_certificate_document)
+        setEmissionCertificateDocumentPreview(getImageUrl(dpDocument.emission_certificate_document));
+      if (dpDocument?.permit_document)
+        setPermitDocumentPreview(getImageUrl(dpDocument.permit_document));
     } catch (err) {
       console.error("Failed to fetch DP details", err);
       setValidationError("Failed to load details. Using list summary.");
@@ -307,6 +413,9 @@ export const DeliveryPartners = () => {
       vehicleImgPreview,
       bankImageFrontPreview,
       bankImgBackPreview,
+      insuranceDocumentPreview,
+      emissionCertificateDocumentPreview,
+      permitDocumentPreview,
     ].forEach((p) => {
       if (p && p.startsWith("blob:")) {
         URL.revokeObjectURL(p);
@@ -450,32 +559,14 @@ export const DeliveryPartners = () => {
         return false;
       }
     }
+
     if (step === 4) {
-      if (!reference1Name.trim()) {
-        setValidationError("1st Reference Name is required");
-        return false;
-      }
       if (
-        !reference1Phone.trim() ||
-        reference1Phone.length !== 10 ||
-        !/^\d+$/.test(reference1Phone)
+        reference1Phone.trim() &&
+        (reference1Phone.length !== 10 || !/^\d+$/.test(reference1Phone))
       ) {
         setValidationError(
-          "1st Reference Contact must be a valid 10-digit number",
-        );
-        return false;
-      }
-      if (!reference2Name.trim()) {
-        setValidationError("2nd Reference Name is required");
-        return false;
-      }
-      if (
-        !reference2Phone.trim() ||
-        reference2Phone.length !== 10 ||
-        !/^\d+$/.test(reference2Phone)
-      ) {
-        setValidationError(
-          "2nd Reference Contact must be a valid 10-digit number",
+          "If provided, 1st Reference Contact must be a valid 10-digit number",
         );
         return false;
       }
@@ -518,8 +609,19 @@ export const DeliveryPartners = () => {
       formData.append("vehicle_number", vehicleNumber.trim());
       formData.append("reference1_name", reference1Name.trim());
       formData.append("reference1_phone", reference1Phone.trim());
-      formData.append("reference2_name", reference2Name.trim());
-      formData.append("reference2_phone", reference2Phone.trim());
+      
+      if (dlExpiryDate) formData.append("dl_expiry_date", dlExpiryDate);
+      if (reference2Name) formData.append("reference2_name", reference2Name.trim());
+      if (reference2Phone) formData.append("reference2_phone", reference2Phone.trim());
+      if (subVehicleType) formData.append("sub_vehicle_type", subVehicleType.trim());
+      if (otherVehicleDetails) formData.append("other_vehicle_details", otherVehicleDetails.trim());
+      if (vehicleMinCapacity) formData.append("vehicle_min_capacity", vehicleMinCapacity);
+      if (vehicleMaxCapacity) formData.append("vehicle_max_capacity", vehicleMaxCapacity);
+      if (insuranceExpiryDate) formData.append("insurance_expiry_date", insuranceExpiryDate);
+      if (emissionExpiryDate) formData.append("emission_expiry_date", emissionExpiryDate);
+      formData.append("is_new_vehicle", isNewVehicle);
+      if (vehicleRegistrationDate) formData.append("vehicle_registration_date", vehicleRegistrationDate);
+      if (travelPermitStates) formData.append("travel_permit_states", travelPermitStates.trim());
 
       // Append files
       if (profileImg) formData.append("profile_img", profileImg);
@@ -533,6 +635,9 @@ export const DeliveryPartners = () => {
       if (vehicleImg) formData.append("vehicle_img", vehicleImg);
       if (bankImageFront) formData.append("bank_imagefront", bankImageFront);
       if (bankImgBack) formData.append("bank_imageback", bankImgBack);
+      if (insuranceDocument) formData.append("insurance_document", insuranceDocument);
+      if (emissionCertificateDocument) formData.append("emission_certificate_document", emissionCertificateDocument);
+      if (permitDocument) formData.append("permit_document", permitDocument);
 
       if (selectedPartner) {
         await updatePartner(selectedPartner.id, formData);
@@ -586,7 +691,6 @@ export const DeliveryPartners = () => {
   };
 
   const headers = [
-    "DP ID",
     "Name",
     "Phone",
     "Email",
@@ -642,14 +746,15 @@ export const DeliveryPartners = () => {
         emptyMessage="No delivery boys registered yet."
         renderRow={(dp) => (
           <tr key={dp.id} className="hover:bg-slate-50/50 transition-colors">
-            <td className="px-5 py-4 text-xs font-bold text-slate-400 whitespace-nowrap">
-              #DP-{dp.id}
-            </td>
             <td className="px-5 py-4 text-xs font-bold text-slate-800 whitespace-nowrap">
               {dp.name}
             </td>
-            <td className="px-5 py-4 text-xs text-slate-500 whitespace-nowrap">{dp.phone}</td>
-            <td className="px-5 py-4 text-xs text-slate-500 whitespace-nowrap">{dp.email}</td>
+            <td className="px-5 py-4 text-xs text-slate-500 whitespace-nowrap">
+              {dp.phone}
+            </td>
+            <td className="px-5 py-4 text-xs text-slate-500 whitespace-nowrap">
+              {dp.email}
+            </td>
             <td className="px-5 py-4 text-xs text-slate-600 whitespace-nowrap">
               {dp.vehicle || "Bike"}
             </td>
@@ -668,8 +773,8 @@ export const DeliveryPartners = () => {
               </Button>
             </td>
             <td className="px-5 py-4 text-xs whitespace-nowrap">
-              <Badge variant={dp.status === "active" ? "success" : "slate"}>
-                {dp.status}
+              <Badge variant={dp.status === "Verified" ? "success" : "warning"}>
+                {dp.status === "Verified" ? "Verified" : "Pending"}
               </Badge>
             </td>
             <td className="px-5 py-4 text-xs flex items-center space-x-2 whitespace-nowrap">
@@ -710,7 +815,7 @@ export const DeliveryPartners = () => {
         <Modal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
-          size="xl"
+          size="3xl"
           title={
             selectedPartner ? "Edit Delivery Partner" : "Add Delivery Partner"
           }
@@ -940,6 +1045,100 @@ export const DeliveryPartners = () => {
                           </select>
                         </div>
 
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <Input
+                            label="Sub Vehicle Type"
+                            id="subVehicleTypeEdit"
+                            placeholder="e.g. Scooter, Truck"
+                            value={subVehicleType}
+                            onChange={(e) => setSubVehicleType(e.target.value)}
+                          />
+                          <Input
+                            label="Other Vehicle Details"
+                            id="otherVehicleDetailsEdit"
+                            placeholder="Extra info"
+                            value={otherVehicleDetails}
+                            onChange={(e) => setOtherVehicleDetails(e.target.value)}
+                          />
+                          <Input
+                            label="Min Capacity (kg)"
+                            id="vehicleMinCapacityEdit"
+                            type="number"
+                            placeholder="Min capacity"
+                            value={vehicleMinCapacity}
+                            onChange={(e) => setVehicleMinCapacity(e.target.value)}
+                          />
+                          <Input
+                            label="Max Capacity (kg)"
+                            id="vehicleMaxCapacityEdit"
+                            type="number"
+                            placeholder="Max capacity"
+                            value={vehicleMaxCapacity}
+                            onChange={(e) => setVehicleMaxCapacity(e.target.value)}
+                          />
+                          <Input
+                            label="Registration Date"
+                            id="vehicleRegistrationDateEdit"
+                            type="date"
+                            value={vehicleRegistrationDate}
+                            onChange={(e) => setVehicleRegistrationDate(e.target.value)}
+                          />
+                          <Input
+                            label="Insurance Expiry Date"
+                            id="insuranceExpiryDateEdit"
+                            type="date"
+                            value={insuranceExpiryDate}
+                            onChange={(e) => setInsuranceExpiryDate(e.target.value)}
+                          />
+                          <Input
+                            label="Emission Expiry Date"
+                            id="emissionExpiryDateEdit"
+                            type="date"
+                            value={emissionExpiryDate}
+                            onChange={(e) => setEmissionExpiryDate(e.target.value)}
+                          />
+                          <Input
+                            label="Travel Permit States"
+                            id="travelPermitStatesEdit"
+                            placeholder="e.g. Delhi, Haryana"
+                            value={travelPermitStates}
+                            onChange={(e) => setTravelPermitStates(e.target.value)}
+                          />
+                          <div className="flex items-center mt-6">
+                            <input
+                              type="checkbox"
+                              id="isNewVehicleEdit"
+                              checked={isNewVehicle}
+                              onChange={(e) => setIsNewVehicle(e.target.checked)}
+                              className="mr-2 h-4 w-4 text-[#553092] rounded focus:ring-[#553092]"
+                            />
+                            <label htmlFor="isNewVehicleEdit" className="text-sm font-semibold text-slate-700">
+                              Is New Vehicle?
+                            </label>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                          <FileUpload
+                            label="Insurance Document"
+                            id="insuranceDocumentEdit"
+                            preview={insuranceDocumentPreview}
+                            onChange={(e) => handleFileChange(e, setInsuranceDocument, setInsuranceDocumentPreview)}
+                          />
+                          <FileUpload
+                            label="Emission Certificate"
+                            id="emissionCertificateDocumentEdit"
+                            preview={emissionCertificateDocumentPreview}
+                            onChange={(e) => handleFileChange(e, setEmissionCertificateDocument, setEmissionCertificateDocumentPreview)}
+                          />
+                          <FileUpload
+                            label="Permit Document"
+                            id="permitDocumentEdit"
+                            preview={permitDocumentPreview}
+                            onChange={(e) => handleFileChange(e, setPermitDocument, setPermitDocumentPreview)}
+                          />
+                        </div>
+
                         {/* Aadhar details */}
                         <div>
                           <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">
@@ -1040,6 +1239,13 @@ export const DeliveryPartners = () => {
                               value={dlNumber}
                               onChange={(e) => setDlNumber(e.target.value)}
                               required
+                            />
+                            <Input
+                              label="DL Expiry Date"
+                              id="dlExpiryDateEdit"
+                              type="date"
+                              value={dlExpiryDate}
+                              onChange={(e) => setDlExpiryDate(e.target.value)}
                             />
                             <FileUpload
                               label="DL Front Image"
@@ -1182,10 +1388,10 @@ export const DeliveryPartners = () => {
                           <h4 className="text-xs font-bold text-[#553092] uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">
                             2. Reference Details
                           </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="grid grid-cols-1 gap-6">
                             <div className="bg-slate-50 p-4 rounded-xl space-y-4 border border-slate-100">
                               <h5 className="text-xs font-bold text-[#553092] uppercase tracking-wider pb-1 border-b border-slate-200">
-                                1st Reference
+                                Reference 1 Details (Optional)
                               </h5>
                               <Input
                                 label="Reference Name"
@@ -1195,7 +1401,6 @@ export const DeliveryPartners = () => {
                                 onChange={(e) =>
                                   setReference1Name(e.target.value)
                                 }
-                                required
                               />
                               <Input
                                 label="Reference Contact"
@@ -1208,26 +1413,24 @@ export const DeliveryPartners = () => {
                                     e.target.value.replace(/\D/g, ""),
                                   )
                                 }
-                                required
                               />
                             </div>
                             <div className="bg-slate-50 p-4 rounded-xl space-y-4 border border-slate-100">
                               <h5 className="text-xs font-bold text-[#553092] uppercase tracking-wider pb-1 border-b border-slate-200">
-                                2nd Reference
+                                Reference 2 Details (Optional)
                               </h5>
                               <Input
-                                label="Reference Name"
-                                id="reference2Name"
-                                placeholder="Enter Reference Name"
+                                label="Reference 2 Name"
+                                id="reference2NameEdit"
+                                placeholder="Enter Reference 2 Name"
                                 value={reference2Name}
                                 onChange={(e) =>
                                   setReference2Name(e.target.value)
                                 }
-                                required
                               />
                               <Input
-                                label="Reference Contact"
-                                id="reference2Phone"
+                                label="Reference 2 Contact"
+                                id="reference2PhoneEdit"
                                 placeholder="10-digit phone number"
                                 maxLength={10}
                                 value={reference2Phone}
@@ -1236,7 +1439,6 @@ export const DeliveryPartners = () => {
                                     e.target.value.replace(/\D/g, ""),
                                   )
                                 }
-                                required
                               />
                             </div>
                           </div>
@@ -1350,6 +1552,7 @@ export const DeliveryPartners = () => {
                         onChange={(e) => setAddress(e.target.value)}
                         required
                       />
+                      
                     </div>
                   </div>
                 )}
@@ -1384,6 +1587,100 @@ export const DeliveryPartners = () => {
                           Four Wheeler
                         </option>
                       </select>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        label="Sub Vehicle Type"
+                        id="subVehicleType"
+                        placeholder="e.g. Scooter, Truck"
+                        value={subVehicleType}
+                        onChange={(e) => setSubVehicleType(e.target.value)}
+                      />
+                      <Input
+                        label="Other Vehicle Details"
+                        id="otherVehicleDetails"
+                        placeholder="Extra info"
+                        value={otherVehicleDetails}
+                        onChange={(e) => setOtherVehicleDetails(e.target.value)}
+                      />
+                      <Input
+                        label="Min Capacity (kg)"
+                        id="vehicleMinCapacity"
+                        type="number"
+                        placeholder="Min capacity"
+                        value={vehicleMinCapacity}
+                        onChange={(e) => setVehicleMinCapacity(e.target.value)}
+                      />
+                      <Input
+                        label="Max Capacity (kg)"
+                        id="vehicleMaxCapacity"
+                        type="number"
+                        placeholder="Max capacity"
+                        value={vehicleMaxCapacity}
+                        onChange={(e) => setVehicleMaxCapacity(e.target.value)}
+                      />
+                      <Input
+                        label="Registration Date"
+                        id="vehicleRegistrationDate"
+                        type="date"
+                        value={vehicleRegistrationDate}
+                        onChange={(e) => setVehicleRegistrationDate(e.target.value)}
+                      />
+                      <Input
+                        label="Insurance Expiry Date"
+                        id="insuranceExpiryDate"
+                        type="date"
+                        value={insuranceExpiryDate}
+                        onChange={(e) => setInsuranceExpiryDate(e.target.value)}
+                      />
+                      <Input
+                        label="Emission Expiry Date"
+                        id="emissionExpiryDate"
+                        type="date"
+                        value={emissionExpiryDate}
+                        onChange={(e) => setEmissionExpiryDate(e.target.value)}
+                      />
+                      <Input
+                        label="Travel Permit States"
+                        id="travelPermitStates"
+                        placeholder="e.g. Delhi, Haryana"
+                        value={travelPermitStates}
+                        onChange={(e) => setTravelPermitStates(e.target.value)}
+                      />
+                      <div className="flex items-center mt-6">
+                        <input
+                          type="checkbox"
+                          id="isNewVehicle"
+                          checked={isNewVehicle}
+                          onChange={(e) => setIsNewVehicle(e.target.checked)}
+                          className="mr-2 h-4 w-4 text-[#553092] rounded focus:ring-[#553092]"
+                        />
+                        <label htmlFor="isNewVehicle" className="text-sm font-semibold text-slate-700">
+                          Is New Vehicle?
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                      <FileUpload
+                        label="Insurance Document"
+                        id="insuranceDocument"
+                        preview={insuranceDocumentPreview}
+                        onChange={(e) => handleFileChange(e, setInsuranceDocument, setInsuranceDocumentPreview)}
+                      />
+                      <FileUpload
+                        label="Emission Certificate"
+                        id="emissionCertificateDocument"
+                        preview={emissionCertificateDocumentPreview}
+                        onChange={(e) => handleFileChange(e, setEmissionCertificateDocument, setEmissionCertificateDocumentPreview)}
+                      />
+                      <FileUpload
+                        label="Permit Document"
+                        id="permitDocument"
+                        preview={permitDocumentPreview}
+                        onChange={(e) => handleFileChange(e, setPermitDocument, setPermitDocumentPreview)}
+                      />
                     </div>
                   </div>
                 )}
@@ -1493,6 +1790,13 @@ export const DeliveryPartners = () => {
                           value={dlNumber}
                           onChange={(e) => setDlNumber(e.target.value)}
                           required
+                        />
+                        <Input
+                          label="DL Expiry Date"
+                          id="dlExpiryDate"
+                          type="date"
+                          value={dlExpiryDate}
+                          onChange={(e) => setDlExpiryDate(e.target.value)}
                         />
                         <FileUpload
                           label="DL Front Image"
@@ -1634,10 +1938,10 @@ export const DeliveryPartners = () => {
                 {/* Step 4: References */}
                 {currentStep === 4 && (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 gap-6">
                       <div className="bg-slate-50 p-4 rounded-xl space-y-4 border border-slate-100">
                         <h5 className="text-xs font-bold text-[#553092] uppercase tracking-wider pb-1 border-b border-slate-200">
-                          1st Reference
+                          Reference Details (Optional)
                         </h5>
                         <Input
                           label="Reference Name"
@@ -1645,7 +1949,6 @@ export const DeliveryPartners = () => {
                           placeholder="Enter Reference Name"
                           value={reference1Name}
                           onChange={(e) => setReference1Name(e.target.value)}
-                          required
                         />
                         <Input
                           label="Reference Contact"
@@ -1658,33 +1961,28 @@ export const DeliveryPartners = () => {
                               e.target.value.replace(/\D/g, ""),
                             )
                           }
-                          required
                         />
                       </div>
                       <div className="bg-slate-50 p-4 rounded-xl space-y-4 border border-slate-100">
                         <h5 className="text-xs font-bold text-[#553092] uppercase tracking-wider pb-1 border-b border-slate-200">
-                          2nd Reference
+                          Reference 2 Details (Optional)
                         </h5>
                         <Input
-                          label="Reference Name"
+                          label="Reference 2 Name"
                           id="reference2Name"
-                          placeholder="Enter Reference Name"
+                          placeholder="Enter Reference 2 Name"
                           value={reference2Name}
                           onChange={(e) => setReference2Name(e.target.value)}
-                          required
                         />
                         <Input
-                          label="Reference Contact"
+                          label="Reference 2 Contact"
                           id="reference2Phone"
                           placeholder="10-digit phone number"
                           maxLength={10}
                           value={reference2Phone}
                           onChange={(e) =>
-                            setReference2Phone(
-                              e.target.value.replace(/\D/g, ""),
-                            )
+                            setReference2Phone(e.target.value.replace(/\D/g, ""))
                           }
-                          required
                         />
                       </div>
                     </div>
@@ -1780,5 +2078,4 @@ export const DeliveryPartners = () => {
     </div>
   );
 };
-
 export default DeliveryPartners;
