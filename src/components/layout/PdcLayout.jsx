@@ -2,20 +2,6 @@ import { useState, useEffect } from "react";
 import { NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Home, Coins, History, PhoneCall, Bell, Menu, Circle, LogOut, X, MapPin, CheckCircle2, CheckCheck, Star } from "lucide-react";
-import {
-  Home,
-  Coins,
-  History,
-  PhoneCall,
-  Bell,
-  Menu,
-  Circle,
-  LogOut,
-  X,
-  MapPin,
-  CheckCircle2,
-  CheckCheck,
-} from "lucide-react";
 import { logoutUser, toggleOnlineStatus } from "../../features/auth/authSlice";
 import {
   fetchNotifications,
