@@ -48,6 +48,7 @@ import FinanceOverview from "../features/payments/pages/FinanceOverview";
 import WalletDashboard from "../features/wallets/pages/WalletDashboard";
 import Reports from "../features/admin/pages/Reports";
 import Charges from "../features/admin/pages/Charges";
+import EditChargeConfig from "../features/admin/pages/EditChargeConfig";
 import VehicleConfigurations from "../features/admin/pages/VehicleConfigurations";
 import { ScheduledOrders } from "../features/orders/pages/ScheduledOrders";
 import RecommendDpPage from "../features/orders/pages/RecommendDpPage";
@@ -136,6 +137,7 @@ export const AppRoutes = () => {
         <Route path="wallets" element={<WalletDashboard />} />
         <Route path="reports" element={<Reports />} />
         <Route path="charges" element={<Charges />} />
+        <Route path="charges/edit" element={<EditChargeConfig />} />
         <Route path="vehicles" element={<VehicleConfigurations />} />
       </Route>
 

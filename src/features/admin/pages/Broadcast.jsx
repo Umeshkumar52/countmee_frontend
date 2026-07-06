@@ -6,6 +6,7 @@ import {
 import { ROLES } from "../../../constants";
 import Button from "../../../components/common/Button";
 import Input from "../../../components/common/Input";
+import toast from 'react-hot-toast';
 
 export const Broadcast = () => {
   const [distancesByRole, setDistancesByRole] = useState({});
@@ -50,7 +51,7 @@ export const Broadcast = () => {
         role: selectedRole,
         distance: parseFloat(minDistance),
       });
-      alert(`Maximum broadcast range for ${selectedRole} updated successfully!`);
+      toast.success(`Maximum broadcast range for ${selectedRole} updated successfully!`);
       fetchBroadcastData();
     } catch (e) {
       console.error("Failed to update distance rule", e);

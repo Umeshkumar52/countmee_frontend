@@ -4,6 +4,9 @@ import Table from '../../../components/common/Table';
 import Badge from '../../../components/common/Badge';
 import Button from '../../../components/common/Button';
 import Modal from '../../../components/common/Modal';
+import toast from 'react-hot-toast';
+import useAuth from '../../../hooks/useAuth';
+import { rateDpApi } from '../../../api/pdc.api';
 
 // Shimmer block — reusable animated skeleton element
 const ShimmerCell = ({ w = 'w-24' }) => (
@@ -59,6 +62,7 @@ export const PdcOrderHistory = () => {
   
   // Rating Form State
   const [ratingData, setRatingData] = useState({ stars: 0, message: '' });
+  const { user } = useAuth();
 
   const fetchOrderHistory = async () => {
     setIsLoading(true);
@@ -94,16 +98,38 @@ export const PdcOrderHistory = () => {
     return raw.pdcEarning.reduce((sum, item) => sum + (Number(item.earnings) || 0), 0);
   };
 
-  const handleRateSubmit = () => {
-    // Note: API integration requested to be skipped. UI only.
-    console.log('Submitting rating:', {
-      orderId: rateModal.order?.id,
-      dpType: rateModal.dpType,
-      ...ratingData
-    });
-    alert(`Rating submitted for ${rateModal.dpType === 'delivery' ? 'Delivery' : 'Pickup'} DP!`);
-    setRateModal({ isOpen: false, order: null, step: 'choice', dpType: null });
-    setRatingData({ stars: 0, message: '' });
+  const handleRateSubmit = async () => {
+    try {
+      const orderId = rateModal.order?._id || rateModal.order?.id;
+      const fromPdcId = user?._id || user?.id;
+      const rawOrder = rateModal.order?.raw || rateModal.order;
+      
+      const toDpId = rateModal.dpType === 'delivery' 
+        ? rawOrder?.deliveryDp?._id || rawOrder?.deliveryDp?.id
+        : rawOrder?.pickupDp?._id || rawOrder?.pickupDp?.id;
+
+      if (!toDpId) {
+        toast.error(`Could not find information for ${rateModal.dpType} DP`);
+        return;
+      }
+
+      const payload = {
+        order_id: orderId,
+        from_pdc: fromPdcId,
+        to_dp: toDpId,
+        stars: ratingData.stars,
+        message: ratingData.message
+      };
+
+      await rateDpApi(payload);
+      toast.success(`Rating submitted for ${rateModal.dpType === 'delivery' ? 'Delivery' : 'Pickup'} DP!`);
+      
+      setRateModal({ isOpen: false, order: null, step: 'choice', dpType: null });
+      setRatingData({ stars: 0, message: '' });
+    } catch (error) {
+      console.error('Failed to submit rating:', error);
+      toast.error(error.response?.data?.message || 'Failed to submit rating');
+    }
   };
 
   return (

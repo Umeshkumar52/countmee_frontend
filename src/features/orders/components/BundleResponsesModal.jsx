@@ -14,6 +14,7 @@ import {
 } from "../../../api/orders.api";
 import Button from "../../../components/common/Button";
 import Badge from "../../../components/common/Badge";
+import toast from 'react-hot-toast';
 
 const BundleResponsesModal = ({ bundleId, onClose, onAssigned }) => {
   const [bundle, setBundle] = useState(null);
@@ -50,7 +51,7 @@ const BundleResponsesModal = ({ bundleId, onClose, onAssigned }) => {
     setError("");
     try {
       await assignBundleFinal(bundleId, dpId);
-      alert("Bundle successfully assigned!");
+      toast.success("Bundle successfully assigned!");
       if (onAssigned) onAssigned();
     } catch (e) {
       setError(e.response?.data?.message || "Failed to assign bundle");

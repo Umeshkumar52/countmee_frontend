@@ -3,6 +3,7 @@ import { fetchPdcDashboard, actionDrop, broadcastOrder } from '../../../api/pdc.
 import useAuth from '../../../hooks/useAuth';
 import useSocket from '../../../hooks/useSocket';
 import Modal from '../../../components/common/Modal';
+import toast from 'react-hot-toast';
 
 // ── Skeleton Loaders ──────────────────────────────────────────────────────────
 const TableShimmerRow = ({ cols }) => (
@@ -310,7 +311,7 @@ export const PdcHome = () => {
       fetchDashboard();
     } catch (error) {
       console.error(`Failed to ${action} drop-off:`, error);
-      alert(error.response?.data?.message || `Failed to ${action} drop-off`);
+      toast.error(error.response?.data?.message || `Failed to ${action} drop-off`);
       setIsLoading(false);
     }
   };
@@ -320,10 +321,10 @@ export const PdcHome = () => {
       setIsLoading(true);
       const res = await broadcastOrder({ order_id: order._id || order._raw?._id });
       fetchDashboard();
-      alert(res.data?.message || 'Broadcast successful!');
+      toast.success(res.data?.message || 'Broadcast successful!');
     } catch (error) {
       console.error('Failed to broadcast:', error);
-      alert(error.response?.data?.message || 'Failed to broadcast order');
+      toast.error(error.response?.data?.message || 'Failed to broadcast order');
       setIsLoading(false);
     }
   };

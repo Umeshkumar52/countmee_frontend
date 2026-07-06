@@ -17,6 +17,7 @@ import Button from '../../../components/common/Button';
 import Input from '../../../components/common/Input';
 import WalletVerificationModal from '../components/WalletVerificationModal';
 import Modal from '../../../components/common/Modal';
+import toast from 'react-hot-toast';
 
 export const WalletDashboard = () => {
   const [activeTab, setActiveTab] = useState('credit'); // credit, joining, mass
@@ -150,7 +151,7 @@ export const WalletDashboard = () => {
   const triggerIndividualCredit = (e) => {
     e.preventDefault();
     if (!creditAmount || parseFloat(creditAmount) <= 0) {
-      alert('Please enter a valid credit amount');
+      toast.error('Please enter a valid credit amount');
       return;
     }
     setVerifyActionType('individual');
@@ -177,7 +178,7 @@ export const WalletDashboard = () => {
   const triggerUpdateBonus = (e) => {
     e.preventDefault();
     if (!bonusInput || parseFloat(bonusInput) < 0) {
-      alert('Please enter a valid joining bonus amount');
+      toast.error('Please enter a valid joining bonus amount');
       return;
     }
     setVerifyActionType('joining_bonus');
@@ -188,11 +189,11 @@ export const WalletDashboard = () => {
   const triggerMassCredit = (e) => {
     e.preventDefault();
     if (!massAmount || parseFloat(massAmount) <= 0) {
-      alert('Please enter a valid amount');
+      toast.error('Please enter a valid amount');
       return;
     }
     if (!massDesc) {
-      alert('Please provide a reason / description');
+      toast.error('Please provide a reason / description');
       return;
     }
     setVerifyActionType('mass');
@@ -225,11 +226,11 @@ export const WalletDashboard = () => {
           description: creditDesc,
           verificationToken
         });
-        alert(`Successfully credited ₹${creditAmount} to ${selectedCustomer.name}'s wallet!`);
+        toast.success(`Successfully credited ₹${creditAmount} to ${selectedCustomer.name}'s wallet!`);
         setIsAddMoneyOpen(false);
         loadInitialData();
       } catch (err) {
-        alert('Transaction failed: ' + err.message);
+        toast.error('Transaction failed: ' + err.message);
       }
     } else if (verifyActionType === 'joining_bonus') {
       try {
@@ -237,10 +238,10 @@ export const WalletDashboard = () => {
           amount: parseFloat(bonusInput),
           verificationToken 
         });
-        alert(`Successfully updated joining bonus to ₹${bonusInput}`);
+        toast.success(`Successfully updated joining bonus to ₹${bonusInput}`);
         loadInitialData();
       } catch (err) {
-        alert('Action failed: ' + err.message);
+        toast.error('Action failed: ' + err.message);
       }
     } else if (verifyActionType === 'mass') {
       try {
@@ -249,12 +250,12 @@ export const WalletDashboard = () => {
           description: massDesc,
           verificationToken
         });
-        alert(`Mass credit operation completed. Credited ₹${massAmount} to all active customers.`);
+        toast.success(`Mass credit operation completed. Credited ₹${massAmount} to all active customers.`);
         setMassAmount('');
         setMassDesc('');
         loadInitialData();
       } catch (err) {
-        alert('Mass action failed: ' + err.message);
+        toast.error('Mass action failed: ' + err.message);
       }
     }
   };

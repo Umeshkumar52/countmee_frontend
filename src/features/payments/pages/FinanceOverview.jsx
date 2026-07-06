@@ -6,6 +6,7 @@ import Button from '../../../components/common/Button';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
 import Modal from '../../../components/common/Modal';
 import Input from '../../../components/common/Input';
+import toast from 'react-hot-toast';
 
 export const FinanceOverview = () => {
   const [activeView, setActiveView] = useState('pending'); // pending, past
@@ -43,7 +44,7 @@ export const FinanceOverview = () => {
       setPendingRecords(response.data.data || response.data || []);
     } catch (e) {
       console.error(e);
-      alert('Failed to load pending payments');
+      toast.error('Failed to load pending payments');
     } finally {
       setIsLoading(false);
     }
@@ -84,12 +85,12 @@ export const FinanceOverview = () => {
         payable: selectedGroup.dp_auth_id || selectedGroup.pdc_auth_id,
         settlement_amount: selectedGroup.amount_to_pay
       });
-      alert('Account settled successfully!');
+      toast.success('Account settled successfully!');
       setIsConfirmOpen(false);
       handleFetchPending();
     } catch (e) {
       console.error(e);
-      alert('Settlement failed: ' + e.message);
+      toast.error('Settlement failed: ' + e.message);
     } finally {
       setIsSettling(false);
     }

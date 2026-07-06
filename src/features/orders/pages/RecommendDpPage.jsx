@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { assignBundle, fetchBundleSummary } from "../../../api/admin.api";
 import Button from "../../../components/common/Button";
+import toast from 'react-hot-toast';
 
 export const RecommendDpPage = () => {
   const location = useLocation();
@@ -56,7 +57,7 @@ export const RecommendDpPage = () => {
     setErrorMsg("");
     try {
       await assignBundle(orderIds, selectedDpIds);
-      alert("Bundle broadcasted to selected delivery partners successfully!");
+      toast.success("Bundle broadcasted to selected delivery partners successfully!");
       // Success, go back to orders
       navigate("/admin/scheduled-orders");
     } catch (err) {

@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -153,7 +154,7 @@ export const PdcDetails = () => {
     setIsUpdatingLocation(true);
     try {
       await updatePdcLocation(id, { latitude, longitude });
-      alert("Operational location updated successfully!");
+      toast.success("Operational location updated successfully!");
       fetchPdcDetails();
     } catch (e) {
       console.error("Failed to update location", e);

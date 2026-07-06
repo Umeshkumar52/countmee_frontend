@@ -11,6 +11,7 @@ import useAuth from "../../hooks/useAuth";
 import { updatePdcLocationCoords } from "../../api/pdc.api";
 import Modal from "../common/Modal";
 import Button from "../common/Button";
+import toast from 'react-hot-toast';
 
 export const PdcLayout = () => {
   const { user, pdcDocument, isKycVerified } = useAuth();
@@ -69,7 +70,7 @@ export const PdcLayout = () => {
 
   const confirmLocationUpdate = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      toast.error("Geolocation is not supported by your browser");
       return;
     }
 
@@ -83,14 +84,14 @@ export const PdcLayout = () => {
           });
           setLocationUpdateSuccess(true);
         } catch (error) {
-          alert(error.response?.data?.message || "Failed to update location");
+          toast.error(error.response?.data?.message || "Failed to update location");
         } finally {
           setIsUpdatingLocation(false);
         }
       },
       (error) => {
         setIsUpdatingLocation(false);
-        alert(
+        toast.success(
           "Failed to get location. Please ensure location permissions are granted.",
         );
       },

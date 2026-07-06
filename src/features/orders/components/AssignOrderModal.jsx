@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchPartners, assignDeliveryBoy } from '../../../api/admin.api';
 import Modal from '../../../components/common/Modal';
 import Button from '../../../components/common/Button';
+import toast from 'react-hot-toast';
 
 export const AssignOrderModal = ({ isOpen, onClose, orderId, onAssignSuccess }) => {
   const [partners, setPartners] = useState([]);
@@ -39,7 +40,7 @@ export const AssignOrderModal = ({ isOpen, onClose, orderId, onAssignSuccess }) 
         order_id: orderId,
         dp_id: selectedDp
       });
-      alert('Order successfully assigned to delivery partner!');
+      toast.success('Order successfully assigned to delivery partner!');
       onAssignSuccess();
       onClose();
     } catch (err) {

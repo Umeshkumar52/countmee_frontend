@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { Toaster } from "react-hot-toast";
 import AppRoutes from "./routes/AppRoutes";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
+      <Toaster position="top-right" />
       <AppRoutes />
     </div>
   );

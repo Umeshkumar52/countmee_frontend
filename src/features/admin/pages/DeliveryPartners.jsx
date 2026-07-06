@@ -16,6 +16,7 @@ import Input from "../../../components/common/Input";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
 import { Plus, Search, Eye, Edit2, Trash2, FolderUp } from "lucide-react";
 import { VEHICLE_TYPES } from "../../../constants";
+import toast from 'react-hot-toast';
 
 // Reusable File Upload Preview Component
 const FileUpload = ({ label, id, preview, onChange, required }) => (
@@ -435,11 +436,11 @@ export const DeliveryPartners = () => {
         "image/webp",
       ];
       if (!validTypes.includes(file.type)) {
-        alert("Please upload an image file (JPEG, PNG, GIF, WebP)");
+        toast.error("Please upload an image file (JPEG, PNG, GIF, WebP)");
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        alert("Image size should not exceed 5MB");
+        toast.error("Image size should not exceed 5MB");
         return;
       }
 

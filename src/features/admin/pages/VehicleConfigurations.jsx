@@ -6,6 +6,7 @@ import {
   createVehicleConfiguration
 } from "../../../api/admin.api";
 import { Plus, Edit2, Trash2, CheckCircle, XCircle } from "lucide-react";
+import toast from 'react-hot-toast';
 
 export const VehicleConfigurations = () => {
   const [configs, setConfigs] = useState([]);
@@ -28,7 +29,7 @@ export const VehicleConfigurations = () => {
       }
     } catch (error) {
       console.error("Failed to load vehicle configurations", error);
-      alert("Failed to load vehicle configurations");
+      toast.error("Failed to load vehicle configurations");
     } finally {
       setIsLoading(false);
     }
@@ -44,7 +45,7 @@ export const VehicleConfigurations = () => {
       await updateVehicleConfiguration(id, { status: "Approved" });
       loadConfigs();
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to approve");
+      toast.error(error.response?.data?.message || "Failed to approve");
     }
   };
 
@@ -54,7 +55,7 @@ export const VehicleConfigurations = () => {
       await updateVehicleConfiguration(id, { status: "Rejected" });
       loadConfigs();
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to reject");
+      toast.error(error.response?.data?.message || "Failed to reject");
     }
   };
 
@@ -64,7 +65,7 @@ export const VehicleConfigurations = () => {
       await deleteVehicleConfiguration(id);
       loadConfigs();
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to delete");
+      toast.error(error.response?.data?.message || "Failed to delete");
     }
   };
 
@@ -81,7 +82,7 @@ export const VehicleConfigurations = () => {
       setFormData({ vehicle_type: "Two Wheeler", sub_vehicle_type: "", is_active: true });
       loadConfigs();
     } catch (error) {
-      alert(error.response?.data?.message || "Operation failed");
+      toast.error(error.response?.data?.message || "Operation failed");
     }
   };
 

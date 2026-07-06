@@ -5,6 +5,7 @@ import { fetchBundleResponses, assignBundleFinal } from "../../../api/orders.api
 import Table from "../../../components/common/Table";
 import Button from "../../../components/common/Button";
 import { useSocketInstance } from "../../../socket/socketContext";
+import toast from 'react-hot-toast';
 
 const BundleResponsesPage = () => {
   const { bundleId } = useParams();
@@ -63,7 +64,7 @@ const BundleResponsesPage = () => {
     setError("");
     try {
       await assignBundleFinal(bundleId, dpId);
-      alert("Bundle successfully assigned!");
+      toast.success("Bundle successfully assigned!");
       navigate("/admin/scheduled-orders/broadcasts");
     } catch (e) {
       setError(e.response?.data?.message || "Failed to assign bundle");

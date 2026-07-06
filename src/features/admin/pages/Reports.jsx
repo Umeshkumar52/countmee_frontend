@@ -5,6 +5,7 @@ import Table from '../../../components/common/Table';
 import Badge from '../../../components/common/Badge';
 import Button from '../../../components/common/Button';
 import Input from '../../../components/common/Input';
+import toast from 'react-hot-toast';
 
 export const Reports = () => {
   const [reportType, setReportType] = useState('order'); // order, user, feedback
@@ -36,7 +37,7 @@ export const Reports = () => {
       setReportData(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error('Failed to generate report', e);
-      alert('Failed to load report data');
+      toast.error('Failed to load report data');
     } finally {
       setIsLoading(false);
     }
