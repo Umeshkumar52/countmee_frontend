@@ -93,7 +93,7 @@ export const AdminLayout = () => {
             <div className="flex items-center gap-4">
               <Link to="/admin/dashboard" className="flex items-center">
                 <img
-                  src="/public/countMe_logo.png"
+                  src="/countMe_logo.png"
                   alt="CountMee Logo"
                   className="size-22 object-contain select-none"
                 />

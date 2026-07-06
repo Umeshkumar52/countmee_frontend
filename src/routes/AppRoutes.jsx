@@ -11,7 +11,8 @@ import AdminLayout from "../components/layout/AdminLayout";
 import PdcLayout from "../components/layout/PdcLayout";
 
 // Auth Pages
-import UnifiedLogin from "../features/auth/pages/UnifiedLogin";
+import AdminLogin from "../features/auth/pages/AdminLogin";
+import PdcLogin from "../features/auth/pages/PdcLogin";
 import PdcRegister from "../features/auth/pages/PdcRegister";
 
 // PDC Onboarding Pages
@@ -54,7 +55,9 @@ export const AppRoutes = () => {
   return (
     <Routes>
       {/* ------------------ PUBLIC ROUTES ------------------ */}
-      <Route path="/" element={<UnifiedLogin />} />
+      <Route path="/" element={<Navigate to="/pdc/login" replace />} />
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/pdc/login" element={<PdcLogin />} />
       <Route path="/pdc/register" element={<PdcRegister />} />
 
       {/* ------------------ SECURED PDC ROUTES ------------------ */}
