@@ -37,6 +37,12 @@ export const fetchPdcs = (params = {}) => {
 export const activatePdc = (id) => client.put(`/admin/activatepdc/${id}`);
 export const deactivatePdc = (id) => client.put(`/admin/deactivatepdc/${id}`);
 export const fetchPdcDetails = (id) => client.get(`/admin/pdcdetails/${id}`);
+export const adminAddPdc = (data) =>
+  client.post("/admin/addpdc", data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 export const updateDocumentStatus = (data) => {
   if (data.pdcId) {
     const t = data.type === "pan" ? "pan" : data.type; // map to 'pan', 'aadhar', 'gst', 'bank'
@@ -68,7 +74,8 @@ export const updateMinBroadcastDistance = (data) =>
 // Orders
 export const assignDeliveryBoy = (data) =>
   client.post("/admin/assigndeliveryboy", data);
-export const fetchRatings = () => client.get("/admin/feedback");
+export const fetchRatings = (role, page, limit) =>
+  client.get("/admin/feedback", { params: { role, page, limit } });
 
 // Charges
 export const fetchCharges = () => client.get("/admin/deliver_charge");
@@ -118,10 +125,19 @@ export const fetchReportsData = (data) =>
   client.post("/admin/reportdata", data);
 
 // Vehicle Subcategories
-export const fetchVehicleConfigurations = () => client.get("/admin/vehicleTypes?type=all");
+export const fetchVehicleConfigurations = () =>
+  client.get("/admin/vehicleTypes?type=all");
 export const createVehicleConfiguration = (data) =>
   client.post("/admin/vehicle_subcategories", data);
 export const updateVehicleConfiguration = (id, data) =>
   client.put(`/admin/vehicle_subcategories/${id}`, data);
 export const deleteVehicleConfiguration = (id) =>
   client.delete(`/admin/vehicle_subcategories/${id}`);
+// Bundles and Nearest DP
+export const fetchNearestDps = (orderIds) =>
+  client.post("/admin/orders/nearest-dps", { orderIds });
+export const assignBundle = (orderIds, dp_id) =>
+  client.post("/admin/orders/assign-bundle", { orderIds, dp_id });
+
+export const fetchBundleSummary = (orderIds) =>
+  client.post("/admin/orders/bundle-summary", { orderIds });

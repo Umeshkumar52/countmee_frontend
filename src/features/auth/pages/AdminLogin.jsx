@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { loginUser, clearAuthError } from '../authSlice';
 import AuthLayout from '../../../components/layout/AuthLayout';
@@ -8,7 +8,6 @@ import Button from '../../../components/common/Button';
 import useAuth from '../../../hooks/useAuth';
 import { ROLES } from '../../../constants';
 
-// Clean SVG Icons
 const EnvelopeIcon = () => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -21,118 +20,51 @@ const LockIcon = () => (
   </svg>
 );
 
-const PhoneIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-  </svg>
-);
-
-export const UnifiedLogin = () => {
-  const [activeTab, setActiveTab] = useState('PDC'); // PDC, ADMIN
-  
-  // Credentials states
-  const [phone, setPhone] = useState('');
+export const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-
-  // Errors states
   const [validationError, setValidationError] = useState('');
-  const [phoneError, setPhoneError] = useState('');
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isLoading, error, isAuthenticated, user } = useAuth();
 
-  // Reset errors and values on tab switch
   useEffect(() => {
     dispatch(clearAuthError());
     setValidationError('');
-    setPhoneError('');
-    setPassword('');
-    setPhone('');
-    setEmail('');
-  }, [activeTab, dispatch]);
+  }, [dispatch]);
 
-  // Handle role-based redirections on load or successful auth
   useEffect(() => {
     if (isAuthenticated && user) {
       if (user.role === ROLES.ADMIN) {
         navigate('/admin/dashboard', { replace: true });
       } else if (user.role === ROLES.PDC) {
-        // KYC Guard will redirect to /pdc/home if already approved,
-        // or stay on /pdc/profile_setup for the onboarding hub
         navigate('/pdc/profile_setup', { replace: true });
       }
     }
   }, [isAuthenticated, user, navigate]);
 
-  const handlePhoneChange = (e) => {
-    const value = e.target.value.replace(/\D/g, ''); // keep digits only
-    setPhone(value);
-    
-    if (value && value.length !== 10) {
-      setPhoneError('Mobile number must be exactly 10 digits');
-    } else {
-      setPhoneError('');
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setValidationError('');
 
-    if (activeTab === 'PDC') {
-      if (phone.length !== 10) {
-        setValidationError('Please enter a valid 10-digit mobile number');
-        return;
-      }
-      dispatch(loginUser({ phone, password }));
-    } else {
-      if (!email) {
-        setValidationError('Please enter your admin email');
-        return;
-      }
-      dispatch(loginUser({ email, password }));
+    if (!email) {
+      setValidationError('Please enter your admin email');
+      return;
     }
+    dispatch(loginUser({ email, password }));
   };
-
+  
   return (
     <AuthLayout>
-      {/* Sliding Tabs */}
-      <div className="w-full flex bg-slate-100 p-1 rounded-xl mb-6 relative select-none">
-        <button
-          type="button"
-          onClick={() => setActiveTab('PDC')}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-            activeTab === 'PDC'
-              ? 'bg-white text-brand-purple shadow-xs'
-              : 'text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          PDC Partner
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('ADMIN')}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-            activeTab === 'ADMIN'
-              ? 'bg-white text-brand-purple shadow-xs'
-              : 'text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          Administrator
-        </button>
-      </div>
-
       <h2 className="text-xl font-extrabold text-slate-800 font-display uppercase tracking-wider">
-        {activeTab === 'PDC' ? 'PDC Partner Login' : 'Admin Login'}
+        Admin Login
       </h2>
       <p className="text-xs text-slate-500 mt-1 mb-6">
-        {activeTab === 'PDC' ? 'Manage your hub shipments' : 'Platform administrative access'}
+        Platform administrative access
       </p>
 
-      {/* Error Displays */}
       {validationError && (
         <div className="w-full mb-4 bg-red-50 text-red-600 text-xs font-semibold px-4 py-2.5 rounded-xl border border-red-100">
           ⚠️ {validationError}
@@ -145,31 +77,16 @@ export const UnifiedLogin = () => {
       )}
 
       <form onSubmit={handleSubmit} className="w-full space-y-4 text-left">
-        {activeTab === 'PDC' ? (
-          <Input
-            label="Mobile Number"
-            id="phone"
-            type="text"
-            placeholder="Enter Mobile Number"
-            value={phone}
-            onChange={handlePhoneChange}
-            maxLength={10}
-            required
-            error={phoneError}
-            icon={<PhoneIcon />}
-          />
-        ) : (
-          <Input
-            label="Email Address"
-            id="email"
-            type="email"
-            placeholder="admin@gmail.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            icon={<EnvelopeIcon />}
-          />
-        )}
+        <Input
+          label="Email Address"
+          id="email"
+          type="email"
+          placeholder="admin@gmail.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          icon={<EnvelopeIcon />}
+        />
 
         <div className="relative">
           <Input
@@ -208,17 +125,8 @@ export const UnifiedLogin = () => {
           Login
         </Button>
       </form>
-
-      {activeTab === 'PDC' && (
-        <div className="mt-6 text-center text-xs text-slate-600 border-t border-slate-100 pt-4 w-full">
-          <p className="mb-2">New to Countmee?</p>
-          <Link to="/pdc/register" className="text-brand-success hover:underline font-bold text-sm">
-            Register now
-          </Link>
-        </div>
-      )}
     </AuthLayout>
   );
 };
 
-export default UnifiedLogin;
+export default AdminLogin;

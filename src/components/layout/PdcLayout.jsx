@@ -3,9 +3,20 @@ import { NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Home, Coins, History, PhoneCall, Bell, Menu, Circle, LogOut, X, MapPin, CheckCircle2, CheckCheck, Star } from "lucide-react";
 import {
-  logoutUser,
-  toggleOnlineStatus,
-} from "../../features/auth/authSlice";
+  Home,
+  Coins,
+  History,
+  PhoneCall,
+  Bell,
+  Menu,
+  Circle,
+  LogOut,
+  X,
+  MapPin,
+  CheckCircle2,
+  CheckCheck,
+} from "lucide-react";
+import { logoutUser, toggleOnlineStatus } from "../../features/auth/authSlice";
 import {
   fetchNotifications,
   markAsRead,
@@ -49,11 +60,9 @@ export const PdcLayout = () => {
       console.error("Missing PDC Document ID. Cannot toggle online status.");
       return;
     }
-    
+
     const newStatus = !isOnline;
-    await dispatch(
-      toggleOnlineStatus({ id: docId, online: newStatus }),
-    );
+    await dispatch(toggleOnlineStatus({ id: docId, online: newStatus }));
   };
 
   const handleReadNotif = (id) => {
@@ -61,7 +70,7 @@ export const PdcLayout = () => {
   };
 
   const handleMarkAllAsRead = () => {
-    unreadNotifs.forEach(notif => {
+    unreadNotifs.forEach((notif) => {
       dispatch(markAsRead(notif._id || notif.id));
     });
   };
@@ -77,14 +86,14 @@ export const PdcLayout = () => {
       alert("Geolocation is not supported by your browser");
       return;
     }
-    
+
     setIsUpdatingLocation(true);
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
           await updatePdcLocationCoords({
             latitude: position.coords.latitude,
-            longitude: position.coords.longitude
+            longitude: position.coords.longitude,
           });
           setLocationUpdateSuccess(true);
         } catch (error) {
@@ -95,9 +104,11 @@ export const PdcLayout = () => {
       },
       (error) => {
         setIsUpdatingLocation(false);
-        alert("Failed to get location. Please ensure location permissions are granted.");
+        alert(
+          "Failed to get location. Please ensure location permissions are granted.",
+        );
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
     );
   };
 
@@ -107,8 +118,6 @@ export const PdcLayout = () => {
     setIsNotifOpen(false);
     setIsProfileOpen(false);
   }, [location.pathname]);
-
-
 
   const pdcMenuItems = [
     { name: "Home", path: "/pdc/home", icon: <Home size={20} /> },
@@ -190,7 +199,8 @@ export const PdcLayout = () => {
                       </>
                     ) : (
                       <>
-                        <Circle fill="#dc3545" strokeWidth={0} size={20} /> Offline
+                        <Circle fill="#dc3545" strokeWidth={0} size={20} />{" "}
+                        Offline
                       </>
                     )}
                   </button>
@@ -265,7 +275,9 @@ export const PdcLayout = () => {
                           <div
                             key={notif._id || notif.id}
                             className={`p-3 text-left transition-colors relative group ${
-                              notif.read_at === null ? "bg-indigo-50/30 hover:bg-indigo-50/50" : "hover:bg-slate-50"
+                              notif.read_at === null
+                                ? "bg-indigo-50/30 hover:bg-indigo-50/50"
+                                : "hover:bg-slate-50"
                             }`}
                           >
                             <div className="flex justify-between items-start gap-2">
@@ -277,7 +289,9 @@ export const PdcLayout = () => {
                                   {notif.message}
                                 </p>
                                 <span className="text-[9px] text-slate-400 block mt-1">
-                                  {new Date(notif.created_at).toLocaleTimeString()}
+                                  {new Date(
+                                    notif.created_at,
+                                  ).toLocaleTimeString()}
                                 </span>
                               </div>
                               {notif.read_at === null && (
@@ -312,10 +326,10 @@ export const PdcLayout = () => {
                 >
                   <div className="w-8 h-8 rounded-full border-2 border-white bg-indigo-200 overflow-hidden flex items-center justify-center">
                     {pdcDocument?.profile_image ? (
-                      <img 
-                        src={pdcDocument.profile_image} 
-                        alt="Profile" 
-                        className="w-full h-full object-cover" 
+                      <img
+                        src={pdcDocument.profile_image}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
                       />
                     ) : (
                       <span className="text-brand-purple font-bold text-xs uppercase">
@@ -330,10 +344,10 @@ export const PdcLayout = () => {
                     <div className="p-4 border-b border-slate-100 flex items-start gap-3">
                       <div className="w-12 h-12 rounded-full border border-slate-200 bg-indigo-50 overflow-hidden flex items-center justify-center flex-shrink-0">
                         {pdcDocument?.profile_image ? (
-                          <img 
-                            src={pdcDocument.profile_image} 
-                            alt="Profile" 
-                            className="w-full h-full object-cover" 
+                          <img
+                            src={pdcDocument.profile_image}
+                            alt="Profile"
+                            className="w-full h-full object-cover"
                           />
                         ) : (
                           <span className="text-brand-purple font-bold text-sm uppercase">
@@ -345,7 +359,9 @@ export const PdcLayout = () => {
                         <p className="font-semibold text-sm text-slate-800 truncate">
                           {user?.name}
                         </p>
-                        <p className="text-xs text-slate-500 truncate">{user?.phone}</p>
+                        <p className="text-xs text-slate-500 truncate">
+                          {user?.phone}
+                        </p>
                         <p className="text-[11px] text-slate-400 truncate mt-0.5">
                           {user?.email}
                         </p>
@@ -422,7 +438,8 @@ export const PdcLayout = () => {
                     </>
                   ) : (
                     <>
-                      <Circle fill="#dc3545" strokeWidth={0} size={20} /> Offline
+                      <Circle fill="#dc3545" strokeWidth={0} size={20} />{" "}
+                      Offline
                     </>
                   )}
                 </button>
@@ -479,12 +496,14 @@ export const PdcLayout = () => {
       )}
 
       {/* Location Confirmation Modal */}
-      <Modal 
-        isOpen={isLocationModalOpen} 
+      <Modal
+        isOpen={isLocationModalOpen}
         onClose={() => {
           if (!isUpdatingLocation) setIsLocationModalOpen(false);
-        }} 
-        title={locationUpdateSuccess ? "Success!" : "Update Exact Store Location"}
+        }}
+        title={
+          locationUpdateSuccess ? "Success!" : "Update Exact Store Location"
+        }
         size="md"
       >
         <div className="p-2 text-center">
@@ -493,11 +512,15 @@ export const PdcLayout = () => {
               <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
                 <span className="text-2xl">✅</span>
               </div>
-              <h3 className="text-lg font-bold text-slate-800 mb-2">Location Updated</h3>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">
+                Location Updated
+              </h3>
               <p className="text-sm text-slate-500 mb-6">
-                Your precise GPS coordinates have been saved successfully. Delivery partners will now be able to find your store more easily.
+                Your precise GPS coordinates have been saved successfully.
+                Delivery partners will now be able to find your store more
+                easily.
               </p>
-              <Button 
+              <Button
                 onClick={() => setIsLocationModalOpen(false)}
                 className="w-full bg-slate-800 hover:bg-slate-900 text-white"
               >
@@ -510,24 +533,27 @@ export const PdcLayout = () => {
                 <MapPin size={32} />
               </div>
               <p className="text-sm text-slate-600 mb-4 leading-relaxed text-center">
-                To ensure delivery partners can navigate directly to your storefront without any confusion, we need to capture your exact GPS coordinates.
+                To ensure delivery partners can navigate directly to your
+                storefront without any confusion, we need to capture your exact
+                GPS coordinates.
               </p>
               <div className="bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold p-3 rounded-lg mb-6 text-center w-full">
-                ⚠️ Please ensure you are currently standing inside your PDC location before proceeding.
+                ⚠️ Please ensure you are currently standing inside your PDC
+                location before proceeding.
               </div>
-              
+
               <div className="flex gap-3 w-full">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => setIsLocationModalOpen(false)}
                   disabled={isUpdatingLocation}
                   className="flex-1"
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   onClick={confirmLocationUpdate}
                   isLoading={isUpdatingLocation}
                   className="flex-1 bg-brand-purple hover:bg-brand-purple-dark text-white"

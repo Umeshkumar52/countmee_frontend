@@ -5,12 +5,13 @@ export const Table = ({
   data = [],
   renderRow,
   isLoading = false,
-  emptyMessage = 'No records found.'
+  emptyMessage = 'No records found.',
+  tableClassName = ''
 }) => {
   return (
     <div className="w-full overflow-hidden bg-white border border-slate-100 rounded-xl shadow-xs">
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table className={`w-full text-left border-collapse ${tableClassName}`}>
           <thead>
             <tr className="bg-slate-50 border-b border-slate-100">
               {headers.map((h, i) => (
