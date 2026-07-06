@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Home, Coins, History, PhoneCall, Bell, Menu, Circle, LogOut, X, MapPin, CheckCircle2, CheckCheck } from "lucide-react";
+import { Home, Coins, History, PhoneCall, Bell, Menu, Circle, LogOut, X, MapPin, CheckCircle2, CheckCheck, Star } from "lucide-react";
 import {
   logoutUser,
   toggleOnlineStatus,
@@ -114,6 +114,7 @@ export const PdcLayout = () => {
     { name: "Home", path: "/pdc/home", icon: <Home size={20} /> },
     { name: "Earning", path: "/pdc/earning", icon: <Coins size={20} /> },
     { name: "Order History", path: "/pdc/order_history", icon: <History size={20} /> },
+    { name: "Ratings", path: "/pdc/ratings", icon: <Star size={20} /> },
     { name: "Contact us", path: "/pdc/contact_us", icon: <PhoneCall size={20} /> },
   ];
 

@@ -24,6 +24,7 @@ import PdcProfileSetup from "../features/pdc/pages/PdcProfileSetup";
 import PdcHome from "../features/pdc/pages/PdcHome";
 import PdcEarning from "../features/pdc/pages/PdcEarning";
 import PdcOrderHistory from "../features/pdc/pages/PdcOrderHistory";
+import PdcRatings from "../features/pdc/pages/PdcRatings";
 import PdcContactUs from "../features/pdc/pages/PdcContactUs";
 
 // Shared Pages
@@ -77,6 +78,7 @@ export const AppRoutes = () => {
         <Route path="home" element={<PdcHome />} />
         <Route path="earning" element={<PdcEarning />} />
         <Route path="order_history" element={<PdcOrderHistory />} />
+        <Route path="ratings" element={<PdcRatings />} />
         <Route path="contact_us" element={<PdcContactUs />} />
         <Route path="orders/:id" element={<OrderView />} />
       </Route>

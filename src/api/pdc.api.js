@@ -53,3 +53,6 @@ export const fetchPdcDocStatus = () => client.get('/pdc/document-status');
 /** Accept/reject an assigned order */
 export const updatePdcAssignedOrder = (id, acceptStatus) =>
   client.put(`/pdc/update-assigned-order/${id}/${acceptStatus}`);
+
+/** Fetch PDC ratings and average */
+export const fetchPdcRatings = () => client.get('/pdc/myRatings');
