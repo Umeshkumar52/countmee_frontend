@@ -1,24 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchOrderDetails as apiFetchOrderDetails } from "../../../api/orders.api";
+import { processManualRefund } from "../../../api/admin.api";
 import Button from "../../../components/common/Button";
 import Badge from "../../../components/common/Badge";
+import Modal from "../../../components/common/Modal";
 import useAuth from "../../../hooks/useAuth";
 import { useSocket } from "../../../hooks/useSocket";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
-
-// Custom Map Marker
-const dpIcon = new L.Icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+import LiveTrackingMap from "../../../components/common/LiveTrackingMap";
 
 export const OrderView = () => {
   const { id } = useParams();
@@ -27,6 +16,13 @@ export const OrderView = () => {
   const [order, setOrder] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [liveLocation, setLiveLocation] = useState(null);
+
+  // Manual Refund Modal State
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [refundAmount, setRefundAmount] = useState("");
+  const [refundReason, setRefundReason] = useState("");
+  const [isRefunding, setIsRefunding] = useState(false);
+  const [refundError, setRefundError] = useState("");
 
   const { emit, isConnected } = useSocket("location:updated", (data) => {
     if (data.lat && data.lng) {
@@ -70,6 +66,33 @@ export const OrderView = () => {
       navigate("/admin/orders");
     } else {
       navigate("/pdc/home");
+    }
+  };
+
+  const handleManualRefund = async (e) => {
+    e.preventDefault();
+    if (!refundAmount) return;
+    
+    setIsRefunding(true);
+    setRefundError("");
+    
+    try {
+      await processManualRefund({
+        order_id: id,
+        amount: Number(refundAmount),
+        reason: refundReason
+      });
+      setShowRefundModal(false);
+      setRefundAmount("");
+      setRefundReason("");
+      
+      // Refresh order details
+      const response = await apiFetchOrderDetails(id);
+      setOrder(response.data);
+    } catch (err) {
+      setRefundError(err.response?.data?.message || err.message || "Failed to process refund");
+    } finally {
+      setIsRefunding(false);
     }
   };
 
@@ -356,38 +379,30 @@ export const OrderView = () => {
             </h3>
 
             <div className="h-48 w-full rounded-xl overflow-hidden border border-slate-100 bg-slate-50 relative z-0">
-              {liveLocation ? (
-                <MapContainer
-                  center={[liveLocation.lat, liveLocation.lng]}
-                  zoom={15}
-                  style={{ height: "100%", width: "100%" }}
-                  zoomControl={false}
-                >
-                  <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                    attribution='&copy; <a href="https://carto.com/">Carto</a>'
+              {(() => {
+                const waypoints = [];
+                if (order.sender_latitude && order.sender_longitude) {
+                  waypoints.push({ type: "Pickup", coord: [order.sender_latitude, order.sender_longitude], id: order.order_number });
+                } else if (order.raw?.sender_latitude && order.raw?.sender_longitude) {
+                  waypoints.push({ type: "Pickup", coord: [order.raw.sender_latitude, order.raw.sender_longitude], id: order.order_number });
+                }
+
+                if (order.receiver_latitude && order.receiver_longitude) {
+                  waypoints.push({ type: "Drop-off", coord: [order.receiver_latitude, order.receiver_longitude], id: order.order_number });
+                } else if (order.raw?.receiver_latitude && order.raw?.receiver_longitude) {
+                  waypoints.push({ type: "Drop-off", coord: [order.raw.receiver_latitude, order.raw.receiver_longitude], id: order.order_number });
+                }
+
+                const dpLocArray = liveLocation ? [liveLocation.lat, liveLocation.lng] : null;
+
+                return (
+                  <LiveTrackingMap 
+                    dpLocation={dpLocArray} 
+                    waypoints={waypoints} 
+                    height="100%" 
                   />
-                  <Marker
-                    position={[liveLocation.lat, liveLocation.lng]}
-                    icon={dpIcon}
-                  >
-                    <Popup>
-                      <div className="text-center">
-                        <strong className="text-xs">Partner Location</strong>
-                        <div className="text-[10px] text-slate-500 mt-0.5">
-                          Updated just now
-                        </div>
-                      </div>
-                    </Popup>
-                  </Marker>
-                </MapContainer>
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-xs text-slate-400">
-                    Location not available
-                  </p>
-                </div>
-              )}
+                );
+              })()}
             </div>
           </div>
 
@@ -413,10 +428,99 @@ export const OrderView = () => {
                 <span>Total Amount:</span>
                 <span className="text-brand-purple">₹ {order.amount}</span>
               </div>
+              
+              {/* Admin Manual Refund Button */}
+              {isAdmin && (
+                <div className="pt-4 border-t border-slate-100 mt-4">
+                  <Button 
+                    onClick={() => setShowRefundModal(true)} 
+                    variant="danger" 
+                    size="sm" 
+                    className="w-full"
+                  >
+                    Process Manual Refund
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Manual Refund Modal */}
+      <Modal
+        isOpen={showRefundModal}
+        onClose={() => {
+          setShowRefundModal(false);
+          setRefundError("");
+        }}
+        title="Process Manual Refund"
+      >
+        <p className="text-sm text-slate-500 mb-6 mt-[-10px]">
+          Issue a custom refund amount directly to the customer. This action is irreversible.
+        </p>
+
+        <form onSubmit={handleManualRefund} className="space-y-4">
+          {refundError && (
+            <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-xs rounded-xl">
+              {refundError}
+            </div>
+          )}
+          
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Refund Amount (₹) <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              required
+              step="0.01"
+              min="0"
+              max={order.amount}
+              value={refundAmount}
+              onChange={(e) => setRefundAmount(e.target.value)}
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple"
+              placeholder={`Max: ₹${order.amount}`}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Reason
+            </label>
+            <textarea
+              value={refundReason}
+              onChange={(e) => setRefundReason(e.target.value)}
+              rows="3"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple resize-none"
+              placeholder="e.g., Customer complained about delay..."
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => {
+                setShowRefundModal(false);
+                setRefundError("");
+              }}
+              disabled={isRefunding}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              variant="danger" 
+              className="flex-1"
+              disabled={isRefunding || !refundAmount}
+            >
+              {isRefunding ? "Processing..." : "Issue Refund"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

@@ -50,7 +50,9 @@ export const Broadcast = () => {
         role: selectedRole,
         distance: parseFloat(minDistance),
       });
-      alert(`Maximum broadcast range for ${selectedRole} updated successfully!`);
+      alert(
+        `Maximum broadcast range for ${selectedRole} updated successfully!`,
+      );
       fetchBroadcastData();
     } catch (e) {
       console.error("Failed to update distance rule", e);
@@ -60,7 +62,7 @@ export const Broadcast = () => {
   };
 
   return (
-    <div className="space-y-6 text-left page-transition max-w-4xl mx-auto">
+    <div className="space-y-6 text-left page-transition w-full mx-auto">
       <div>
         <h2 className="text-xl font-bold text-slate-800">
           Role-Based Broadcast Configurations
@@ -93,7 +95,7 @@ export const Broadcast = () => {
                 ))}
               </select>
             </div>
-            
+
             <Input
               label="Maximum Broadcast Range (km)"
               id="minDistance"
@@ -124,14 +126,21 @@ export const Broadcast = () => {
           {isLoading ? (
             <p className="text-sm text-slate-500">Loading...</p>
           ) : Object.keys(distancesByRole).length === 0 ? (
-            <p className="text-sm text-slate-500 italic">No role distances configured yet. Using system default (3 km).</p>
+            <p className="text-sm text-slate-500 italic">
+              No role distances configured yet. Using system default (3 km).
+            </p>
           ) : (
             <div className="space-y-3">
               {Object.entries(distancesByRole).map(([role, distance]) => (
-                <div key={role} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <div
+                  key={role}
+                  className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-brand-purple/10 flex items-center justify-center">
-                      <span className="text-brand-purple font-bold text-xs">{role.substring(0, 2).toUpperCase()}</span>
+                      <span className="text-brand-purple font-bold text-xs">
+                        {role.substring(0, 2).toUpperCase()}
+                      </span>
                     </div>
                     <div>
                       <p className="text-sm font-bold text-slate-800">{role}</p>
@@ -139,7 +148,9 @@ export const Broadcast = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold text-emerald-600">{distance} km</p>
+                    <p className="text-sm font-bold text-emerald-600">
+                      {distance} km
+                    </p>
                     <p className="text-xs text-slate-500">Search Radius</p>
                   </div>
                 </div>
