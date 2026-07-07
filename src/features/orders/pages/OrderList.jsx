@@ -1,16 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, Truck } from "lucide-react";
-import {
-  fetchPaginatedOrders,
-  fetchAllOrders,
-  fetchPendingOrders,
-  fetchAssignedOrders,
-  fetchIntransitOrders,
-  fetchDeliveredOrders,
-  fetchBroadcastedOrders,
-  fetchCancelledOrders,
-} from "../../../api/orders.api";
+import { Eye, Truck, Search } from "lucide-react";
+import { fetchPaginatedOrders } from "../../../api/orders.api";
 import Table from "../../../components/common/Table";
 import Badge from "../../../components/common/Badge";
 import Button from "../../../components/common/Button";
@@ -24,15 +15,22 @@ export const OrderList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalOrders, setTotalOrders] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
   // Assignment states
   const [assignOrderId, setAssignOrderId] = useState(null);
 
-  const loadPaginatedOrders = async (tab, page) => {
+  const loadPaginatedOrders = async (tab, page, search = "") => {
     setIsLoading(true);
     try {
-      const response = await fetchPaginatedOrders(tab, page, 10, "normal");
+      const response = await fetchPaginatedOrders(
+        tab,
+        page,
+        10,
+        "normal",
+        search,
+      );
       setOrders(response.data.orders);
       setFilteredOrders(response.data.orders);
       setCurrentPage(response.data.page);
@@ -46,8 +44,11 @@ export const OrderList = () => {
   };
 
   useEffect(() => {
-    loadPaginatedOrders(activeTab, currentPage);
-  }, [activeTab, currentPage]);
+    const timer = setTimeout(() => {
+      loadPaginatedOrders(activeTab, currentPage, searchQuery);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [activeTab, currentPage, searchQuery]);
 
   const getStatusVariant = (status) => {
     switch (status) {
@@ -99,24 +100,45 @@ export const OrderList = () => {
         </p>
       </div>
 
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-slate-100 pb-2">
-        {tabs.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => {
-              setActiveTab(tab.value);
-              setCurrentPage(1);
+      {/* Controls Container */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-100 pb-2">
+        {/* Tabs */}
+        <div className="flex flex-wrap gap-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => {
+                setActiveTab(tab.value);
+                setCurrentPage(1);
+              }}
+              className={`px-4 py-2.5 text-xs font-bold capitalize transition-colors rounded-lg cursor-pointer ${
+                activeTab === tab.value
+                  ? "bg-brand-purple text-white"
+                  : "text-slate-500 hover:bg-slate-100"
+              }`}
+            >
+              {tab.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Search */}
+        <div className="relative w-full lg:w-lg flex-shrink-0">
+          <Search
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+          />
+          <input
+            type="text"
+            placeholder="Search by name, phone..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1); // Reset to first page on new search
             }}
-            className={`px-4 py-2.5 text-xs font-bold capitalize transition-colors rounded-lg cursor-pointer ${
-              activeTab === tab.value
-                ? "bg-brand-purple text-white"
-                : "text-slate-500 hover:bg-slate-100"
-            }`}
-          >
-            {tab.name}
-          </button>
-        ))}
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm transition-all outline-none focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple"
+          />
+        </div>
       </div>
 
       <Table

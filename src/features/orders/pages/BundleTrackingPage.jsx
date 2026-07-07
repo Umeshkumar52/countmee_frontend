@@ -1,8 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, AlertCircle, Clock, Check, Truck, Navigation, HelpCircle, User } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  Check,
+  Truck,
+  Navigation,
+  HelpCircle,
+  User,
+} from "lucide-react";
 import { fetchBundleTracking } from "../../../api/orders.api";
 import Button from "../../../components/common/Button";
+import { useSocketInstance } from "../../../socket/socketContext";
+import LiveTrackingMap from "../../../components/common/LiveTrackingMap";
 
 const BundleTrackingPage = () => {
   const { bundleId } = useParams();
@@ -10,6 +22,31 @@ const BundleTrackingPage = () => {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  
+  const socket = useSocketInstance();
+  const [dpLocation, setDpLocation] = useState(null);
+
+  // Socket listener for live location
+  useEffect(() => {
+    if (!socket || !bundleId) return;
+
+    // Join room
+    socket.emit("track-order", { bundle_id: bundleId });
+
+    // Listen to live location updates
+    const handleLocationUpdate = (locData) => {
+      // Expecting { lat, lng } object
+      if (locData && typeof locData.lat === 'number' && typeof locData.lng === 'number') {
+        setDpLocation([locData.lat, locData.lng]);
+      }
+    };
+
+    socket.on("dp-live-location", handleLocationUpdate);
+
+    return () => {
+      socket.off("dp-live-location", handleLocationUpdate);
+    };
+  }, [socket, bundleId]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -26,6 +63,21 @@ const BundleTrackingPage = () => {
     };
     loadData();
   }, [bundleId]);
+
+  // Extract initial DP location from fetched data if socket hasn't fired yet
+  useEffect(() => {
+    if (data?.dpDoc && !dpLocation) {
+      const loc = data.dpDoc.location || data.dpDoc.current_location;
+      if (loc) {
+        if (typeof loc.lat === 'number' && typeof loc.lng === 'number') {
+          setDpLocation([loc.lat, loc.lng]);
+        } else if (loc.coordinates && loc.coordinates.length === 2) {
+          // GeoJSON format: [lng, lat]
+          setDpLocation([loc.coordinates[1], loc.coordinates[0]]);
+        }
+      }
+    }
+  }, [data, dpLocation]);
 
   if (isLoading) {
     return (
@@ -47,38 +99,64 @@ const BundleTrackingPage = () => {
   }
 
   if (!data?.bundle) {
-    return <div className="p-8 text-center text-slate-500">No tracking data found.</div>;
+    return (
+      <div className="p-8 text-center text-slate-500">
+        No tracking data found.
+      </div>
+    );
   }
 
   const { bundle, dpDoc } = data;
   const dpName = bundle.dp_id?.name || "Unassigned";
-  
+  const dpPhone = bundle.dp_id?.phone || "N/A";
   let vNo = "N/A";
   let vType = "N/A";
   if (dpDoc) {
     vNo = dpDoc.vehicle_number || dpDoc.rc_number || "N/A";
     const type = dpDoc.vehicle_type || "";
-    const cap = dpDoc.vehicle_max_capacity ? `(${dpDoc.vehicle_max_capacity}T)` : "";
+    const cap = dpDoc.vehicle_max_capacity
+      ? `(${dpDoc.vehicle_max_capacity}T)`
+      : "";
     vType = type || cap ? `${type} ${cap}`.trim() : "N/A";
   }
 
-  // Derive status from orders logic
-  const allDelivered = bundle.orders?.every(o => o.status === "delivered");
-  const anyInTransit = bundle.orders?.some(o => o.status === "out_for_delivery" || o.status === "shipped");
-  const anyPickedUp = bundle.orders?.some(o => o.status === "processing" || o.status === "packed");
+  const allDelivered =
+    bundle.orders &&
+    bundle.orders.length > 0 &&
+    bundle.orders.every((o) => o.status === "delivered");
+  const anyReached = bundle.orders?.some((o) => o.status === "reached");
+  const anyInTransit = bundle.orders?.some(
+    (o) => o.status === "out_for_delivery" || o.status === "shipped",
+  );
+  const anyPickedUp = bundle.orders?.some((o) =>
+    [
+      "processing",
+      "packed",
+      "shipped",
+      "out_for_delivery",
+      "reached",
+      "delivered",
+    ].includes(o.status),
+  );
 
-  let overallStatus = "Assigned";
-  let step = 2; // Default to Accepted
-  
+  let overallStatus = "Broadcast";
+  let step = 1;
+
   if (allDelivered) {
     overallStatus = "Delivered";
     step = 6;
+  } else if (anyReached) {
+    overallStatus = "Reached";
+    step = 5;
   } else if (anyInTransit) {
     overallStatus = "In Transit";
     step = 4;
   } else if (anyPickedUp) {
     overallStatus = "Picked Up";
     step = 3;
+  } else if (bundle.dp_id) {
+    overallStatus = "Accepted";
+    step = 2;
   }
 
   const steps = [
@@ -93,24 +171,39 @@ const BundleTrackingPage = () => {
   return (
     <div className="p-6 max-w-[1200px] mx-auto w-full font-sans">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-lg">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="p-2 hover:bg-slate-100 rounded-lg"
+        >
           <ArrowLeft className="w-5 h-5 text-slate-600" />
         </Button>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Track Assignment</h1>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+          Track Assignment
+        </h1>
       </div>
 
-      {/* Header Banner */}
       <div className="bg-white border-2 border-blue-500 rounded-lg p-5 mb-8 shadow-sm flex flex-wrap items-center justify-between gap-6">
         <div>
           <div className="text-blue-700 font-bold text-sm mb-1">Assignment</div>
           <div className="text-slate-800 font-medium">{bundle.bundle_id}</div>
         </div>
         <div>
-          <div className="text-blue-700 font-bold text-sm mb-1">Assigned DP</div>
+          <div className="text-blue-700 font-bold text-sm mb-1">
+            Assigned DP
+          </div>
           <div className="text-slate-800 font-medium">{dpName}</div>
         </div>
         <div>
-          <div className="text-blue-700 font-bold text-sm mb-1">Vehicle No.</div>
+          <div className="text-blue-700 font-bold text-sm mb-1">
+            DP Phone
+          </div>
+          <div className="text-slate-800 font-medium">{dpPhone}</div>
+        </div>
+        <div>
+          <div className="text-blue-700 font-bold text-sm mb-1">
+            Vehicle No.
+          </div>
           <div className="text-slate-800 font-medium uppercase">{vNo}</div>
         </div>
         <div>
@@ -125,36 +218,46 @@ const BundleTrackingPage = () => {
         </div>
       </div>
 
-      {/* Progress Timeline */}
       <div className="mb-12">
-        <h2 className="text-lg font-bold text-slate-900 mb-6">Progress Timeline</h2>
-        <div className="relative flex items-center justify-between w-full px-4">
-          <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-1.5 bg-slate-200 -z-10 rounded-full" />
-          
-          {/* Active Line Fill */}
-          <div 
-            className="absolute left-4 top-1/2 -translate-y-1/2 h-1.5 bg-emerald-600 -z-10 rounded-full transition-all duration-500"
-            style={{ width: `calc(${Math.min((step - 1) / (steps.length - 1), 1) * 100}% - 32px)` }}
+        <h2 className="text-lg font-bold text-slate-900 mb-6">
+          Progress Timeline
+        </h2>
+        <div className="relative flex items-start justify-between w-full">
+          {/* Background Bar */}
+          <div className="absolute left-8 right-8 top-4 -translate-y-1/2 h-1.5 bg-slate-200 z-0 rounded-full" />
+
+          {/* Active Progress Bar */}
+          <div
+            className="absolute left-8 top-4 -translate-y-1/2 h-1.5 bg-emerald-600 z-0 rounded-full transition-all duration-500"
+            style={{
+              width: `calc(${Math.min((step - 1) / (steps.length - 1), 1) * 100}% - 4rem)`,
+            }}
           />
 
           {steps.map((s, idx) => {
             const isCompleted = step >= s.num;
             const isActive = step === s.num;
-            
+
             return (
-              <div key={s.num} className="flex flex-col items-center gap-2 relative bg-transparent">
-                <div 
+              <div
+                key={s.num}
+                className="flex flex-col items-center gap-2 relative z-10 w-24"
+              >
+                <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-colors
-                  ${isCompleted 
-                    ? 'bg-emerald-600 border-emerald-600 text-white' 
-                    : isActive 
-                      ? 'bg-blue-600 border-blue-600 text-white'
-                      : 'bg-white border-slate-300 text-slate-400'
+                  ${
+                    isCompleted
+                      ? "bg-emerald-600 border-emerald-600 text-white"
+                      : isActive
+                        ? "bg-blue-600 border-blue-600 text-white"
+                        : "bg-white border-slate-300 text-slate-400"
                   }`}
                 >
                   {s.num}
                 </div>
-                <div className={`text-xs font-semibold ${isCompleted || isActive ? 'text-slate-900' : 'text-slate-400'}`}>
+                <div
+                  className={`text-xs font-semibold text-center ${isCompleted || isActive ? "text-slate-900" : "text-slate-400"}`}
+                >
                   {s.label}
                 </div>
               </div>
@@ -164,9 +267,10 @@ const BundleTrackingPage = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Orders Table */}
         <div className="lg:col-span-2">
-          <h2 className="text-lg font-bold text-slate-900 mb-3">Per-Order Status</h2>
+          <h2 className="text-lg font-bold text-slate-900 mb-3">
+            Per-Order Status
+          </h2>
           <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
             <table className="w-full text-left text-sm">
               <thead className="bg-indigo-50/50 border-b border-indigo-100 text-indigo-900 font-bold">
@@ -180,77 +284,132 @@ const BundleTrackingPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {bundle.orders?.map(order => {
+                {bundle.orders?.map((order) => {
                   const isDelivered = order.status === "delivered";
-                  const isPickedUp = order.status === "out_for_delivery" || order.status === "shipped" || order.status === "processing" || order.status === "packed" || isDelivered;
-                  
+                  const isReached = order.status === "reached";
+                  const isPickedUp = [
+                    "processing",
+                    "packed",
+                    "shipped",
+                    "out_for_delivery",
+                    "reached",
+                    "delivered",
+                  ].includes(order.status);
+
+                  const podIcon =
+                    order.pod_url || order.pod_image ? (
+                      <a
+                        href={order.pod_url || order.pod_image}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline text-xs"
+                      >
+                        View
+                      </a>
+                    ) : (
+                      "—"
+                    );
+
+                  const deliveryTime =
+                    isDelivered && order.updatedAt
+                      ? new Date(order.updatedAt).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : order.delivery_time
+                        ? new Date(order.delivery_time).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "Pending";
+
                   return (
                     <tr key={order._id} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 font-medium text-slate-800">{order.order_id || order._id.toString().substring(0,8)}</td>
-                      <td className="px-4 py-3 text-slate-600">{order.user_id?.name || order.sender_name || "N/A"}</td>
-                      <td className="px-4 py-3 text-center">
-                        {isPickedUp ? <Check className="w-4 h-4 text-emerald-500 mx-auto" /> : <div className="text-slate-300">—</div>}
+                      <td className="px-4 py-3 font-medium text-slate-800">
+                        {order.order_id || order._id.toString().substring(0, 8)}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">
+                        {order.user_id?.name || order.sender_name || "N/A"}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        {isDelivered ? <Check className="w-4 h-4 text-emerald-500 mx-auto" /> : <Clock className="w-4 h-4 text-amber-500 mx-auto" />}
+                        {isPickedUp ? (
+                          <Check className="w-4 h-4 text-emerald-500 mx-auto" />
+                        ) : (
+                          <div className="text-slate-300">—</div>
+                        )}
                       </td>
-                      <td className="px-4 py-3 text-center text-slate-300">
-                        —
+                      <td className="px-4 py-3 text-center">
+                        {isDelivered ? (
+                          <Check className="w-4 h-4 text-emerald-500 mx-auto" />
+                        ) : isReached ? (
+                          <Navigation className="w-4 h-4 text-blue-500 mx-auto" />
+                        ) : (
+                          <Clock className="w-4 h-4 text-amber-500 mx-auto" />
+                        )}
                       </td>
-                      <td className="px-4 py-3 text-slate-600 font-medium">
-                        {order.delivery_time ? new Date(order.delivery_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '10:42'}
+                      <td className="px-4 py-3 text-center text-slate-600">
+                        {podIcon}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600 font-medium text-sm">
+                        {deliveryTime}
                       </td>
                     </tr>
-                  )
+                  );
                 })}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Right Column: Map & Override */}
         <div className="flex flex-col gap-6">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 mb-3">Live Vehicle Map</h2>
-            <div className="border border-slate-300 bg-[#e8eedd] rounded p-4 h-[250px] relative overflow-hidden flex flex-col shadow-inner">
-              {/* Fake Map Path UI */}
-              <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-                <path d="M 10 90 Q 40 10 90 20" fill="none" stroke="#2563eb" strokeWidth="2" />
-              </svg>
-              
-              <div className="absolute bottom-[10%] left-[10%] flex items-center gap-1">
-                <div className="w-4 h-4 bg-emerald-500 rounded-full border-2 border-white shadow-sm" />
-                <span className="text-[10px] font-bold text-slate-800 bg-white/70 px-1 rounded">P1 HSR</span>
-              </div>
-              
-              <div className="absolute top-[60%] left-[35%] flex items-center gap-1">
-                <div className="w-4 h-4 bg-emerald-500 rounded-full border-2 border-white shadow-sm" />
-                <span className="text-[10px] font-bold text-slate-800 bg-white/70 px-1 rounded">P2 Koram</span>
-              </div>
-              
-              <div className="absolute top-[40%] left-[60%] flex items-center gap-1">
-                <div className="w-4 h-4 bg-emerald-500 rounded-full border-2 border-white shadow-sm" />
-                <span className="text-[10px] font-bold text-slate-800 bg-white/70 px-1 rounded">P3 Whitef</span>
-              </div>
-              
-              <div className="absolute top-[20%] right-[10%] flex items-center gap-1 flex-row-reverse">
-                <div className="w-4 h-4 bg-rose-500 rounded-full border-2 border-white shadow-sm" />
-                <span className="text-[10px] font-bold text-slate-800 bg-white/70 px-1 rounded">Delivery</span>
-              </div>
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-lg font-bold text-slate-900">Live Vehicle Map</h2>
+            </div>
+            <div className="border border-slate-300 bg-[#e8eedd] rounded overflow-hidden flex flex-col shadow-inner relative z-0" style={{ height: "350px" }}>
+              {(() => {
+                const pickups = bundle?.orders?.map(order => {
+                   const lat = order.sender_latitude || order.raw?.sender_latitude;
+                   const lng = order.sender_longitude || order.raw?.sender_longitude;
+                   if (lat && lng) return { type: "Pickup", coord: [lat, lng], id: order.order_id || order._id };
+                   return null;
+                }).filter(Boolean) || [];
 
-              <div className="absolute top-[45%] left-[45%] bg-slate-900 text-white p-1 rounded-md shadow-lg flex items-center justify-center border-2 border-white animate-pulse">
-                <Truck className="w-4 h-4" />
-              </div>
+                const destinations = bundle?.orders?.map(order => {
+                   const lat = order.receiver_latitude || order.raw?.receiver_latitude;
+                   const lng = order.receiver_longitude || order.raw?.receiver_longitude;
+                   if (lat && lng) return { type: "Drop-off", coord: [lat, lng], id: order.order_id || order._id };
+                   return null;
+                }).filter(Boolean) || [];
+                
+                const uniquePoints = [];
+                [...pickups, ...destinations].forEach(pt => {
+                   if (!uniquePoints.some(u => u.coord[0] === pt.coord[0] && u.coord[1] === pt.coord[1])) {
+                     uniquePoints.push(pt);
+                   }
+                });
+
+                return (
+                  <LiveTrackingMap 
+                    dpLocation={dpLocation} 
+                    waypoints={uniquePoints} 
+                    height="100%" 
+                  />
+                );
+              })()}
             </div>
           </div>
 
-          <div className="border border-orange-400 bg-white p-4 rounded shadow-sm relative overflow-hidden">
+          {/* <div className="border border-orange-400 bg-white p-4 rounded shadow-sm relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-orange-400" />
-            <h3 className="font-bold text-orange-600 mb-1">Admin Manual Override</h3>
+            <h3 className="font-bold text-orange-600 mb-1">
+              Admin Manual Override
+            </h3>
             <p className="text-sm text-slate-600">
-              Mark a parcel delivered if receiver OTP cannot be verified (DP calls Admin; logged).
+              Mark a parcel delivered if receiver OTP cannot be verified (DP
+              calls Admin; logged).
             </p>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

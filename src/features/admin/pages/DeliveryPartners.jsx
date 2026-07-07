@@ -14,6 +14,7 @@ import Button from "../../../components/common/Button";
 import Modal from "../../../components/common/Modal";
 import Input from "../../../components/common/Input";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
+import BulkUploadDpModal from "../components/BulkUploadDpModal";
 import { Plus, Search, Eye, Edit2, Trash2, FolderUp } from "lucide-react";
 import { VEHICLE_TYPES } from "../../../constants";
 import toast from 'react-hot-toast';
@@ -65,6 +66,7 @@ export const DeliveryPartners = () => {
 
   // Add/Edit Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState(null); // null for add, partner object for edit
   const [isSubmit, setIsSubmit] = useState(false);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
@@ -712,14 +714,24 @@ export const DeliveryPartners = () => {
             Manage delivery boys and verify operational documents
           </p>
         </div>
-        <Button
-          onClick={handleOpenAddModal}
-          icon={Plus}
-          variant="primary"
-          size="sm"
-        >
-          Add Delivery Partner
-        </Button>
+        <div className="flex space-x-3">
+          <Button
+            onClick={() => setIsBulkModalOpen(true)}
+            icon={FolderUp}
+            variant="outline"
+            size="sm"
+          >
+            Bulk Upload DPs
+          </Button>
+          <Button
+            onClick={handleOpenAddModal}
+            icon={Plus}
+            variant="primary"
+            size="sm"
+          >
+            Add Delivery Partner
+          </Button>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -2076,6 +2088,15 @@ export const DeliveryPartners = () => {
           isLoading={isDeleteLoading}
         />
       )}
+
+      <BulkUploadDpModal
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+        onSuccess={() => {
+          setIsBulkModalOpen(false);
+          fetchPartners();
+        }}
+      />
     </div>
   );
 };

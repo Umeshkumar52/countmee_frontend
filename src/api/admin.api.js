@@ -10,6 +10,7 @@ export const fetchPartners = (params = {}) => {
   return client.get("/admin/deliverypartner", { params });
 };
 export const createPartner = (data) => client.post("/admin/adddp", data);
+export const bulkAddPartner = (data) => client.post("/admin/bulk-adddp", data);
 export const updatePartner = (id, data) =>
   client.put(`/admin/editdp/${id}`, data);
 export const deletePartner = (id) => client.delete(`/admin/delete_dp/${id}`);
@@ -133,6 +134,10 @@ export const updateVehicleConfiguration = (id, data) =>
   client.put(`/admin/vehicle_subcategories/${id}`, data);
 export const deleteVehicleConfiguration = (id) =>
   client.delete(`/admin/vehicle_subcategories/${id}`);
+
+// Refunds
+export const processManualRefund = (data) => 
+  client.post("/admin/refund-order", data);
 // Bundles and Nearest DP
 export const fetchNearestDps = (orderIds) =>
   client.post("/admin/orders/nearest-dps", { orderIds });
