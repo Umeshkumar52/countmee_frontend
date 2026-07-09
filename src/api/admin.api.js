@@ -138,6 +138,11 @@ export const deleteVehicleConfiguration = (id) =>
 // Refunds
 export const processManualRefund = (data) => 
   client.post("/admin/refund-order", data);
+
+// Manual Broadcast
+export const broadcastOrderManual = (orderId) =>
+  client.post(`/admin/orders/${orderId}/broadcast`);
+
 // Bundles and Nearest DP
 export const fetchNearestDps = (orderIds) =>
   client.post("/admin/orders/nearest-dps", { orderIds });

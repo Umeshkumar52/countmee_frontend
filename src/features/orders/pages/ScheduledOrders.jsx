@@ -7,7 +7,7 @@ import {
   Search,
   ChevronDown,
   Filter,
-  Radio
+  Radio,
 } from "lucide-react";
 import {
   fetchPaginatedOrders,
@@ -20,6 +20,7 @@ import Table from "../../../components/common/Table";
 import Badge from "../../../components/common/Badge";
 import Button from "../../../components/common/Button";
 import Input from "../../../components/common/Input";
+import Pagination from "../../../components/common/Pagination";
 import AssignOrderModal from "../components/AssignOrderModal";
 
 const getStatusVariant = (status) => {
@@ -28,7 +29,8 @@ const getStatusVariant = (status) => {
   if (["confirmed", "processing", "packed"].includes(s)) return "info";
   if (["shipped", "out_for_delivery"].includes(s)) return "primary";
   if (s === "delivered") return "success";
-  if (["cancelled", "returned", "refunded", "failed"].includes(s)) return "danger";
+  if (["cancelled", "returned", "refunded", "failed"].includes(s))
+    return "danger";
   return "slate";
 };
 
@@ -283,9 +285,7 @@ export const ScheduledOrders = () => {
           <div className="text-rose-700 font-bold text-sm flex items-center gap-1">
             <Radio className="w-4 h-4" /> Broadcast Orders
           </div>
-          <div className="text-slate-500 text-[10px] mb-1">
-            Active Bundles
-          </div>
+          <div className="text-slate-500 text-[10px] mb-1">Active Bundles</div>
           <div className="text-2xl font-black text-slate-900 mb-1">
             {activeBundlesCount}
           </div>
@@ -352,7 +352,9 @@ export const ScheduledOrders = () => {
           size="sm"
           disabled={selectedOrders.length === 0}
           onClick={() => {
-            navigate("/admin/scheduled-orders/recommend-dp", { state: { orderIds: selectedOrders } });
+            navigate("/admin/scheduled-orders/recommend-dp", {
+              state: { orderIds: selectedOrders },
+            });
           }}
           className="ml-auto"
         >
@@ -378,7 +380,7 @@ export const ScheduledOrders = () => {
               />
             </td>
             <td className="px-5 py-4 text-sm font-medium whitespace-nowrap text-brand-purple">
-              #{order.order_number?.substring(0, 8)}
+              {order.orderNumber}
             </td>
             <td className="px-5 py-4 text-sm whitespace-nowrap text-slate-600">
               <div className="font-medium text-slate-900">
@@ -419,7 +421,9 @@ export const ScheduledOrders = () => {
               ₹{order.amount}
             </td>
             <td className="px-5 py-4 whitespace-nowrap">
-              <Badge variant={getStatusVariant(order?.status)}>{order?.status}</Badge>
+              <Badge variant={getStatusVariant(order?.status)}>
+                {order?.status}
+              </Badge>
             </td>
             <td className="px-5 py-4 text-xs whitespace-nowrap">
               <div className="flex items-center gap-2">
@@ -446,36 +450,14 @@ export const ScheduledOrders = () => {
       />
 
       {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between py-4 border-t border-slate-100">
-          <p className="text-xs text-slate-500">
-            Showing page{" "}
-            <span className="font-bold text-slate-700">{currentPage}</span> of{" "}
-            <span className="font-bold text-slate-700">{totalPages}</span>
-            <span className="ml-1 opacity-70">
-              ({totalOrders} total orders)
-            </span>
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1 || isLoading}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages || isLoading}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalOrders}
+        onPageChange={setCurrentPage}
+        isLoading={isLoading}
+        itemName="orders"
+      />
 
       {/* Assign Delivery Boy Modal */}
       {assignOrderId && (

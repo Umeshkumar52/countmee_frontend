@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchPartners, assignDeliveryBoy } from '../../../api/admin.api';
+import { fetchNearestDps, assignDeliveryBoy } from '../../../api/admin.api';
 import Modal from '../../../components/common/Modal';
 import Button from '../../../components/common/Button';
 import toast from 'react-hot-toast';
@@ -15,12 +15,9 @@ export const AssignOrderModal = ({ isOpen, onClose, orderId, onAssignSuccess }) 
     const fetchActivePartners = async () => {
       setIsLoading(true);
       try {
-        const response = await fetchPartners();
-        // The backend wraps response in ApiResponse: { success: true, data: { dpList: [...] } }
-        const dpList = response.data?.data?.dpList || response.data?.data || [];
-        
-        // Filter active or online partners
-        setPartners(dpList.filter(d => d.status === 'active' || d.online === true || d.online === 1));
+        const response = await fetchNearestDps([orderId]);
+        const dpList = response.data?.data || [];
+        setPartners(dpList);
       } catch (e) {
         console.error('Failed to load partners', e);
       } finally {
@@ -72,8 +69,8 @@ export const AssignOrderModal = ({ isOpen, onClose, orderId, onAssignSuccess }) 
             >
               <option value="">-- Choose Partner --</option>
               {partners.map((dp) => (
-                <option key={dp.id} value={dp.user?._id || dp.user_id?._id || dp._id}>
-                  {dp.user?.name || dp.user_id?.name || dp.name} ({dp.vehicle_type || dp.vehicle || "Bike"}) - Rating: ⭐{dp.rating || 0} - Active Orders: {dp.active_orders || 0}
+                <option key={dp.user_id || dp.id || dp._id} value={dp.user_id || dp.user?._id || dp.user_id?._id || dp._id}>
+                  {dp.name || dp.user?.name || dp.user_id?.name} ({dp.vehicle_type || dp.vehicle || "Bike"}) - Rating: ⭐{dp.rating || 0} - Active Orders: {dp.active_orders || 0}
                 </option>
               ))}
             </select>

@@ -5,6 +5,7 @@ import Table from '../../../components/common/Table';
 import Badge from '../../../components/common/Badge';
 import Button from '../../../components/common/Button';
 import Input from '../../../components/common/Input';
+import Pagination from '../../../components/common/Pagination';
 import toast from 'react-hot-toast';
 
 export const Reports = () => {
@@ -19,6 +20,10 @@ export const Reports = () => {
   const [reportData, setReportData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searched, setSearched] = useState(true); // always true now since it auto-fetches
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const handleFetchReport = useCallback(async () => {
     if (!startDate || !endDate) {
@@ -35,6 +40,7 @@ export const Reports = () => {
       });
       const data = response.data.data || response.data;
       setReportData(Array.isArray(data) ? data : []);
+      setCurrentPage(1); // Reset page on new fetch
     } catch (e) {
       console.error('Failed to generate report', e);
       toast.error('Failed to load report data');
@@ -123,6 +129,10 @@ export const Reports = () => {
     return [];
   };
 
+  const totalItems = reportData.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const paginatedData = reportData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <div className="space-y-6 text-left page-transition">
       <div>
@@ -183,13 +193,13 @@ export const Reports = () => {
         <div className="space-y-4">
           <div className="flex justify-between items-center pl-1">
             <span className="text-xs font-bold text-slate-500">
-              Found {reportData.length} records matching criteria
+              Found {totalItems} records matching criteria
             </span>
           </div>
 
           <Table
             headers={getTableHeaders()}
-            data={reportData}
+            data={paginatedData}
             isLoading={isLoading}
             emptyMessage={`No ${reportType} logs recorded during the selected date range.`}
             renderRow={(item) => {
@@ -275,6 +285,15 @@ export const Reports = () => {
               }
               return null;
             }}
+          />
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            onPageChange={setCurrentPage}
+            isLoading={isLoading}
+            itemName={`${reportType} logs`}
           />
         </div>
       )}

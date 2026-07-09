@@ -5,7 +5,7 @@ import { fetchPaginatedOrders } from "../../../api/orders.api";
 import Table from "../../../components/common/Table";
 import Badge from "../../../components/common/Badge";
 import Button from "../../../components/common/Button";
-import AssignOrderModal from "../components/AssignOrderModal";
+import Pagination from "../../../components/common/Pagination";
 
 export const OrderList = () => {
   const [orders, setOrders] = useState([]);
@@ -17,9 +17,6 @@ export const OrderList = () => {
   const [totalOrders, setTotalOrders] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
-
-  // Assignment states
-  const [assignOrderId, setAssignOrderId] = useState(null);
 
   const loadPaginatedOrders = async (tab, page, search = "") => {
     setIsLoading(true);
@@ -79,6 +76,7 @@ export const OrderList = () => {
   ];
 
   const headers = [
+    // "Order Id",
     "Order Id",
     "Date",
     "Sender Details",
@@ -149,7 +147,7 @@ export const OrderList = () => {
         renderRow={(order) => (
           <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
             <td className="px-5 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">
-              {order.order_number}
+              {order.orderNumber}
             </td>
             <td className="px-5 py-4 text-xs text-slate-500 whitespace-nowrap">
               {order.created_at}
@@ -196,17 +194,6 @@ export const OrderList = () => {
                 >
                   <Eye className="w-3 h-3" /> View details
                 </Button>
-                {(order?.status === "pending" ||
-                  order?.status === "created") && (
-                  <Button
-                    onClick={() => setAssignOrderId(order.id)}
-                    variant="primary"
-                    size="sm"
-                    className="py-1 px-2.5 text-[10px] flex items-center gap-1"
-                  >
-                    <Truck className="w-3 h-3" /> Assign Partner
-                  </Button>
-                )}
               </div>
             </td>
           </tr>
@@ -214,46 +201,14 @@ export const OrderList = () => {
       />
 
       {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between py-4 border-t border-slate-100">
-          <p className="text-xs text-slate-500">
-            Showing page{" "}
-            <span className="font-bold text-slate-700">{currentPage}</span> of{" "}
-            <span className="font-bold text-slate-700">{totalPages}</span>
-            <span className="ml-1 opacity-70">
-              ({totalOrders} total orders)
-            </span>
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1 || isLoading}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages || isLoading}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Assign Delivery Boy Modal */}
-      {assignOrderId && (
-        <AssignOrderModal
-          isOpen={!!assignOrderId}
-          onClose={() => setAssignOrderId(null)}
-          orderId={assignOrderId}
-          onAssignSuccess={() => loadPaginatedOrders(activeTab, currentPage)}
-        />
-      )}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalOrders}
+        onPageChange={setCurrentPage}
+        isLoading={isLoading}
+        itemName="orders"
+      />
     </div>
   );
 };

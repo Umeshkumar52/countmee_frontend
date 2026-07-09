@@ -162,10 +162,12 @@ export const AdminLayout = () => {
                         ) : (
                           notifications.map((notif) => (
                             <div
-                              key={notif.id}
-                              onClick={() => handleReadNotif(notif.id)}
-                              className={`p-3 text-left hover:bg-slate-50 transition-colors cursor-pointer ${
-                                notif.read_at === null ? "bg-indigo-50/30" : ""
+                              key={notif._id || notif.id}
+                              onClick={() =>
+                                handleReadNotif(notif._id || notif.id)
+                              }
+                              className={`p-3 text-left my-2  transition-colors cursor-pointer ${
+                                notif.read_at === null ? "bg-green-50" : ""
                               }`}
                             >
                               <h5 className="font-semibold text-xs text-slate-800">
@@ -175,9 +177,13 @@ export const AdminLayout = () => {
                                 {notif.message}
                               </p>
                               <span className="text-[9px] text-slate-400 block mt-1">
-                                {new Date(
-                                  notif.created_at,
-                                ).toLocaleTimeString()}
+                                {new Date(notif.created_at).toLocaleString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: 'numeric',
+                                  minute: '2-digit',
+                                  hour12: true
+                                })}
                               </span>
                             </div>
                           ))

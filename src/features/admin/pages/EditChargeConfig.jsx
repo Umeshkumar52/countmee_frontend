@@ -4,7 +4,7 @@ import { fetchCharges, updateVehicleCharges } from "../../../api/admin.api";
 import { VEHICLE_TYPES } from "../../../constants";
 import Input from "../../../components/common/Input";
 import Button from "../../../components/common/Button";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 const EditChargeConfig = () => {
   const navigate = useNavigate();
@@ -33,12 +33,15 @@ const EditChargeConfig = () => {
     dimensionUnit: "cm",
   });
 
-  const vehicleNameMap = useMemo(() => ({
-    1: VEHICLE_TYPES.BY_HAND,
-    2: VEHICLE_TYPES.TWO_WHEELER,
-    3: VEHICLE_TYPES.THREE_WHEELER,
-    4: VEHICLE_TYPES.FOUR_WHEELER,
-  }), []);
+  const vehicleNameMap = useMemo(
+    () => ({
+      1: VEHICLE_TYPES.BY_HAND,
+      2: VEHICLE_TYPES.TWO_WHEELER,
+      3: VEHICLE_TYPES.THREE_WHEELER,
+      4: VEHICLE_TYPES.FOUR_WHEELER,
+    }),
+    [],
+  );
 
   const loadCharges = async () => {
     setIsLoading(true);
@@ -68,7 +71,7 @@ const EditChargeConfig = () => {
           vc.vehicle_type === vehicleType ||
           vc.vehicle_type === mappedName ||
           vc.id === vehicleType ||
-          vc.id === parseInt(vehicleType)
+          vc.id === parseInt(vehicleType),
       );
 
       if (target) {
@@ -76,11 +79,20 @@ const EditChargeConfig = () => {
           baseDistance: target.base_distance || "",
           basePrice: target.base_price || "",
           perKmPrice: target.per_km_price || "",
-          extraMinCharge: target.extra_min_charge !== undefined ? target.extra_min_charge : "",
-          gracePeriod: target.grace_period !== undefined ? target.grace_period : "",
-          pickupGeofenceRadius: target.pickup_geofence_radius !== undefined ? target.pickup_geofence_radius : "",
-          dpComm: target.dp_commission !== undefined ? target.dp_commission : "",
-          pdcComm: target.pdc_commission !== undefined ? target.pdc_commission : "",
+          extraMinCharge:
+            target.extra_min_charge !== undefined
+              ? target.extra_min_charge
+              : "",
+          gracePeriod:
+            target.grace_period !== undefined ? target.grace_period : "",
+          pickupGeofenceRadius:
+            target.pickup_geofence_radius !== undefined
+              ? target.pickup_geofence_radius
+              : "",
+          dpComm:
+            target.dp_commission !== undefined ? target.dp_commission : "",
+          pdcComm:
+            target.pdc_commission !== undefined ? target.pdc_commission : "",
           maxWeight: target.max_weight || "",
           maxHeight: target.max_height || "",
           maxWidth: target.max_width || "",
@@ -151,15 +163,15 @@ const EditChargeConfig = () => {
   };
 
   return (
-    <div className="space-y-6 text-left page-transition">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 flex flex-col items-center page-transition">
+      <div className="w-full flex  justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">
             Edit Vehicle Configuration
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Configure partner commissions, package delivery fees, and per-vehicle
-            rates.
+            Configure partner commissions, package delivery fees, and
+            per-vehicle rates.
           </p>
         </div>
         <Button
@@ -171,9 +183,13 @@ const EditChargeConfig = () => {
         </Button>
       </div>
 
-      <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs space-y-5 max-w-4xl">
-        <form onSubmit={handleSaveVehicleCharges} className="space-y-5">
-          {isLoading && <p className="text-xs text-brand-purple animate-pulse">Loading active configuration...</p>}
+      <div className="w-full bg-white border border-slate-100 p-5 rounded-2xl shadow-xs space-y-5 max-w-4xl">
+        <form onSubmit={handleSaveVehicleCharges} className=" space-y-5">
+          {isLoading && (
+            <p className="text-xs text-brand-purple animate-pulse">
+              Loading active configuration...
+            </p>
+          )}
 
           <div className="flex flex-col group max-w-sm">
             <label className="text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide group-focus-within:text-brand-purple transition-colors">
@@ -364,13 +380,13 @@ const EditChargeConfig = () => {
             </div>
           </div>
 
-          <div className="pt-2 max-w-xs">
+          <div className="w-full pt-2  max-w-xs">
             <Button
               type="submit"
               isLoading={isUpdatingVehicle}
               variant="primary"
               size="sm"
-              className="w-full py-2.5"
+              className="px-8 py-2.5"
             >
               Save Configuration
             </Button>

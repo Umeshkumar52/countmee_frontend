@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { ROLES } from '../../../constants';
-import { fetchRatings } from '../../../api/admin.api';
-import Table from '../../../components/common/Table';
-import Badge from '../../../components/common/Badge';
-import Button from '../../../components/common/Button';
+import React, { useEffect, useState } from "react";
+import { ROLES } from "../../../constants";
+import { fetchRatings } from "../../../api/admin.api";
+import Table from "../../../components/common/Table";
+import Badge from "../../../components/common/Badge";
+import Button from "../../../components/common/Button";
+import Pagination from "../../../components/common/Pagination";
 
 export const FeedbackRatings = () => {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -21,33 +22,33 @@ export const FeedbackRatings = () => {
         // The backend returns: { ratings, total, page, totalPages } wrapped in success structure
         const resData = response.data.data || response.data;
         const rawList = resData.ratings || [];
-        
-        const formatted = rawList.map(r => {
-          let name = 'System';
+
+        const formatted = rawList.map((r) => {
+          let name = "System";
           let role = activeTab; // We know it belongs to the active tab
-          
+
           if (r.from_customer && activeTab === ROLES.USER) {
-            name = r.from_customer.name || 'Customer';
+            name = r.from_customer.name || "Customer";
           } else if (r.from_dp && activeTab === ROLES.DP) {
-            name = r.from_dp.name || 'Delivery Partner';
+            name = r.from_dp.name || "Delivery Partner";
           } else if (r.from_pdc && activeTab === ROLES.PDC) {
-            name = r.from_pdc.name || 'PDC Hub';
+            name = r.from_pdc.name || "PDC Hub";
           }
-          
+
           return {
             id: r._id,
             user_name: name,
             role: role,
             rating: r.stars || 5,
-            comment: r.message || ''
+            comment: r.message || "",
           };
         });
-        
+
         setFeedbacks(formatted);
         setTotalPages(resData.totalPages || 1);
         setTotalFeedbacks(resData.total || 0);
       } catch (e) {
-        console.error('Failed to load feedbacks', e);
+        console.error("Failed to load feedbacks", e);
       } finally {
         setIsLoading(false);
       }
@@ -58,24 +59,36 @@ export const FeedbackRatings = () => {
   const renderStars = (score) => {
     return (
       <span className="text-amber-500 font-bold tracking-wider">
-        {'★'.repeat(score)}{'☆'.repeat(5 - score)}
+        {"★".repeat(score)}
+        {"☆".repeat(5 - score)}
       </span>
     );
   };
 
-  const headers = ['Feedback ID', 'Submitted By', 'User Role', 'Rating Score', 'Comments'];
+  const headers = [
+    "Feedback ID",
+    "Submitted By",
+    "User Role",
+    "Rating Score",
+    "Comments",
+  ];
 
   const tabs = [
     { name: "Customer Ratings", value: ROLES.USER },
     { name: "DP Ratings", value: ROLES.DP },
-    { name: "PDC Ratings", value: ROLES.PDC }
+    { name: "PDC Ratings", value: ROLES.PDC },
   ];
 
   return (
     <div className="space-y-6 text-left page-transition">
       <div>
-        <h2 className="text-xl font-bold text-slate-800">Feedbacks & Ratings</h2>
-        <p className="text-xs text-slate-400 mt-1">Review score ratings and feedback remarks submitted by clients and partners</p>
+        <h2 className="text-xl font-bold text-slate-800">
+          Feedbacks & Ratings
+        </h2>
+        <p className="text-xs text-slate-400 mt-1">
+          Review score ratings and feedback remarks submitted by clients and
+          partners
+        </p>
       </div>
 
       <div className="flex flex-wrap gap-2 border-b border-slate-100 pb-2">
@@ -105,53 +118,33 @@ export const FeedbackRatings = () => {
         renderRow={(fb) => (
           <tr key={fb.id} className="hover:bg-slate-50/50 transition-colors">
             <td className="px-5 py-4 text-xs font-bold text-slate-400">
-              #FB-{fb.id}
+              FB-{fb?.id?.slice(0, 10)}
             </td>
             <td className="px-5 py-4 text-xs font-bold text-slate-800">
               {fb.user_name}
             </td>
             <td className="px-5 py-4 text-xs">
-              <Badge variant={fb.role === ROLES.USER ? 'info' : 'primary'}>
+              <Badge variant={fb.role === ROLES.USER ? "info" : "primary"}>
                 {fb.role}
               </Badge>
             </td>
-            <td className="px-5 py-4 text-sm">
-              {renderStars(fb.rating)}
-            </td>
+            <td className="px-5 py-4 text-sm">{renderStars(fb.rating)}</td>
             <td className="px-5 py-4 text-xs text-slate-600 font-medium italic">
-              "{fb.comment || 'No comments left.'}"
+              "{fb.comment || "No comments left."}"
             </td>
           </tr>
         )}
       />
 
       {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between py-4 border-t border-slate-100">
-          <p className="text-xs text-slate-500">
-            Showing page <span className="font-semibold text-slate-800">{currentPage}</span> of{" "}
-            <span className="font-semibold text-slate-800">{totalPages}</span> ({totalFeedbacks} total logs)
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1 || isLoading}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages || isLoading}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalFeedbacks}
+        onPageChange={setCurrentPage}
+        isLoading={isLoading}
+        itemName="logs"
+      />
     </div>
   );
 };

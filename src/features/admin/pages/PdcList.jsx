@@ -10,19 +10,28 @@ import Badge from "../../../components/common/Badge";
 import Button from "../../../components/common/Button";
 import { Eye, Search, Plus } from "lucide-react";
 import AddPdcModal from "../components/AddPdcModal";
+import Pagination from "../../../components/common/Pagination";
 
 export const PdcList = () => {
   const [pdcs, setPdcs] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalPdcs, setTotalPdcs] = useState(0);
+
   const navigate = useNavigate();
 
   const fetchPdcs = async (params = {}) => {
     setIsLoading(true);
     try {
-      const response = await apiFetchPdcs(params);
-      const rawList = response.data.pdcs || response.data.data?.pdcs || [];
+      const mergedParams = { page: currentPage, limit: 10, ...params };
+      const response = await apiFetchPdcs(mergedParams);
+      const dataPayload = response.data.data || response.data;
+      const rawList = dataPayload.pdcs || [];
       const formatted = rawList.map((p) => ({
         id: p.userDetails?._id || p._id,
         userDetails: p.userDetails,
@@ -35,6 +44,9 @@ export const PdcList = () => {
         bank_status: p.bank_status,
       }));
       setPdcs(formatted);
+      setCurrentPage(dataPayload.page || 1);
+      setTotalPages(dataPayload.totalPages || 1);
+      setTotalPdcs(dataPayload.total || 0);
     } catch (e) {
       console.error("Failed to load PDCs", e);
     } finally {
@@ -44,11 +56,17 @@ export const PdcList = () => {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      fetchPdcs({ search: searchQuery });
+      fetchPdcs({ search: searchQuery, page: 1 });
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
+
+  useEffect(() => {
+    if (!searchQuery) {
+      fetchPdcs({ page: currentPage });
+    }
+  }, [currentPage]);
 
   const handleActivate = async (id) => {
     try {
@@ -192,6 +210,18 @@ export const PdcList = () => {
             </td>
           </tr>
         )}
+      />
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalPdcs}
+        onPageChange={(page) => {
+          setCurrentPage(page);
+          fetchPdcs({ page, search: searchQuery });
+        }}
+        isLoading={isLoading}
+        itemName="PDCs"
       />
 
       <AddPdcModal

@@ -54,11 +54,12 @@ export const Dashboard = () => {
           customersCount: data.customersCount || 0,
           pdcsCount: data.pdcCount || 0,
           ordersCount: data.ordersCount || 0,
-          recentOrders: (data.rec_orders || []).map((o) => ({
+          recentOrders: (data.rec_orders || []).slice(0, 5).map((o) => ({
             id: o._id,
             order_number: o.order_id || o._id,
             customer_name: o.user_id?.name || o.sender_name || "N/A",
             pdc_name: o.pdc_id?.shop_name || "Direct",
+            date: o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "N/A",
             status: o.status,
           })),
         });
@@ -159,6 +160,7 @@ export const Dashboard = () => {
                   <th className="pb-2">Order</th>
                   <th className="pb-2">Customer</th>
                   <th className="pb-2">PDC Point</th>
+                  <th className="pb-2">Date</th>
                   <th className="pb-2 text-right">Status</th>
                 </tr>
               </thead>
@@ -171,7 +173,7 @@ export const Dashboard = () => {
                   </tr>
                 ) : stats.recentOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="py-4 text-center text-slate-400">
+                    <td colSpan={5} className="py-4 text-center text-slate-400">
                       No recent orders yet.
                     </td>
                   </tr>
@@ -188,6 +190,7 @@ export const Dashboard = () => {
                         {o.customer_name}
                       </td>
                       <td className="py-3 text-slate-600">{o.pdc_name}</td>
+                      <td className="py-3 text-slate-500 text-xs">{o.date}</td>
                       <td className="py-3 text-right">
                         <Badge
                           variant={

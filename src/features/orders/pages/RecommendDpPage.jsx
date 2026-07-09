@@ -88,15 +88,20 @@ export const RecommendDpPage = () => {
   // Filter DPs
   const filteredDps = dps.filter((dp) => {
     if (onlyAvailable && dp.status !== "Available") return false;
-    if (
-      locationFilter &&
-      !dp.location.toLowerCase().includes(locationFilter.toLowerCase())
-    )
+    
+    const loc = String(dp.location || "");
+    if (locationFilter && !loc.toLowerCase().includes(locationFilter.toLowerCase())) {
       return false;
+    }
+    
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
-      if (!dp.name.toLowerCase().includes(search) && !dp.phone.includes(search))
+      const nameStr = String(dp.name || "").toLowerCase();
+      const phoneStr = String(dp.phone || "").toLowerCase();
+      
+      if (!nameStr.includes(search) && !phoneStr.includes(search)) {
         return false;
+      }
     }
     return true;
   });

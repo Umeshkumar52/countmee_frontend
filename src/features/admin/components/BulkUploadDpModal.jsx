@@ -9,6 +9,7 @@ const BulkUploadDpModal = ({ isOpen, onClose, onSuccess }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState([]);
   const [generalError, setGeneralError] = useState("");
+  const [uploadProgress, setUploadProgress] = useState({ total: 0, current: 0 });
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
@@ -19,8 +20,8 @@ const BulkUploadDpModal = ({ isOpen, onClose, onSuccess }) => {
 
   const handleDownloadTemplate = () => {
     const headers = "Name,Phone,Email,DOB,Gender,Address,Vehicle Type,Vehicle Number,Aadhar Number,RC Number,DL Number,Bank Name,Bank Account Number,Bank IFSC,Reference 1 Name,Reference 1 Phone,Profile Image Filename,Aadhar Front Image Filename,Aadhar Back Image Filename,RC Front Image Filename,RC Back Image Filename,DL Front Image Filename,DL Back Image Filename,Bank Front Image Filename,Bank Back Image Filename,Residence Image Filename,Vehicle Image Filename\n";
-    const example1 = "John Doe,9876543210,john@example.com,1995-05-20,Male,123 Main St,Two Wheeler,KA01AB1234,123412341234,RC98765,DL123456,HDFC,123456789012,HDFC0001234,Bob,9998887776,john_profile.jpg,john_aadhar_front.jpg,john_aadhar_back.png,,,,,,,,,\n";
-    const example2 = "Jane Smith,9123456780,,,,,Four Wheeler,MH02XY9876,,,,,,,,,,,,,,,,,,,\n";
+    const example1 = "Raju Tester,9876543210,raju@test.com,1995-05-20,Male,123 Delivery Street,Two Wheeler,KA01AB1234,123412341234,RC987654,DL123456,HDFC,123456789012,HDFC0001234,Amit,9998887776,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg\n";
+    const example2 = "Vikram Driver,9123456780,vikram@test.com,1992-10-15,Male,456 Logistics Ave,Four Wheeler,MH02XY9876,987698769876,RC112233,DL998877,ICICI,987654321098,ICIC0009876,Rahul,9991112223,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg\n";
     
     const csvContent = "data:text/csv;charset=utf-8," + headers + example1 + example2;
     const encodedUri = encodeURI(csvContent);
@@ -41,7 +42,7 @@ const BulkUploadDpModal = ({ isOpen, onClose, onSuccess }) => {
           const workbook = XLSX.read(data, { type: "array" });
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
-          const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+          const json = XLSX.utils.sheet_to_json(worksheet, { defval: "", raw: false });
           resolve(json);
         } catch (err) {
           reject(err);
@@ -66,6 +67,11 @@ const BulkUploadDpModal = ({ isOpen, onClose, onSuccess }) => {
     }
 
     const imageFiles = files.filter(f => f !== excelFile);
+    
+    if (imageFiles.length === 0) {
+      setGeneralError("You only selected the CSV file! You must highlight both the CSV file AND the image files at the same time.");
+      return;
+    }
 
     setIsSubmitting(true);
     setErrors([]);
@@ -113,39 +119,70 @@ const BulkUploadDpModal = ({ isOpen, onClose, onSuccess }) => {
         vehicle_img: String(row["Vehicle Image Filename"] || row["Vehicle Image URL"] || row["Vehicle Image"] || row["vehicle_img"] || "").trim()
       }));
 
-      // Create FormData
-      const formData = new FormData();
-      formData.append("data", JSON.stringify(formattedData));
+      // Begin Chunked Upload Process
+      setUploadProgress({ total: formattedData.length, current: 0 });
+      let localErrors = [];
+      let successCount = 0;
 
-      // Append matched images
       const imageKeys = [
         "profile_img", "aadhar_imgfront", "aadhar_imgback", 
         "rc_imgfront", "rc_imgback", "dl_imgfront", "dl_imgback", 
         "bank_imagefront", "bank_imageback", "residence_img", "vehicle_img"
       ];
 
-      formattedData.forEach((dpRow, index) => {
-        imageKeys.forEach(key => {
-          if (dpRow[key]) {
-            const matchedFile = imageFiles.find(f => f.name === dpRow[key]);
-            if (matchedFile) {
-              formData.append(`row_${index}_${key}`, matchedFile);
-            }
-          }
-        });
-      });
+      for (let i = 0; i < formattedData.length; i++) {
+        const dpRow = formattedData[i];
+        
+        try {
+          const formData = new FormData();
+          // We send exactly one DP in the array. Its array index is 0.
+          formData.append("data", JSON.stringify([dpRow]));
 
-      // 2. Send FormData to backend
-      await bulkAddPartner(formData);
-      
-      onSuccess();
-    } catch (err) {
-      console.error(err);
-      if (err.response?.data?.errors) {
-        setErrors(err.response.data.errors);
-      } else {
-        setGeneralError(err.response?.data?.message || err.message || "An unexpected error occurred.");
+          imageKeys.forEach(key => {
+            if (dpRow[key]) {
+              const fileNameToMatch = dpRow[key].trim().toLowerCase();
+              const matchedFile = imageFiles.find(f => 
+                f.name.toLowerCase() === fileNameToMatch || 
+                f.name.toLowerCase() === `${fileNameToMatch}.jpg` || 
+                f.name.toLowerCase() === `${fileNameToMatch}.png`
+              );
+              
+              if (matchedFile) {
+                const uniqueFile = new File([matchedFile], matchedFile.name, { type: matchedFile.type });
+                // Append with index 0 because the backend dps array will only have length 1
+                formData.append(`row_0_${key}`, uniqueFile);
+              }
+            }
+          });
+
+          await bulkAddPartner(formData);
+          successCount++;
+        } catch (err) {
+          console.error(`Row ${dpRow.row} failed:`, err);
+          if (err.response?.data?.errors) {
+            localErrors.push(...err.response.data.errors);
+          } else {
+            localErrors.push({ row: dpRow.row, error: err.response?.data?.message || err.message || "Failed to upload" });
+          }
+        }
+        
+        // Update Progress
+        setUploadProgress(prev => ({ ...prev, current: prev.current + 1 }));
       }
+
+      setErrors(localErrors);
+
+      if (successCount > 0 && localErrors.length === 0) {
+        onSuccess();
+      } else if (successCount > 0 && localErrors.length > 0) {
+        setGeneralError(`Successfully uploaded ${successCount} DPs. ${localErrors.length} rows failed. See below.`);
+      } else if (successCount === 0) {
+        setGeneralError(`All rows failed to upload. See errors below.`);
+      }
+
+    } catch (err) {
+      console.error("Top level processing error:", err);
+      setGeneralError(err.message || "An unexpected error occurred during processing.");
     } finally {
       setIsSubmitting(false);
     }
@@ -185,6 +222,21 @@ const BulkUploadDpModal = ({ isOpen, onClose, onSuccess }) => {
           {files.length > 0 && (
             <div className="mt-2 text-xs font-semibold text-brand-purple">
               {files.length} file(s) selected
+            </div>
+          )}
+
+          {isSubmitting && uploadProgress.total > 0 && (
+            <div className="mt-4 bg-slate-50 p-4 rounded-lg border border-slate-100 shadow-inner">
+              <div className="flex justify-between text-xs font-bold text-slate-600 mb-2">
+                <span>Processing Uploads...</span>
+                <span className="text-brand-purple">{uploadProgress.current} / {uploadProgress.total}</span>
+              </div>
+              <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="bg-brand-purple h-2 rounded-full transition-all duration-300" 
+                  style={{ width: `${Math.round((uploadProgress.current / uploadProgress.total) * 100)}%` }} 
+                />
+              </div>
             </div>
           )}
         </div>

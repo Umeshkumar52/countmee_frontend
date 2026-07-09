@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Truck, Radio } from "lucide-react";
 import { fetchOrderDetails as apiFetchOrderDetails } from "../../../api/orders.api";
-import { processManualRefund } from "../../../api/admin.api";
+import {
+  processManualRefund,
+  broadcastOrderManual,
+} from "../../../api/admin.api";
 import Button from "../../../components/common/Button";
 import Badge from "../../../components/common/Badge";
 import Modal from "../../../components/common/Modal";
 import useAuth from "../../../hooks/useAuth";
 import { useSocket } from "../../../hooks/useSocket";
 import LiveTrackingMap from "../../../components/common/LiveTrackingMap";
+import AssignOrderModal from "../components/AssignOrderModal";
 
 export const OrderView = () => {
   const { id } = useParams();
@@ -16,6 +21,12 @@ export const OrderView = () => {
   const [order, setOrder] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [liveLocation, setLiveLocation] = useState(null);
+
+  // Assign Order Modal State
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+
+  // Broadcast State
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
 
   // Manual Refund Modal State
   const [showRefundModal, setShowRefundModal] = useState(false);
@@ -69,28 +80,49 @@ export const OrderView = () => {
     }
   };
 
+  const handleBroadcast = async () => {
+    if (!window.confirm("Broadcast this order to nearest Delivery Partners?"))
+      return;
+    setIsBroadcasting(true);
+    try {
+      await broadcastOrderManual(id);
+      alert("Broadcast sent successfully!");
+      // Refresh order details
+      const response = await apiFetchOrderDetails(id);
+      setOrder(response.data);
+    } catch (e) {
+      alert(e.response?.data?.message || "Failed to broadcast");
+    } finally {
+      setIsBroadcasting(false);
+    }
+  };
+
   const handleManualRefund = async (e) => {
     e.preventDefault();
     if (!refundAmount) return;
-    
+
     setIsRefunding(true);
     setRefundError("");
-    
+
     try {
       await processManualRefund({
         order_id: id,
         amount: Number(refundAmount),
-        reason: refundReason
+        reason: refundReason,
       });
       setShowRefundModal(false);
       setRefundAmount("");
       setRefundReason("");
-      
+
       // Refresh order details
       const response = await apiFetchOrderDetails(id);
       setOrder(response.data);
     } catch (err) {
-      setRefundError(err.response?.data?.message || err.message || "Failed to process refund");
+      setRefundError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to process refund",
+      );
     } finally {
       setIsRefunding(false);
     }
@@ -133,15 +165,15 @@ export const OrderView = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 text-left page-transition">
+    <div className="w-full mx-auto space-y-6 text-left page-transition">
       <div className="flex items-center gap-3">
         <Button onClick={handleBack} variant="outline" size="sm">
           ← Back
         </Button>
         <div>
-          <h2 className="text-xl font-bold text-slate-800">
-            Order: {order.order_number}
-          </h2>
+            <h2 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+              Order: {order.orderNumber}
+            </h2>
           <p className="text-xs text-slate-400 mt-0.5">
             Created on {order.created_at}
           </p>
@@ -356,9 +388,34 @@ export const OrderView = () => {
                 </div>
               </div>
             ) : (
-              <p className="text-xs text-slate-400 py-2">
-                No delivery boy assigned to this shipment yet.
-              </p>
+              <div className="py-2">
+                <p className="text-xs text-slate-400 mb-3">
+                  No delivery boy assigned to this shipment yet.
+                </p>
+                {(order.status === "pending" ||
+                  order.status === "confirmed") && (
+                  <div className="flex flex-col sm:flex-row gap-2 w-full">
+                    <Button
+                      onClick={() => setIsAssignModalOpen(true)}
+                      variant="primary"
+                      size="sm"
+                      className="flex-1 flex items-center justify-center gap-2 py-2"
+                    >
+                      <Truck className="w-4 h-4" /> Assign Partner
+                    </Button>
+                    <Button
+                      onClick={handleBroadcast}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 flex items-center justify-center gap-2 py-2 text-brand-purple border-brand-purple hover:bg-brand-purple hover:text-black"
+                      disabled={isBroadcasting}
+                    >
+                      <Radio className="w-4 h-4" />{" "}
+                      {isBroadcasting ? "Broadcasting..." : "Broadcast"}
+                    </Button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -382,24 +439,54 @@ export const OrderView = () => {
               {(() => {
                 const waypoints = [];
                 if (order.sender_latitude && order.sender_longitude) {
-                  waypoints.push({ type: "Pickup", coord: [order.sender_latitude, order.sender_longitude], id: order.order_number });
-                } else if (order.raw?.sender_latitude && order.raw?.sender_longitude) {
-                  waypoints.push({ type: "Pickup", coord: [order.raw.sender_latitude, order.raw.sender_longitude], id: order.order_number });
+                  waypoints.push({
+                    type: "Pickup",
+                    coord: [order.sender_latitude, order.sender_longitude],
+                    id: order.orderNumber,
+                  });
+                } else if (
+                  order.raw?.sender_latitude &&
+                  order.raw?.sender_longitude
+                ) {
+                  waypoints.push({
+                    type: "Pickup",
+                    coord: [
+                      order.raw.sender_latitude,
+                      order.raw.sender_longitude,
+                    ],
+                    id: order.orderNumber,
+                  });
                 }
 
                 if (order.receiver_latitude && order.receiver_longitude) {
-                  waypoints.push({ type: "Drop-off", coord: [order.receiver_latitude, order.receiver_longitude], id: order.order_number });
-                } else if (order.raw?.receiver_latitude && order.raw?.receiver_longitude) {
-                  waypoints.push({ type: "Drop-off", coord: [order.raw.receiver_latitude, order.raw.receiver_longitude], id: order.order_number });
+                  waypoints.push({
+                    type: "Drop-off",
+                    coord: [order.receiver_latitude, order.receiver_longitude],
+                    id: order.orderNumber,
+                  });
+                } else if (
+                  order.raw?.receiver_latitude &&
+                  order.raw?.receiver_longitude
+                ) {
+                  waypoints.push({
+                    type: "Drop-off",
+                    coord: [
+                      order.raw.receiver_latitude,
+                      order.raw.receiver_longitude,
+                    ],
+                    id: order.orderNumber,
+                  });
                 }
 
-                const dpLocArray = liveLocation ? [liveLocation.lat, liveLocation.lng] : null;
+                const dpLocArray = liveLocation
+                  ? [liveLocation.lat, liveLocation.lng]
+                  : null;
 
                 return (
-                  <LiveTrackingMap 
-                    dpLocation={dpLocArray} 
-                    waypoints={waypoints} 
-                    height="100%" 
+                  <LiveTrackingMap
+                    dpLocation={dpLocArray}
+                    waypoints={waypoints}
+                    height="100%"
                   />
                 );
               })()}
@@ -420,28 +507,41 @@ export const OrderView = () => {
               </div>
               <div className="flex justify-between">
                 <span>Payment Status:</span>
-                <span className="capitalize font-semibold text-slate-700">
-                  {order.payment_status}
+                <span className="capitalize bg-green-300 rounded-lg p-1 font-semibold text-slate-700">
+                  {order?.payment_history?.transaction_type === "refund"
+                    ? "REFUNDED"
+                    : order.payment_status}
                 </span>
               </div>
+              <div className="flex justify-between mt-2">
+                <span>Payment Method:</span>
+                <span className="capitalize font-semibold text-slate-700">
+                  {order.payment_method || "N/A"}
+                </span>
+              </div>
+
               <div className="flex justify-between border-t border-slate-50 pt-2.5 font-bold text-sm">
                 <span>Total Amount:</span>
-                <span className="text-brand-purple">₹ {order.amount}</span>
+                <span className="text-brand-purple">
+                  ₹ {order?.payment_history?.amount || order.amount}
+                </span>
               </div>
-              
+
               {/* Admin Manual Refund Button */}
-              {isAdmin && (
-                <div className="pt-4 border-t border-slate-100 mt-4">
-                  <Button 
-                    onClick={() => setShowRefundModal(true)} 
-                    variant="danger" 
-                    size="sm" 
-                    className="w-full"
-                  >
-                    Process Manual Refund
-                  </Button>
-                </div>
-              )}
+              {isAdmin &&
+                order?.payment_history?.transaction_type !== "refund" &&
+                order.status === "cancelled" && (
+                  <div className="pt-4 border-t border-slate-100 mt-4">
+                    <Button
+                      onClick={() => setShowRefundModal(true)}
+                      variant="danger"
+                      size="sm"
+                      className="w-full"
+                    >
+                      Process Manual Refund
+                    </Button>
+                  </div>
+                )}
             </div>
           </div>
         </div>
@@ -457,7 +557,8 @@ export const OrderView = () => {
         title="Process Manual Refund"
       >
         <p className="text-sm text-slate-500 mb-6 mt-[-10px]">
-          Issue a custom refund amount directly to the customer. This action is irreversible.
+          Issue a custom refund amount directly to the customer. This action is
+          irreversible.
         </p>
 
         <form onSubmit={handleManualRefund} className="space-y-4">
@@ -466,7 +567,7 @@ export const OrderView = () => {
               {refundError}
             </div>
           )}
-          
+
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Refund Amount (₹) <span className="text-red-500">*</span>
@@ -498,9 +599,9 @@ export const OrderView = () => {
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               className="flex-1"
               onClick={() => {
                 setShowRefundModal(false);
@@ -510,9 +611,9 @@ export const OrderView = () => {
             >
               Cancel
             </Button>
-            <Button 
-              type="submit" 
-              variant="danger" 
+            <Button
+              type="submit"
+              variant="danger"
               className="flex-1"
               disabled={isRefunding || !refundAmount}
             >
@@ -521,6 +622,24 @@ export const OrderView = () => {
           </div>
         </form>
       </Modal>
+
+      {/* Assign Partner Modal */}
+      {isAssignModalOpen && (
+        <AssignOrderModal
+          isOpen={isAssignModalOpen}
+          onClose={() => setIsAssignModalOpen(false)}
+          orderId={id}
+          onAssignSuccess={async () => {
+            setIsAssignModalOpen(false);
+            try {
+              const response = await apiFetchOrderDetails(id);
+              setOrder(response.data);
+            } catch (error) {
+              console.error("Failed to refresh order:", error);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

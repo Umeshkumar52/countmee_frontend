@@ -276,9 +276,13 @@ export const PdcLayout = () => {
                                   {notif.message}
                                 </p>
                                 <span className="text-[9px] text-slate-400 block mt-1">
-                                  {new Date(
-                                    notif.created_at,
-                                  ).toLocaleTimeString()}
+                                  {new Date(notif.created_at).toLocaleString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true
+                                  })}
                                 </span>
                               </div>
                               {notif.read_at === null && (

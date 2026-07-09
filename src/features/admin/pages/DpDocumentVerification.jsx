@@ -8,7 +8,14 @@ import Button from "../../../components/common/Button";
 import Badge from "../../../components/common/Badge";
 import Input from "../../../components/common/Input";
 import Modal from "../../../components/common/Modal";
-import { CheckCircle, XCircle, Eye, ChevronLeft, FileText, Download } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Eye,
+  ChevronLeft,
+  FileText,
+  Download,
+} from "lucide-react";
 
 export const DpDocumentVerification = () => {
   const { id } = useParams();
@@ -60,25 +67,26 @@ export const DpDocumentVerification = () => {
   };
 
   const handleDownloadDocument = (docs) => {
-    docs.forEach(doc => {
+    docs.forEach((doc) => {
       const path = doc.img || doc.path;
       if (path) {
         const url = getImageUrl(path);
         fetch(url)
-          .then(response => response.blob())
-          .then(blob => {
+          .then((response) => response.blob())
+          .then((blob) => {
             const blobUrl = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
+            const a = document.createElement("a");
+            a.style.display = "none";
             a.href = blobUrl;
-            const filename = path.split('/').pop() || `document-${doc.label}.jpg`;
+            const filename =
+              path.split("/").pop() || `document-${doc.label}.jpg`;
             a.download = filename;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(blobUrl);
             document.body.removeChild(a);
           })
-          .catch(err => console.error("Download failed", err));
+          .catch((err) => console.error("Download failed", err));
       }
     });
   };
@@ -95,8 +103,8 @@ export const DpDocumentVerification = () => {
       { label: "Bank Front", img: dpDocument.bank_imagefront },
       { label: "Bank Back", img: dpDocument.bank_imageback },
       { label: "Residence", img: dpDocument.residence_img },
-      { label: "Vehicle", img: dpDocument.vehicle_img }
-    ].filter(doc => doc.img);
+      { label: "Vehicle", img: dpDocument.vehicle_img },
+    ].filter((doc) => doc.img);
     handleDownloadDocument(allDocs);
   };
 
@@ -105,7 +113,8 @@ export const DpDocumentVerification = () => {
     try {
       const response = await apiFetchDpDetails(id);
       const detail = response.data.data?.dpDetail || response.data.dpDetail;
-      const document = response.data.data?.dpDocument || response.data.dpDocument;
+      const document =
+        response.data.data?.dpDocument || response.data.dpDocument;
       setDpDetail(detail);
       setDpDocument(document);
     } catch (e) {
@@ -139,7 +148,15 @@ export const DpDocumentVerification = () => {
     }
   };
 
-  const renderDocumentSection = (title, type, docs, statusField, rejectReasonField, docNumberLabel, docNumber) => {
+  const renderDocumentSection = (
+    title,
+    type,
+    docs,
+    statusField,
+    rejectReasonField,
+    docNumberLabel,
+    docNumber,
+  ) => {
     if (!dpDocument) return null;
 
     const status = dpDocument[statusField];
@@ -155,13 +172,12 @@ export const DpDocumentVerification = () => {
             </h3>
             {docNumber && (
               <p className="text-xs text-slate-500 mt-1">
-                <span className="font-semibold">{docNumberLabel}:</span> {docNumber}
+                <span className="font-semibold">{docNumberLabel}:</span>{" "}
+                {docNumber}
               </p>
             )}
           </div>
-          <div>
-            {/* Badge removed as button text now reflects status */}
-          </div>
+          <div>{/* Badge removed as button text now reflects status */}</div>
         </div>
 
         {status === "Reject" && rejectReason && (
@@ -172,11 +188,16 @@ export const DpDocumentVerification = () => {
 
         <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
           <Button
-            onClick={() => handleViewDocument(title, docs.map(d => d.img))}
+            onClick={() =>
+              handleViewDocument(
+                title,
+                docs.map((d) => d.img),
+              )
+            }
             variant="outline"
             size="sm"
             icon={Eye}
-            disabled={docs.every(d => !d.img)}
+            disabled={docs.every((d) => !d.img)}
             className="text-xs py-1 h-8"
           >
             View Uploads
@@ -187,7 +208,7 @@ export const DpDocumentVerification = () => {
             variant="outline"
             size="sm"
             icon={Download}
-            disabled={docs.every(d => !d.img)}
+            disabled={docs.every((d) => !d.img)}
             className="text-xs py-1 h-8"
           >
             Download
@@ -205,7 +226,9 @@ export const DpDocumentVerification = () => {
           </Button>
 
           <Button
-            onClick={() => setShowRejectForm((prev) => ({ ...prev, [type]: !prev[type] }))}
+            onClick={() =>
+              setShowRejectForm((prev) => ({ ...prev, [type]: !prev[type] }))
+            }
             variant="danger"
             size="sm"
             icon={XCircle}
@@ -234,7 +257,9 @@ export const DpDocumentVerification = () => {
                 variant="outline"
                 size="sm"
                 className="py-1 h-8"
-                onClick={() => setShowRejectForm((prev) => ({ ...prev, [type]: false }))}
+                onClick={() =>
+                  setShowRejectForm((prev) => ({ ...prev, [type]: false }))
+                }
               >
                 Cancel
               </Button>
@@ -243,7 +268,9 @@ export const DpDocumentVerification = () => {
                 size="sm"
                 className="py-1 h-8"
                 disabled={!rejectionReasons[type]}
-                onClick={() => handleDocumentAction(type, "Reject", rejectionReasons[type])}
+                onClick={() =>
+                  handleDocumentAction(type, "Reject", rejectionReasons[type])
+                }
               >
                 Confirm Rejection
               </Button>
@@ -255,14 +282,22 @@ export const DpDocumentVerification = () => {
   };
 
   if (isLoading) {
-    return <div className="text-center py-12 text-slate-400">Loading DP details...</div>;
+    return (
+      <div className="text-center py-12 text-slate-400">
+        Loading DP details...
+      </div>
+    );
   }
 
   if (!dpDetail) {
     return (
       <div className="text-center py-12 text-slate-400">
         <p>Delivery Partner not found.</p>
-        <Button onClick={() => navigate("/admin/delivery-partners")} size="sm" className="mt-4">
+        <Button
+          onClick={() => navigate("/admin/delivery-partners")}
+          size="sm"
+          className="mt-4"
+        >
           Back to List
         </Button>
       </div>
@@ -279,12 +314,21 @@ export const DpDocumentVerification = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button onClick={() => navigate("/admin/delivery-partners")} variant="outline" size="sm" icon={ChevronLeft}>
+          <Button
+            onClick={() => navigate("/admin/delivery-partners")}
+            variant="outline"
+            size="sm"
+            icon={ChevronLeft}
+          >
             Back
           </Button>
           <div>
-            <h2 className="text-xl font-bold text-slate-800">Verify Delivery Partner: {name}</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Evaluate submitted documents for KYC compliance</p>
+            <h2 className="text-xl font-bold text-slate-800">
+              Verify Delivery Partner: {name}
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Evaluate submitted documents for KYC compliance
+            </p>
           </div>
         </div>
       </div>
@@ -295,27 +339,47 @@ export const DpDocumentVerification = () => {
           <div className="bg-white border border-slate-100 p-6 rounded-2xl shadow-xs flex flex-col items-center">
             <div className="w-20 h-20 bg-brand-purple-soft rounded-full flex items-center justify-center text-brand-purple font-extrabold text-2xl mb-4 border border-brand-purple/10 overflow-hidden">
               {dpDetail.profile_img ? (
-                <img src={getImageUrl(dpDetail.profile_img)} alt="Profile" className="w-full h-full object-cover" />
+                <img
+                  src={getImageUrl(dpDetail.profile_img)}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 name.slice(0, 2).toUpperCase()
               )}
             </div>
             <h3 className="font-bold text-slate-800 text-base">{name}</h3>
             <p className="text-xs text-slate-400 mt-0.5">{phone}</p>
-            <p className="text-xs text-slate-400 truncate w-full text-center mt-0.5">{email}</p>
+            <p className="text-xs text-slate-400 truncate w-full text-center mt-0.5">
+              {email}
+            </p>
 
             <div className="w-full border-t border-slate-50 mt-5 pt-5 space-y-3 text-xs text-slate-600">
               <div className="flex justify-between">
                 <span>DOB:</span>
-                <span className="font-semibold text-slate-700">{dpDetail.dob ? new Date(dpDetail.dob).toLocaleDateString() : 'N/A'}</span>
+                <span className="font-semibold text-slate-700">
+                  {dpDetail?.user_id?.dob
+                    ? new Date(dpDetail?.user_id?.dob).toLocaleDateString()
+                    : "N/A"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>Gender:</span>
-                <span className="font-semibold text-slate-700">{dpDetail.gender || 'N/A'}</span>
+                <span className="font-semibold text-slate-700">
+                  {dpDetail.gender || "N/A"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>Overall Approval:</span>
-                <Badge variant={dpDetail.document_approval === "Approved" ? "success" : dpDetail.document_approval === "Rejected" ? "danger" : "warning"}>
+                <Badge
+                  variant={
+                    dpDetail.document_approval === "Approved"
+                      ? "success"
+                      : dpDetail.document_approval === "Rejected"
+                        ? "danger"
+                        : "warning"
+                  }
+                >
                   {dpDetail.document_approval}
                 </Badge>
               </div>
@@ -330,7 +394,13 @@ export const DpDocumentVerification = () => {
               Submitted KYC Files
             </h3>
             {dpDocument && (
-              <Button onClick={handleDownloadAll} variant="outline" size="sm" icon={Download} className="text-xs h-8">
+              <Button
+                onClick={handleDownloadAll}
+                variant="outline"
+                size="sm"
+                icon={Download}
+                className="text-xs h-8"
+              >
                 Download All
               </Button>
             )}
@@ -341,56 +411,73 @@ export const DpDocumentVerification = () => {
               {renderDocumentSection(
                 "Aadhar Card",
                 "aadhar",
-                [{ label: "Front", img: dpDocument.aadhar_imgfront }, { label: "Back", img: dpDocument.aadhar_imgback }],
+                [
+                  { label: "Front", img: dpDocument.aadhar_imgfront },
+                  { label: "Back", img: dpDocument.aadhar_imgback },
+                ],
                 "adhar_status",
                 "adhar_reject_reason",
                 "Aadhar No",
-                dpDocument.aadhar_number
+                dpDocument.aadhar_number,
               )}
 
               {renderDocumentSection(
                 "Driving License",
                 "dl",
-                [{ label: "Front", img: dpDocument.dl_imgfront }, { label: "Back", img: dpDocument.dl_imgback }],
+                [
+                  { label: "Front", img: dpDocument.dl_imgfront },
+                  { label: "Back", img: dpDocument.dl_imgback },
+                ],
                 "dl_status",
                 "dl_reject_reason",
                 "DL No",
-                dpDocument.dl_number
+                dpDocument.dl_number,
               )}
 
               {renderDocumentSection(
                 "Registration Certificate (RC)",
                 "rc",
-                [{ label: "Front", img: dpDocument.rc_imgfront }, { label: "Back", img: dpDocument.rc_imgback }],
+                [
+                  { label: "Front", img: dpDocument.rc_imgfront },
+                  { label: "Back", img: dpDocument.rc_imgback },
+                ],
                 "rc_status",
                 "rc_reject_reason",
                 "RC No",
-                dpDocument.rc_number
+                dpDocument.rc_number,
               )}
 
               {renderDocumentSection(
                 "Bank Details",
                 "bank",
-                [{ label: "Front", img: dpDocument.bank_imagefront }, { label: "Back", img: dpDocument.bank_imageback }],
+                [
+                  { label: "Front", img: dpDocument.bank_imagefront },
+                  { label: "Back", img: dpDocument.bank_imageback },
+                ],
                 "bank_status",
                 "bank_reject_reason",
                 "Bank/Account",
-                `${dpDocument.bank_name || ''} - ${dpDocument.bank_acc_number || ''}`
+                `${dpDocument.bank_name || ""} - ${dpDocument.bank_acc_number || ""}`,
               )}
 
               {renderDocumentSection(
                 "Residence & Vehicle",
                 "rv",
-                [{ label: "Residence", img: dpDocument.residence_img }, { label: "Vehicle", img: dpDocument.vehicle_img }],
+                [
+                  { label: "Residence", img: dpDocument.residence_img },
+                  { label: "Vehicle", img: dpDocument.vehicle_img },
+                ],
                 "rv_status",
                 "rv_reject_reason",
                 "Vehicle No",
-                dpDocument.vehicle_number
+                dpDocument.vehicle_number,
               )}
             </div>
           ) : (
             <div className="p-8 text-center bg-white rounded-2xl border border-slate-100 shadow-xs">
-              <p className="text-sm text-slate-400">No documents submitted yet.</p>
+              <p className="text-sm text-slate-400">
+                No documents submitted yet.
+              </p>
             </div>
           )}
         </div>
@@ -400,7 +487,9 @@ export const DpDocumentVerification = () => {
       {viewerModal.isOpen && (
         <Modal
           isOpen={viewerModal.isOpen}
-          onClose={() => setViewerModal({ isOpen: false, title: "", images: [] })}
+          onClose={() =>
+            setViewerModal({ isOpen: false, title: "", images: [] })
+          }
           title={viewerModal.title}
           size="5xl"
         >
@@ -408,24 +497,35 @@ export const DpDocumentVerification = () => {
             {viewerModal.images.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 {viewerModal.images.map((imgUrl, idx) => (
-                  <div key={idx} className="bg-white p-2 rounded-xl shadow-sm border border-slate-200">
+                  <div
+                    key={idx}
+                    className="bg-white p-2 rounded-xl shadow-sm border border-slate-200"
+                  >
                     <img
                       src={getImageUrl(imgUrl)}
                       alt={`Document view ${idx + 1}`}
                       className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = "https://via.placeholder.com/600x400?text=Image+Not+Found";
+                        e.target.src =
+                          "https://via.placeholder.com/600x400?text=Image+Not+Found";
                       }}
                     />
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-slate-400">No images available for this document.</p>
+              <p className="text-slate-400">
+                No images available for this document.
+              </p>
             )}
             <div className="flex justify-end w-full">
-              <Button onClick={() => setViewerModal({ isOpen: false, title: "", images: [] })} variant="secondary">
+              <Button
+                onClick={() =>
+                  setViewerModal({ isOpen: false, title: "", images: [] })
+                }
+                variant="secondary"
+              >
                 Close
               </Button>
             </div>
