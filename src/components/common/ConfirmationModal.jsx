@@ -11,7 +11,8 @@ export const ConfirmationModal = ({
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   variant = 'info', // danger, warning, info
-  isLoading = false
+  isLoading = false,
+  children
 }) => {
   const getIcon = () => {
     switch (variant) {
@@ -57,6 +58,7 @@ export const ConfirmationModal = ({
         <p className="text-sm text-slate-600 leading-relaxed px-2 mb-6">
           {message}
         </p>
+        {children && <div className="mb-6 px-2 text-left">{children}</div>}
 
         <div className="flex justify-center gap-2 pt-2 border-t border-slate-50">
           <Button

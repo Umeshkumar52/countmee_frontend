@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Clock, History, Landmark, Info, Wallet, Search } from 'lucide-react';
+import { Clock, History, Landmark, Info, Wallet, Search, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { fetchPendingPayments, fetchPastPayments, settlePayments } from '../../../api/admin.api';
 import Table from '../../../components/common/Table';
 import Badge from '../../../components/common/Badge';
@@ -10,6 +11,7 @@ import Input from '../../../components/common/Input';
 import toast from 'react-hot-toast';
 
 export const FinanceOverview = () => {
+  const navigate = useNavigate();
   const [activeView, setActiveView] = useState('pending'); // pending, past
   const [financeType, setFinanceType] = useState('DP'); // DP, PDC
   const [startDate, setStartDate] = useState(() => {
@@ -72,8 +74,11 @@ export const FinanceOverview = () => {
     }
   }, [activeView, financeType]);
 
+  const [settleType, setSettleType] = useState('both'); // base, waiting, both
+
   const triggerSettle = (group) => {
     setSelectedGroup(group);
+    setSettleType('base'); // Restrict to base only for bulk
     setIsConfirmOpen(true);
   };
 
@@ -81,10 +86,19 @@ export const FinanceOverview = () => {
     if (!selectedGroup) return;
     setIsSettling(true);
     try {
+      let finalAmount = selectedGroup.amount_to_pay;
+      if (financeType === 'DP' && selectedGroup.orders) {
+        const baseToPay = selectedGroup.orders.filter(o => !o.base_settled).reduce((acc, o) => acc + (o.amount || 0), 0);
+        const waitingToPay = selectedGroup.orders.filter(o => !o.waiting_charge_settled).reduce((acc, o) => acc + (o.waiting_charge || 0), 0);
+        if (settleType === 'base') finalAmount = baseToPay;
+        else if (settleType === 'waiting') finalAmount = waitingToPay;
+      }
+
       await settlePayments({
         ids: selectedGroup.payout_ids,
         payable: selectedGroup.dp_auth_id || selectedGroup.pdc_auth_id,
-        settlement_amount: selectedGroup.amount_to_pay
+        settlement_amount: finalAmount,
+        settle_type: settleType
       });
       toast.success('Account settled successfully!');
       setIsConfirmOpen(false);
@@ -98,9 +112,7 @@ export const FinanceOverview = () => {
   };
 
   const showDetails = (group) => {
-    setSelectedGroup(group);
-    setDetailsOrders(group.orders || []);
-    setIsDetailsOpen(true);
+    navigate(`/admin/finance/partner/${group.dp_auth_id || group.pdc_auth_id}`, { state: { groupData: group, financeType } });
   };
 
   const pendingHeaders = financeType === 'DP'
@@ -323,69 +335,38 @@ export const FinanceOverview = () => {
           isOpen={isConfirmOpen}
           onClose={() => setIsConfirmOpen(false)}
           onConfirm={confirmSettle}
-          title="Confirm Partner Account Settlement"
-          message={`Are you sure you want to settle accounts for ${selectedGroup.name}? A total payout of ₹${selectedGroup.amount_to_pay.toFixed(2)} covering ${selectedGroup.total_orders} order payouts will be marked as settled.`}
-          confirmLabel="Mark as Settled"
+          title="Confirm Base Earnings Settlement"
+          message={`Are you sure you want to settle the base delivery earnings for ${selectedGroup.name}? Waiting charges must be settled individually from the View Orders page.`}
+          confirmLabel="Settle Base Amount"
           variant="warning"
           isLoading={isSettling}
-        />
-      )}
-
-      {/* Orders Breakdowns Details Modal */}
-      {isDetailsOpen && selectedGroup && (
-        <Modal
-          isOpen={isDetailsOpen}
-          onClose={() => setIsDetailsOpen(false)}
-          title={`Order breakdown for: ${selectedGroup.name}`}
         >
-          <div className="space-y-4 max-h-[450px] overflow-y-auto pr-1">
-            <p className="text-xs text-slate-400">
-              Listing all pending payout orders for this partner in the filtered range.
-            </p>
-            
-            <div className="border border-slate-100 rounded-xl overflow-hidden">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-100">
-                    <th className="p-3 text-[10px] font-bold text-slate-500 uppercase">Order ID</th>
-                    <th className="p-3 text-[10px] font-bold text-slate-500 uppercase">Address Details</th>
-                    <th className="p-3 text-[10px] font-bold text-slate-500 uppercase">Paid Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {detailsOrders.map(order => (
-                    <tr key={order.id} className="border-b border-slate-100 hover:bg-slate-50/50">
-                      <td className="p-3 text-xs font-bold text-slate-500">
-                        {order.order_number}
-                      </td>
-                      <td className="p-3 text-xs">
-                        <p className="text-slate-800 font-semibold truncate max-w-56">{order.pickup_address}</p>
-                        <p className="text-slate-400 text-[10px] truncate max-w-56 mt-0.5">{order.delivery_address}</p>
-                      </td>
-                      <td className="p-3 text-xs font-extrabold text-slate-700">
-                        ₹ {order.amount.toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
-                  {detailsOrders.length === 0 && (
-                    <tr>
-                      <td colSpan={3} className="p-6 text-center text-xs text-slate-400">
-                        No order items data was found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+          {financeType === 'DP' ? (
+            <div className="bg-slate-50 border border-slate-100 rounded-lg p-3 space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer p-2 rounded transition-colors bg-white border border-slate-200">
+                <input 
+                  type="radio" 
+                  name="settleType" 
+                  value="base"
+                  checked={true}
+                  readOnly
+                  className="accent-brand-purple"
+                />
+                <span className="text-xs font-semibold text-slate-600 flex-1">Base Earnings Only</span>
+                <span className="text-xs font-bold text-slate-800">
+                  ₹{selectedGroup.orders?.filter(o => !o.base_settled).reduce((acc, o) => acc + (o.amount || 0), 0).toFixed(2) || '0.00'}
+                </span>
+              </label>
             </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button onClick={() => setIsDetailsOpen(false)} variant="secondary" size="sm">
-                Close
-              </Button>
+          ) : (
+            <div className="bg-slate-50 border border-slate-100 rounded-lg p-4 text-center">
+              <span className="text-sm font-bold text-slate-700">Total Settlement: ₹{selectedGroup.amount_to_pay.toFixed(2)}</span>
             </div>
-          </div>
-        </Modal>
+          )}
+        </ConfirmationModal>
       )}
+
+      {/* Orders Breakdowns Details Modal (REMOVED - Replaced by PartnerOrderBreakdown page) */}
     </div>
   );
 };
