@@ -45,6 +45,7 @@ import BundleResponsesPage from "../features/orders/pages/BundleResponsesPage";
 import BundleTrackingPage from "../features/orders/pages/BundleTrackingPage";
 import FeedbackRatings from "../features/admin/pages/FeedbackRatings";
 import FinanceOverview from "../features/payments/pages/FinanceOverview";
+import PartnerOrderBreakdown from "../features/payments/pages/PartnerOrderBreakdown";
 import WalletDashboard from "../features/wallets/pages/WalletDashboard";
 import Reports from "../features/admin/pages/Reports";
 import Charges from "../features/admin/pages/Charges";
@@ -134,6 +135,7 @@ export const AppRoutes = () => {
         <Route path="orders/:id" element={<OrderView />} />
         <Route path="feedbacks" element={<FeedbackRatings />} />
         <Route path="finance" element={<FinanceOverview />} />
+        <Route path="finance/partner/:dp_id" element={<PartnerOrderBreakdown />} />
         <Route path="wallets" element={<WalletDashboard />} />
         <Route path="reports" element={<Reports />} />
         <Route path="charges" element={<Charges />} />
