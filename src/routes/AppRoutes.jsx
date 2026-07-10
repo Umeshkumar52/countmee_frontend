@@ -14,6 +14,7 @@ import PdcLayout from "../components/layout/PdcLayout";
 import AdminLogin from "../features/auth/pages/AdminLogin";
 import PdcLogin from "../features/auth/pages/PdcLogin";
 import PdcRegister from "../features/auth/pages/PdcRegister";
+import ForgotPassword from "../features/auth/pages/ForgotPassword";
 
 // PDC Onboarding Pages
 import PdcInnerRegister from "../features/pdc/pages/PdcInnerRegister";
@@ -62,6 +63,7 @@ export const AppRoutes = () => {
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/pdc/login" element={<PdcLogin />} />
       <Route path="/pdc/register" element={<PdcRegister />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
 
       {/* ------------------ SECURED PDC ROUTES ------------------ */}
       <Route

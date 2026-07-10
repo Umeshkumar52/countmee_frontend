@@ -24,13 +24,15 @@ export const DpDocumentVerification = () => {
   const [dpDocument, setDpDocument] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Document rejection reasons states
   const [rejectionReasons, setRejectionReasons] = useState({
     aadhar: "",
     dl: "",
     rc: "",
     bank: "",
     rv: "",
+    insurance: "",
+    emission: "",
+    permit: "",
   });
   const [showRejectForm, setShowRejectForm] = useState({
     aadhar: false,
@@ -38,6 +40,9 @@ export const DpDocumentVerification = () => {
     rc: false,
     bank: false,
     rv: false,
+    insurance: false,
+    emission: false,
+    permit: false,
   });
 
   // Modal viewer state
@@ -104,6 +109,9 @@ export const DpDocumentVerification = () => {
       { label: "Bank Back", img: dpDocument.bank_imageback },
       { label: "Residence", img: dpDocument.residence_img },
       { label: "Vehicle", img: dpDocument.vehicle_img },
+      { label: "Insurance", img: dpDocument.insurance_document },
+      { label: "Emission", img: dpDocument.emission_certificate_document },
+      { label: "Travel Permit", img: dpDocument.permit_document },
     ].filter((doc) => doc.img);
     handleDownloadDocument(allDocs);
   };
@@ -471,6 +479,36 @@ export const DpDocumentVerification = () => {
                 "rv_reject_reason",
                 "Vehicle No",
                 dpDocument.vehicle_number,
+              )}
+
+              {renderDocumentSection(
+                "Insurance Document",
+                "insurance",
+                [{ label: "Insurance", img: dpDocument.insurance_document }],
+                "insurance_status",
+                "insurance_reject_reason",
+                "Expiry Date",
+                dpDocument.insurance_expiry_date,
+              )}
+
+              {renderDocumentSection(
+                "Emission Certificate",
+                "emission",
+                [{ label: "Emission", img: dpDocument.emission_certificate_document }],
+                "emission_status",
+                "emission_reject_reason",
+                "Expiry Date",
+                dpDocument.emission_expiry_date,
+              )}
+
+              {renderDocumentSection(
+                "Travel Permit",
+                "permit",
+                [{ label: "Travel Permit", img: dpDocument.permit_document }],
+                "permit_status",
+                "permit_reject_reason",
+                "Expiry Date",
+                dpDocument.permit_expiry,
               )}
             </div>
           ) : (

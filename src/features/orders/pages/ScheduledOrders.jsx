@@ -176,7 +176,7 @@ export const ScheduledOrders = () => {
       return [...prev, orderId];
     });
   };
-
+  console.log(orders);
   const headers = [
     <input
       type="checkbox"

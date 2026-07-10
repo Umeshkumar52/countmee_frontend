@@ -22,7 +22,7 @@ const BundleTrackingPage = () => {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  
+
   const socket = useSocketInstance();
   const [dpLocation, setDpLocation] = useState(null);
 
@@ -36,7 +36,11 @@ const BundleTrackingPage = () => {
     // Listen to live location updates
     const handleLocationUpdate = (locData) => {
       // Expecting { lat, lng } object
-      if (locData && typeof locData.lat === 'number' && typeof locData.lng === 'number') {
+      if (
+        locData &&
+        typeof locData.lat === "number" &&
+        typeof locData.lng === "number"
+      ) {
         setDpLocation([locData.lat, locData.lng]);
       }
     };
@@ -69,7 +73,7 @@ const BundleTrackingPage = () => {
     if (data?.dpDoc && !dpLocation) {
       const loc = data.dpDoc.location || data.dpDoc.current_location;
       if (loc) {
-        if (typeof loc.lat === 'number' && typeof loc.lng === 'number') {
+        if (typeof loc.lat === "number" && typeof loc.lng === "number") {
           setDpLocation([loc.lat, loc.lng]);
         } else if (loc.coordinates && loc.coordinates.length === 2) {
           // GeoJSON format: [lng, lat]
@@ -195,9 +199,7 @@ const BundleTrackingPage = () => {
           <div className="text-slate-800 font-medium">{dpName}</div>
         </div>
         <div>
-          <div className="text-blue-700 font-bold text-sm mb-1">
-            DP Phone
-          </div>
+          <div className="text-blue-700 font-bold text-sm mb-1">DP Phone</div>
           <div className="text-slate-800 font-medium">{dpPhone}</div>
         </div>
         <div>
@@ -326,7 +328,9 @@ const BundleTrackingPage = () => {
                   return (
                     <tr key={order._id} className="hover:bg-slate-50">
                       <td className="px-4 py-3 font-medium text-slate-800">
-                        {order.order_id || order._id.toString().substring(0, 8)}
+                        {order.orderNumber ||
+                          `order_${order._id.toString().slice(0, 10)}` ||
+                          `order_${order.order_id.toString().slice(0, 10)}`}
                       </td>
                       <td className="px-4 py-3 text-slate-600">
                         {order.user_id?.name || order.sender_name || "N/A"}
@@ -364,36 +368,68 @@ const BundleTrackingPage = () => {
         <div className="flex flex-col gap-6">
           <div>
             <div className="flex justify-between items-center mb-3">
-              <h2 className="text-lg font-bold text-slate-900">Live Vehicle Map</h2>
+              <h2 className="text-lg font-bold text-slate-900">
+                Live Vehicle Map
+              </h2>
             </div>
-            <div className="border border-slate-300 bg-[#e8eedd] rounded overflow-hidden flex flex-col shadow-inner relative z-0" style={{ height: "350px" }}>
+            <div
+              className="border border-slate-300 bg-[#e8eedd] rounded overflow-hidden flex flex-col shadow-inner relative z-0"
+              style={{ height: "350px" }}
+            >
               {(() => {
-                const pickups = bundle?.orders?.map(order => {
-                   const lat = order.sender_latitude || order.raw?.sender_latitude;
-                   const lng = order.sender_longitude || order.raw?.sender_longitude;
-                   if (lat && lng) return { type: "Pickup", coord: [lat, lng], id: order.order_id || order._id };
-                   return null;
-                }).filter(Boolean) || [];
+                const pickups =
+                  bundle?.orders
+                    ?.map((order) => {
+                      const lat =
+                        order.sender_latitude || order.raw?.sender_latitude;
+                      const lng =
+                        order.sender_longitude || order.raw?.sender_longitude;
+                      if (lat && lng)
+                        return {
+                          type: "Pickup",
+                          coord: [lat, lng],
+                          id: order.orderNumber || order.order_id || order._id,
+                        };
+                      return null;
+                    })
+                    .filter(Boolean) || [];
 
-                const destinations = bundle?.orders?.map(order => {
-                   const lat = order.receiver_latitude || order.raw?.receiver_latitude;
-                   const lng = order.receiver_longitude || order.raw?.receiver_longitude;
-                   if (lat && lng) return { type: "Drop-off", coord: [lat, lng], id: order.order_id || order._id };
-                   return null;
-                }).filter(Boolean) || [];
-                
+                const destinations =
+                  bundle?.orders
+                    ?.map((order) => {
+                      const lat =
+                        order.receiver_latitude || order.raw?.receiver_latitude;
+                      const lng =
+                        order.receiver_longitude ||
+                        order.raw?.receiver_longitude;
+                      if (lat && lng)
+                        return {
+                          type: "Drop-off",
+                          coord: [lat, lng],
+                          id: order.orderNumber || order.order_id || order._id,
+                        };
+                      return null;
+                    })
+                    .filter(Boolean) || [];
+
                 const uniquePoints = [];
-                [...pickups, ...destinations].forEach(pt => {
-                   if (!uniquePoints.some(u => u.coord[0] === pt.coord[0] && u.coord[1] === pt.coord[1])) {
-                     uniquePoints.push(pt);
-                   }
+                [...pickups, ...destinations].forEach((pt) => {
+                  if (
+                    !uniquePoints.some(
+                      (u) =>
+                        u.coord[0] === pt.coord[0] &&
+                        u.coord[1] === pt.coord[1],
+                    )
+                  ) {
+                    uniquePoints.push(pt);
+                  }
                 });
 
                 return (
-                  <LiveTrackingMap 
-                    dpLocation={dpLocation} 
-                    waypoints={uniquePoints} 
-                    height="100%" 
+                  <LiveTrackingMap
+                    dpLocation={dpLocation}
+                    waypoints={uniquePoints}
+                    height="100%"
                   />
                 );
               })()}

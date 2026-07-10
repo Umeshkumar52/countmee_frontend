@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { loginUser, clearAuthError } from '../authSlice';
 import AuthLayout from '../../../components/layout/AuthLayout';
@@ -55,6 +55,15 @@ export const AdminLogin = () => {
     }
     dispatch(loginUser({ email, password }));
   };
+
+  // Prevent flash of login screen if already authenticated
+  if (isAuthenticated && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-purple"></div>
+      </div>
+    );
+  }
   
   return (
     <AuthLayout>
@@ -115,6 +124,15 @@ export const AdminLogin = () => {
               </svg>
             )}
           </button>
+        </div>
+
+        <div className="flex justify-end">
+          <Link
+            to="/forgot-password"
+            className="text-xs font-bold text-brand-purple hover:text-brand-purple-dark transition-colors"
+          >
+            Forgot Password?
+          </Link>
         </div>
 
         <Button

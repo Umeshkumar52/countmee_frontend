@@ -70,6 +70,15 @@ export const PdcLogin = () => {
     dispatch(loginUser({ phone, password }));
   };
 
+  // Prevent flash of login screen if already authenticated
+  if (isAuthenticated && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-purple"></div>
+      </div>
+    );
+  }
+
   return (
     <AuthLayout>
       <h2 className="text-xl font-extrabold text-slate-800 font-display uppercase tracking-wider">
@@ -131,6 +140,15 @@ export const PdcLogin = () => {
               </svg>
             )}
           </button>
+        </div>
+
+        <div className="flex justify-end">
+          <Link
+            to="/forgot-password"
+            className="text-xs font-bold text-brand-purple hover:text-brand-purple-dark transition-colors"
+          >
+            Forgot Password?
+          </Link>
         </div>
 
         <Button

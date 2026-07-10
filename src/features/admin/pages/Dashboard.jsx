@@ -17,9 +17,9 @@ const AnimatedCounter = ({ end, duration = 1500 }) => {
       if (!startTimestamp) startTimestamp = timestamp;
       const progress = Math.min((timestamp - startTimestamp) / duration, 1);
       const easeOutQuad = 1 - (1 - progress) * (1 - progress);
-      
+
       setCount(Math.floor(easeOutQuad * end));
-      
+
       if (progress < 1) {
         window.requestAnimationFrame(step);
       } else {
@@ -56,15 +56,18 @@ export const Dashboard = () => {
           ordersCount: data.ordersCount || 0,
           recentOrders: (data.rec_orders || []).slice(0, 5).map((o) => ({
             id: o._id,
+            orderNumber: o.orderNumber || `order_${o._id?.slice(0, 10)}`,
             order_number: o.order_id || o._id,
             customer_name: o.user_id?.name || o.sender_name || "N/A",
             pdc_name: o.pdc_id?.shop_name || "Direct",
-            date: o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "N/A",
+            date: o.createdAt
+              ? new Date(o.createdAt).toLocaleDateString()
+              : "N/A",
             status: o.status,
           })),
         });
       } catch (e) {
-        console.error("Failed to load dashboard stats", e);
+        console.error("Failed to fetch stats", e);
       } finally {
         setIsLoading(false);
       }
@@ -76,28 +79,32 @@ export const Dashboard = () => {
     {
       name: "Delivery Partners",
       count: stats.deliveryPartnersCount,
-      color: "from-[#9073be] to-[#522f89]",
+      color: "bg-purple-50/50 border-purple-200 hover:bg-purple-50 hover:border-purple-300",
+      textColor: "text-purple-700",
       link: "/admin/delivery-partners",
       icon: Truck,
     },
     {
       name: "Active Customers",
       count: stats.customersCount,
-      color: "from-blue-500 to-indigo-600",
+      color: "bg-blue-50/50 border-blue-200 hover:bg-blue-50 hover:border-blue-300",
+      textColor: "text-blue-700",
       link: "/admin/customers",
       icon: User,
     },
     {
       name: "PDC Centers",
       count: stats.pdcsCount,
-      color: "from-emerald-400 to-teal-600",
+      color: "bg-emerald-50/50 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300",
+      textColor: "text-emerald-700",
       link: "/admin/pdc-list",
       icon: Building2,
     },
     {
       name: "Total Orders",
       count: stats.ordersCount,
-      color: "from-amber-400 to-orange-600",
+      color: "bg-orange-50/50 border-orange-200 hover:bg-orange-50 hover:border-orange-300",
+      textColor: "text-orange-700",
       link: "/admin/orders",
       icon: Package,
     },
@@ -120,18 +127,18 @@ export const Dashboard = () => {
             <Link
               key={idx}
               to={card.link}
-              className={`bg-gradient-to-br ${card.color} text-white rounded-2xl p-5 shadow-xs hover:shadow-lg transition-all transform hover:-translate-y-0.5 flex justify-between items-center relative overflow-hidden`}
+              className={`flex flex-col items-center justify-center p-5 border rounded-xl cursor-pointer transition-all transform hover:-translate-y-0.5 ${card.color} hover:shadow-md text-center`}
             >
-              <div className="absolute right-0 top-0 bottom-0 w-1/4 bg-white/5 skew-x-12"></div>
-              <div>
-                <span className="text-[10px] uppercase tracking-wider font-bold text-white/80">
-                  {card.name}
-                </span>
-                <h3 className="text-2xl font-extrabold font-display mt-1.5">
-                  {isLoading ? "..." : <AnimatedCounter end={card.count} />}
-                </h3>
+              <div className={`${card.textColor} font-bold text-sm mb-1 flex items-center justify-center gap-1.5`}>
+                <Icon size={16} strokeWidth={2.5} />
+                {card.name}
               </div>
-              <Icon size={42} className="text-3xl opacity-80" />
+              <h3 className="text-3xl font-extrabold font-display text-slate-800 my-2">
+                {isLoading ? "..." : <AnimatedCounter end={card.count} />}
+              </h3>
+              <div className="text-slate-400 text-[10px] mt-1">
+                Click &rarr; View List
+              </div>
             </Link>
           );
         })}
@@ -157,7 +164,7 @@ export const Dashboard = () => {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-slate-100 text-[10px] uppercase font-bold text-slate-400">
-                  <th className="pb-2">Order</th>
+                  <th className="pb-2">Order Id</th>
                   <th className="pb-2">Customer</th>
                   <th className="pb-2">PDC Point</th>
                   <th className="pb-2">Date</th>
@@ -184,7 +191,7 @@ export const Dashboard = () => {
                       className="hover:bg-slate-50/50 transition-colors"
                     >
                       <td className="py-3 font-bold text-slate-500">
-                        {o.order_number}
+                        {o.orderNumber}
                       </td>
                       <td className="py-3 font-semibold text-slate-800">
                         {o.customer_name}

@@ -4,14 +4,17 @@ const mapOrder = (o) => {
   if (!o) return null;
   return {
     id: o._id,
+    orderNumber: o.orderNumber || `order_${o._id?.slice(0, 10)}`,
     order_number: o.order_id || o._id,
     customer_name: o.user_id?.name || o.sender_name || "N/A",
     customer_phone: o.user_id?.phone || o.sender_phone || "N/A",
     receiver_name: o.receiver_name || "N/A",
     receiver_phone: o.receiver_phone || "N/A",
     pickup_address: o.pickup_address || o.pickup_location || "N/A",
+    sender_pin_code: o.sender_pin_code || null,
     delivery_address:
       o.delivery_address || o.delivery_location || o.drop_location || "N/A",
+    receiver_pin_code: o.receiver_pin_code || null,
     pdc_name: o.pdc_id?.shop_name || o.pdc_name || "Direct",
     dp_name: o.pickup_dp_id?.name || o.delivery_dp_id?.name || o.dp_name || "",
     amount: o.charges || o.amount || 0,

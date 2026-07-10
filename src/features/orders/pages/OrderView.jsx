@@ -171,9 +171,9 @@ export const OrderView = () => {
           ← Back
         </Button>
         <div>
-            <h2 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-              Order: {order.orderNumber}
-            </h2>
+          <h2 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+            Order: {order.orderNumber || order.order_number || order.id}
+          </h2>
           <p className="text-xs text-slate-400 mt-0.5">
             Created on {order.created_at}
           </p>

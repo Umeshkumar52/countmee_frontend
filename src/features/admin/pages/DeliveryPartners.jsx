@@ -133,6 +133,7 @@ export const DeliveryPartners = () => {
   const [isNewVehicle, setIsNewVehicle] = useState(false);
   const [vehicleRegistrationDate, setVehicleRegistrationDate] = useState("");
   const [travelPermitStates, setTravelPermitStates] = useState("");
+  const [permitExpiry, setPermitExpiry] = useState("");
 
   const [insuranceDocument, setInsuranceDocument] = useState(null);
   const [emissionCertificateDocument, setEmissionCertificateDocument] = useState(null);
@@ -360,6 +361,7 @@ export const DeliveryPartners = () => {
       setVehicleMaxCapacity(dpDocument?.vehicle_max_capacity || "");
       setInsuranceExpiryDate(dpDocument?.insurance_expiry_date || "");
       setEmissionExpiryDate(dpDocument?.emission_expiry_date || "");
+      setPermitExpiry(dpDocument?.permit_expiry || "");
       setIsNewVehicle(dpDocument?.is_new_vehicle || false);
       setVehicleRegistrationDate(dpDocument?.vehicle_registration_date || "");
       setTravelPermitStates(dpDocument?.travel_permit_states?.join(", ") || "");
@@ -622,6 +624,7 @@ export const DeliveryPartners = () => {
       if (vehicleMaxCapacity) formData.append("vehicle_max_capacity", vehicleMaxCapacity);
       if (insuranceExpiryDate) formData.append("insurance_expiry_date", insuranceExpiryDate);
       if (emissionExpiryDate) formData.append("emission_expiry_date", emissionExpiryDate);
+      if (permitExpiry) formData.append("permit_expiry", permitExpiry);
       formData.append("is_new_vehicle", isNewVehicle);
       if (vehicleRegistrationDate) formData.append("vehicle_registration_date", vehicleRegistrationDate);
       if (travelPermitStates) formData.append("travel_permit_states", travelPermitStates.trim());
@@ -1116,6 +1119,13 @@ export const DeliveryPartners = () => {
                             placeholder="e.g. Delhi, Haryana"
                             value={travelPermitStates}
                             onChange={(e) => setTravelPermitStates(e.target.value)}
+                          />
+                          <Input
+                            label="Permit Expiry Date"
+                            id="permitExpiryEdit"
+                            type="date"
+                            value={permitExpiry}
+                            onChange={(e) => setPermitExpiry(e.target.value)}
                           />
                           <div className="flex items-center mt-6">
                             <input

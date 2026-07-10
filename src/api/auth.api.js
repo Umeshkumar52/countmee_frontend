@@ -8,3 +8,7 @@ export const loginPdc = (credentials) =>
 export const registerPdc = (formData) =>
   client.post("/auth/pdc/register", formData);
 export const logoutPdc = (payload) => client.post("/auth/pdc/logout", payload);
+
+export const forgotPassword = (data) => client.post('/auth/forgot-password', data);
+export const resetPassword = (data) => client.post('/auth/reset-password', data);
+

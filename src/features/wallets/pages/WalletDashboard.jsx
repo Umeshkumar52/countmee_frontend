@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Wallet, Gift, Megaphone, PlusCircle, Clock, Banknote, Eye } from "lucide-react";
+import {
+  Wallet,
+  Gift,
+  Megaphone,
+  PlusCircle,
+  Clock,
+  Banknote,
+  Eye,
+} from "lucide-react";
 import {
   fetchWallets,
   fetchWalletConfig,
@@ -77,6 +85,7 @@ export const WalletDashboard = () => {
         const formattedCustomers = (data.customers || []).map((c) => ({
           id: c._id,
           name: c.name,
+          email: c.email || "N/A",
           phone: c.phone,
           wallet: {
             balance: c.wallet?.balance || 0,
@@ -85,28 +94,40 @@ export const WalletDashboard = () => {
         setCustomers(formattedCustomers);
 
         // Map config history logs
-        const formattedHistory = (data.configHistory || []).map((h) => ({
-          id: h._id,
-          old_value: h.old_value,
-          new_value: h.new_value,
-          admin_name: h.admin?.name || "Admin",
-          created_at: h.created_at
-            ? new Date(h.created_at).toLocaleString()
-            : "N/A",
-        }));
+        const formattedHistory = (data.configHistory || []).map((h) => {
+          const rawDate = h.createdAt || h.created_at;
+          return {
+            id: h._id,
+            old_value: h.old_value,
+            new_value: h.new_value,
+            admin_name: h.admin?.name || "Admin",
+            created_at: rawDate
+              ? new Date(rawDate).toLocaleString("en-US", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })
+              : "N/A",
+          };
+        });
         setConfigHistory(formattedHistory);
 
         // Map mass logs
-        const formattedMassLogs = (data.massCreditLogs || []).map((l) => ({
-          id: l._id,
-          amount: l.amount,
-          user_count: l.user_count,
-          description: l.description,
-          admin_name: l.admin?.name || "Admin",
-          created_at: l.created_at
-            ? new Date(l.created_at).toLocaleString()
-            : "N/A",
-        }));
+        const formattedMassLogs = (data.massCreditLogs || []).map((l) => {
+          const rawDate = l.createdAt || l.created_at;
+          return {
+            id: l._id,
+            amount: l.amount,
+            user_count: l.user_count,
+            description: l.description,
+            admin_name: l.admin?.name || "Admin",
+            created_at: rawDate
+              ? new Date(rawDate).toLocaleString("en-US", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })
+              : "N/A",
+          };
+        });
         setMassLogs(formattedMassLogs);
       }
     } catch (e) {
@@ -216,8 +237,20 @@ export const WalletDashboard = () => {
     setIsRecipientsLoading(true);
     try {
       const res = await fetchMassCreditRecipients(log.id);
+      const rawRecipients = res.data?.data?.recipients || res.data?.recipients || [];
       setRecipientsList(
-        res.data?.data?.recipients || res.data?.recipients || [],
+        rawRecipients.map((r) => {
+          const rawDate = r.createdAt || r.created_at || r.timestamp;
+          return {
+            ...r,
+            created_at: rawDate
+              ? new Date(rawDate).toLocaleString("en-US", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })
+              : "N/A",
+          };
+        })
       );
     } catch (e) {
       console.error(e);
@@ -363,8 +396,8 @@ export const WalletDashboard = () => {
           {/* Customers Table */}
           <Table
             headers={[
-              "Customer ID",
               "Full Name",
+              "Email",
               "Phone Number",
               "Wallet Balance",
               "Actions",
@@ -377,11 +410,11 @@ export const WalletDashboard = () => {
                 key={customer.id}
                 className="hover:bg-slate-50/50 transition-colors"
               >
-                <td className="px-5 py-4 text-xs font-bold text-slate-500">
-                  #{customer.id}
-                </td>
                 <td className="px-5 py-4 text-xs font-semibold text-slate-800">
                   {customer.name}
+                </td>
+                <td className="px-5 py-4 text-xs font-medium text-slate-500">
+                  {customer.email}
                 </td>
                 <td className="px-5 py-4 text-xs text-slate-600">
                   {customer.phone}
@@ -461,7 +494,6 @@ export const WalletDashboard = () => {
 
             <Table
               headers={[
-                "ID",
                 "Date & Time",
                 "Old Value",
                 "New Value",
@@ -475,10 +507,7 @@ export const WalletDashboard = () => {
                   key={log.id}
                   className="hover:bg-slate-50/50 transition-colors"
                 >
-                  <td className="px-5 py-3.5 text-xs font-bold text-slate-400">
-                    #{log.id}
-                  </td>
-                  <td className="px-5 py-3.5 text-xs text-slate-500">
+                  <td className="px-5 py-3.5 text-xs font-semibold text-slate-600">
                     {log.created_at}
                   </td>
                   <td className="px-5 py-3.5 text-xs text-slate-600 line-through">
@@ -549,7 +578,6 @@ export const WalletDashboard = () => {
 
             <Table
               headers={[
-                "Log ID",
                 "Date & Time",
                 "Amount",
                 "Recipients Count",
@@ -564,10 +592,7 @@ export const WalletDashboard = () => {
                   key={log.id}
                   className="hover:bg-slate-50/50 transition-colors"
                 >
-                  <td className="px-5 py-3.5 text-xs font-bold text-slate-400">
-                    #MASS-{log.id}
-                  </td>
-                  <td className="px-5 py-3.5 text-xs text-slate-500">
+                  <td className="px-5 py-3.5 text-xs font-semibold text-slate-600">
                     {log.created_at}
                   </td>
                   <td className="px-5 py-3.5 text-xs font-bold text-slate-800">
@@ -708,7 +733,7 @@ export const WalletDashboard = () => {
 
             <div>
               <Table
-                headers={["TX ID", "Date & Time", "Type", "Amount", "Reason"]}
+                headers={["Date & Time", "Type", "Amount", "Reason"]}
                 data={transactionsList}
                 isLoading={isTxsLoading}
                 emptyMessage="No transactions found in this wallet ledger."
@@ -719,12 +744,6 @@ export const WalletDashboard = () => {
                       key={tx.id || tx._id}
                       className="hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0"
                     >
-                      <td className="p-4 text-xs font-bold text-slate-400">
-                        #TX-
-                        {String(tx.id || tx._id)
-                          .slice(-6)
-                          .toUpperCase()}
-                      </td>
                       <td className="p-4 text-xs text-slate-500 font-medium whitespace-nowrap">
                         {new Date(tx.created_at || tx.createdAt).toLocaleString(
                           "en-IN",

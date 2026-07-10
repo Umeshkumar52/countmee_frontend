@@ -147,7 +147,7 @@ export const OrderList = () => {
         renderRow={(order) => (
           <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
             <td className="px-5 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">
-              {order.orderNumber}
+              {order?.orderNumber}
             </td>
             <td className="px-5 py-4 text-xs text-slate-500 whitespace-nowrap">
               {order.created_at}

@@ -19,9 +19,9 @@ const BulkUploadDpModal = ({ isOpen, onClose, onSuccess }) => {
   };
 
   const handleDownloadTemplate = () => {
-    const headers = "Name,Phone,Email,DOB,Gender,Address,Vehicle Type,Vehicle Number,Aadhar Number,RC Number,DL Number,Bank Name,Bank Account Number,Bank IFSC,Reference 1 Name,Reference 1 Phone,Profile Image Filename,Aadhar Front Image Filename,Aadhar Back Image Filename,RC Front Image Filename,RC Back Image Filename,DL Front Image Filename,DL Back Image Filename,Bank Front Image Filename,Bank Back Image Filename,Residence Image Filename,Vehicle Image Filename\n";
-    const example1 = "Raju Tester,9876543210,raju@test.com,1995-05-20,Male,123 Delivery Street,Two Wheeler,KA01AB1234,123412341234,RC987654,DL123456,HDFC,123456789012,HDFC0001234,Amit,9998887776,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg\n";
-    const example2 = "Vikram Driver,9123456780,vikram@test.com,1992-10-15,Male,456 Logistics Ave,Four Wheeler,MH02XY9876,987698769876,RC112233,DL998877,ICICI,987654321098,ICIC0009876,Rahul,9991112223,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg\n";
+    const headers = "Name,Phone,Email,DOB,Gender,Address,Vehicle Type,Vehicle Number,Aadhar Number,RC Number,DL Number,Bank Name,Bank Account Number,Bank IFSC,Reference 1 Name,Reference 1 Phone,Reference 2 Name,Reference 2 Phone,DL Expiry Date,Sub Vehicle Type,Other Vehicle Details,Vehicle Min Capacity,Vehicle Max Capacity,Insurance Expiry Date,Emission Expiry Date,Is New Vehicle,Vehicle Registration Date,Travel Permit States,Permit Expiry,Profile Image Filename,Aadhar Front Image Filename,Aadhar Back Image Filename,RC Front Image Filename,RC Back Image Filename,DL Front Image Filename,DL Back Image Filename,Bank Front Image Filename,Bank Back Image Filename,Residence Image Filename,Vehicle Image Filename,Insurance Document Filename,Emission Document Filename,Permit Document Filename\n";
+    const example1 = "Raju Tester,9876543210,raju@test.com,1995-05-20,Male,123 Delivery Street,Two Wheeler,KA01AB1234,123412341234,RC987654,DL123456,HDFC,123456789012,HDFC0001234,Amit,9998887776,Rahul,9998887775,2030-05-20,Bike,Honda Activa,10,50,2025-05-20,2024-05-20,false,2018-05-20,\"Karnataka, Maharashtra\",2025-05-20,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg\n";
+    const example2 = "Vikram Driver,9123456780,vikram@test.com,1992-10-15,Male,456 Logistics Ave,Four Wheeler,MH02XY9876,987698769876,RC112233,DL998877,ICICI,987654321098,ICIC0009876,Rahul,9991112223,Amit,9991112224,2032-10-15,Truck,Tata Ace,500,1000,2025-10-15,2024-10-15,true,2023-10-15,\"All India Permit (AIP)\",2025-10-15,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg,test_image.jpg\n";
     
     const csvContent = "data:text/csv;charset=utf-8," + headers + example1 + example2;
     const encodedUri = encodeURI(csvContent);
@@ -106,6 +106,19 @@ const BulkUploadDpModal = ({ isOpen, onClose, onSuccess }) => {
         bank_ifsc: String(row["Bank IFSC"] || row["bank_ifsc"] || row["bankIfsc"] || "").trim(),
         reference1_name: String(row["Reference 1 Name"] || row["reference1_name"] || row["reference1Name"] || "").trim(),
         reference1_phone: String(row["Reference 1 Phone"] || row["reference1_phone"] || row["reference1Phone"] || "").trim(),
+        reference2_name: String(row["Reference 2 Name"] || "").trim(),
+        reference2_phone: String(row["Reference 2 Phone"] || "").trim(),
+        dl_expiry_date: String(row["DL Expiry Date"] || "").trim(),
+        sub_vehicle_type: String(row["Sub Vehicle Type"] || "").trim(),
+        other_vehicle_details: String(row["Other Vehicle Details"] || "").trim(),
+        vehicle_min_capacity: String(row["Vehicle Min Capacity"] || "").trim(),
+        vehicle_max_capacity: String(row["Vehicle Max Capacity"] || "").trim(),
+        insurance_expiry_date: String(row["Insurance Expiry Date"] || "").trim(),
+        emission_expiry_date: String(row["Emission Expiry Date"] || "").trim(),
+        is_new_vehicle: String(row["Is New Vehicle"] || "").trim(),
+        vehicle_registration_date: String(row["Vehicle Registration Date"] || "").trim(),
+        travel_permit_states: String(row["Travel Permit States"] || "").trim(),
+        permit_expiry: String(row["Permit Expiry"] || "").trim(),
         profile_img: String(row["Profile Image Filename"] || row["Profile Image URL"] || row["Profile Image"] || row["profile_img"] || "").trim(),
         aadhar_imgfront: String(row["Aadhar Front Image Filename"] || row["Aadhar Front Image URL"] || row["Aadhar Front Image"] || row["aadhar_imgfront"] || "").trim(),
         aadhar_imgback: String(row["Aadhar Back Image Filename"] || row["Aadhar Back Image URL"] || row["Aadhar Back Image"] || row["aadhar_imgback"] || "").trim(),
@@ -116,7 +129,10 @@ const BulkUploadDpModal = ({ isOpen, onClose, onSuccess }) => {
         bank_imagefront: String(row["Bank Front Image Filename"] || row["Bank Front Image URL"] || row["Bank Front Image"] || row["bank_imagefront"] || "").trim(),
         bank_imageback: String(row["Bank Back Image Filename"] || row["Bank Back Image URL"] || row["Bank Back Image"] || row["bank_imageback"] || "").trim(),
         residence_img: String(row["Residence Image Filename"] || row["Residence Image URL"] || row["Residence Image"] || row["residence_img"] || "").trim(),
-        vehicle_img: String(row["Vehicle Image Filename"] || row["Vehicle Image URL"] || row["Vehicle Image"] || row["vehicle_img"] || "").trim()
+        vehicle_img: String(row["Vehicle Image Filename"] || row["Vehicle Image URL"] || row["Vehicle Image"] || row["vehicle_img"] || "").trim(),
+        insurance_document: String(row["Insurance Document Filename"] || "").trim(),
+        emission_certificate_document: String(row["Emission Document Filename"] || "").trim(),
+        permit_document: String(row["Permit Document Filename"] || "").trim()
       }));
 
       // Begin Chunked Upload Process
@@ -127,7 +143,8 @@ const BulkUploadDpModal = ({ isOpen, onClose, onSuccess }) => {
       const imageKeys = [
         "profile_img", "aadhar_imgfront", "aadhar_imgback", 
         "rc_imgfront", "rc_imgback", "dl_imgfront", "dl_imgback", 
-        "bank_imagefront", "bank_imageback", "residence_img", "vehicle_img"
+        "bank_imagefront", "bank_imageback", "residence_img", "vehicle_img",
+        "insurance_document", "emission_certificate_document", "permit_document"
       ];
 
       for (let i = 0; i < formattedData.length; i++) {
