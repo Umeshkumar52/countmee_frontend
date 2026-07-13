@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import {
   fetchDpCancellations,
@@ -17,11 +17,7 @@ const DpCancellationRecords = () => {
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
 
-  useEffect(() => {
-    loadData();
-  }, [month, year]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
       const [limitRes, recordsRes] = await Promise.all([
@@ -35,7 +31,11 @@ const DpCancellationRecords = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [month, year]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleUpdateLimit = async () => {
     setIsSaving(true);
