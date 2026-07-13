@@ -65,8 +65,8 @@ const LiveTrackingMap = ({ dpLocation, waypoints = [], height = "350px" }) => {
     <div className="w-full relative z-0" style={{ height }}>
       <MapContainer center={mapCenter} zoom={13} style={{ height: "100%", width: "100%", zIndex: 0 }} zoomControl={false}>
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; OpenStreetMap contributors'
+          url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+          attribution='&copy; Google Maps'
         />
         {dpLocation && <MapUpdater center={dpLocation} />}
         

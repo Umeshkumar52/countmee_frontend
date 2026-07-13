@@ -71,7 +71,26 @@ export const getFcmToken = async () => {
         return null;
       }
 
-      const fcmToken = await getToken(messaging, { vapidKey });
+      let registration;
+      try {
+        registration = await navigator.serviceWorker.register(
+          "/firebase-messaging-sw.js",
+        );
+        console.log(
+          "[Firebase] Service Worker registered explicitly with scope:",
+          registration.scope,
+        );
+      } catch (swError) {
+        console.error(
+          "[Firebase] Service Worker explicit registration failed:",
+          swError,
+        );
+      }
+
+      const fcmToken = await getToken(messaging, { 
+        vapidKey,
+        serviceWorkerRegistration: registration 
+      });
       if (fcmToken) {
         console.log("[Firebase] Generated FCM Token:", fcmToken);
         return fcmToken;

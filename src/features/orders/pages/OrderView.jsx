@@ -435,7 +435,7 @@ export const OrderView = () => {
               )}
             </h3>
 
-            <div className="h-48 w-full rounded-xl overflow-hidden border border-slate-100 bg-slate-50 relative z-0">
+            <div className="h-96 md:h-[350px] w-full rounded-xl overflow-hidden border border-slate-100 bg-slate-50 relative z-0">
               {(() => {
                 const waypoints = [];
                 if (order.sender_latitude && order.sender_longitude) {

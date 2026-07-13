@@ -469,7 +469,7 @@ export const DpDocumentVerification = () => {
               )}
 
               {renderDocumentSection(
-                "Residence & Vehicle",
+                "Residence & Vehicle Images",
                 "rv",
                 [
                   { label: "Residence", img: dpDocument.residence_img },
@@ -480,6 +480,20 @@ export const DpDocumentVerification = () => {
                 "Vehicle No",
                 dpDocument.vehicle_number,
               )}
+
+              {/* Extra Vehicle Details (Read-only view) */}
+              <div className="p-4 border rounded-lg bg-gray-50 flex flex-col gap-2 shadow-sm relative">
+                <h3 className="font-semibold text-lg text-gray-800 mb-2 border-b pb-2">Vehicle Specifications</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-y-3 gap-x-4 text-sm text-gray-700">
+                  <p><strong>Type:</strong> {dpDocument.vehicle_type || "N/A"}</p>
+                  <p><strong>Sub Type:</strong> {dpDocument.sub_vehicle_type || "N/A"}</p>
+                  <p><strong>Capacity:</strong> {dpDocument.vehicle_min_capacity ? `${dpDocument.vehicle_min_capacity} - ${dpDocument.vehicle_max_capacity} kg` : "N/A"}</p>
+                  <p><strong>Is New Vehicle:</strong> {dpDocument.is_new_vehicle ? "Yes" : "No"}</p>
+                  <p><strong>Registration Date:</strong> {dpDocument.vehicle_registration_date || "N/A"}</p>
+                  <p><strong>Travel States:</strong> {dpDocument.travel_permit_states?.length > 0 ? dpDocument.travel_permit_states.join(", ") : "N/A"}</p>
+                </div>
+              </div>
+
 
               {renderDocumentSection(
                 "Insurance Document",

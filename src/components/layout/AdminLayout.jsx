@@ -87,7 +87,7 @@ export const AdminLayout = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800">
       {/* Top Header */}
       <header className="sticky top-0 py-4 z-40 bg-white border-b border-slate-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center gap-4">
@@ -177,13 +177,16 @@ export const AdminLayout = () => {
                                 {notif.message}
                               </p>
                               <span className="text-[9px] text-slate-400 block mt-1">
-                                {new Date(notif.created_at).toLocaleString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: 'numeric',
-                                  minute: '2-digit',
-                                  hour12: true
-                                })}
+                                {new Date(notif.created_at).toLocaleString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "numeric",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  },
+                                )}
                               </span>
                             </div>
                           ))
@@ -291,13 +294,13 @@ export const AdminLayout = () => {
       )}
 
       {/* Page Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Outlet />
       </main>
 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-100 py-4 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 text-center text-xs text-slate-400">
+        <div className=" mx-auto px-4 text-center text-xs text-slate-400">
           © {new Date().getFullYear()} CountMee. All rights reserved.
         </div>
       </footer>
