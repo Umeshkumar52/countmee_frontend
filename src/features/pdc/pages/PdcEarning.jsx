@@ -38,14 +38,16 @@ const PayoutCardSkeleton = () => (
   </div>
 );
 
-// --- Static Star Display ---
-const StarDisplay = () => (
-  <div className="flex gap-0.5">
-    {[1, 2, 3, 4, 5].map((s) => (
-      <span key={s} className="text-yellow-400 text-lg">★</span>
-    ))}
-  </div>
-);
+const StarDisplay = ({ stars = 0 }) => {
+  const rating = Math.round(Number(stars) || 0);
+  return (
+    <div className="flex gap-0.5 text-lg">
+      {[1, 2, 3, 4, 5].map((s) => (
+        <span key={s} className={s <= rating ? "text-yellow-400" : "text-slate-300"}>★</span>
+      ))}
+    </div>
+  );
+};
 
 // --- Payout Detail Card (matches PHP card layout) ---
 const PayoutCard = ({ payout }) => {
@@ -53,9 +55,14 @@ const PayoutCard = ({ payout }) => {
   const order = payout.order || {};
   const parcelType = order.packageDetail?.types_of_product || order.packageDetail?.product_type || 'N/A';
   const dropDpName = payout.dp?.requestedUser?.name || payout.dp?.name || 'N/A';
-  const receivingTime = payout.dp?.updated_at || payout.dp?.created_at || null;
+  const dropDpId = payout.dp?.requestedUser?._id || payout.dp?._id || null;
+  const receivingTime = payout.dp?.updated_at || payout.dp?.created_at || payout.dp?.updatedAt || payout.dp?.createdAt || null;
+  const dropDpStars = payout.dp?.stars || 0;
+
   const pickupDpName = payout.broadcast?.dpUser?.name || 'N/A';
-  const sendingTime = payout.broadcast?.updated_at || payout.broadcast?.created_at || null;
+  const pickupDpId = payout.broadcast?.dpUser?._id || null;
+  const sendingTime = payout.broadcast?.updated_at || payout.broadcast?.created_at || payout.broadcast?.updatedAt || payout.broadcast?.createdAt || null;
+  const pickupDpStars = payout.broadcast?.stars || 0;
 
   const formatDate = (dt) =>
     dt
@@ -78,6 +85,7 @@ const PayoutCard = ({ payout }) => {
         <div className="col-span-2 sm:col-span-1">
           <p className="text-[10px] capitalize font-bold text-[#5d3c96] mb-1">Drop Delivery Partner Name</p>
           <p className="text-sm font-semibold text-slate-800">{dropDpName}</p>
+          {dropDpId && <p className="text-[9px] text-slate-500 font-mono mt-0.5" title="Partner ID">ID: {dropDpId}</p>}
         </div>
         <div className="col-span-2 sm:col-span-1">
           <p className="text-[10px] capitalize font-bold text-[#5d3c96] mb-1">Receiving Timing</p>
@@ -85,7 +93,7 @@ const PayoutCard = ({ payout }) => {
         </div>
         <div className="col-span-2">
           <p className="text-[10px] capitalize font-bold text-[#5d3c96] mb-1">Rating</p>
-          <StarDisplay />
+          <StarDisplay stars={dropDpStars} />
         </div>
 
         <div className="col-span-2 border-t border-slate-100 my-1"></div>
@@ -94,6 +102,7 @@ const PayoutCard = ({ payout }) => {
         <div className="col-span-2 sm:col-span-1">
           <p className="text-[10px] capitalize font-bold text-[#5d3c96] mb-1">Receiver Delivery Partner Name</p>
           <p className="text-sm font-semibold text-slate-800">{pickupDpName}</p>
+          {pickupDpId && <p className="text-[9px] text-slate-500 font-mono mt-0.5" title="Partner ID">ID: {pickupDpId}</p>}
         </div>
         <div className="col-span-2 sm:col-span-1">
           <p className="text-[10px] capitalize font-bold text-[#5d3c96] mb-1">Sending Timing</p>
@@ -101,7 +110,7 @@ const PayoutCard = ({ payout }) => {
         </div>
         <div className="col-span-2">
           <p className="text-[10px] capitalize font-bold text-[#5d3c96] mb-1">Rating</p>
-          <StarDisplay />
+          <StarDisplay stars={pickupDpStars} />
         </div>
 
         {/* Earning amount */}

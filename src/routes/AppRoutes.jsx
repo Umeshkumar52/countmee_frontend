@@ -53,6 +53,7 @@ import EditChargeConfig from "../features/admin/pages/EditChargeConfig";
 import VehicleConfigurations from "../features/admin/pages/VehicleConfigurations";
 import { ScheduledOrders } from "../features/orders/pages/ScheduledOrders";
 import RecommendDpPage from "../features/orders/pages/RecommendDpPage";
+import DpCancellationRecords from "../features/admin/pages/DpCancellationRecords";
 
 export const AppRoutes = () => {
   return (
@@ -141,6 +142,7 @@ export const AppRoutes = () => {
         <Route path="charges" element={<Charges />} />
         <Route path="charges/edit" element={<EditChargeConfig />} />
         <Route path="vehicles" element={<VehicleConfigurations />} />
+        <Route path="cancellations" element={<DpCancellationRecords />} />
       </Route>
 
       {/* Fallback Redirect */}

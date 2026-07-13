@@ -145,6 +145,11 @@ export const PdcSubmitDocs = () => {
           {/* Section 1: Aadhar */}
           <div className="border-b border-slate-100 pb-5">
             <h3 className="font-bold text-xs uppercase text-slate-400 tracking-wide mb-3">1. Identity Proof (Aadhar)</h3>
+            {pdcDocument?.aadhar_status === 'rejected' && (
+              <div className="mb-4 bg-red-50 text-red-700 text-xs font-semibold px-4 py-2.5 rounded-xl border border-red-200">
+                ⚠️ <span className="font-bold">Aadhar Rejected:</span> {pdcDocument?.aadhar_reject_reason || 'Please re-upload clear images.'}
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Aadhar Number"
@@ -163,7 +168,7 @@ export const PdcSubmitDocs = () => {
                   name="aadhar_front_image"
                   accept="image/*,.pdf"
                   onChange={handleFileChange}
-                  required={!pdcDocument?.aadhar_front_image}
+                  required={!pdcDocument?.aadhar_front_image || pdcDocument?.aadhar_status === 'rejected'}
                   className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-purple-soft file:text-brand-purple hover:file:bg-indigo-100 cursor-pointer"
                 />
                 {renderThumbnail(localPreviews.aadhar_front_image || pdcDocument?.aadhar_front_image)}
@@ -177,7 +182,7 @@ export const PdcSubmitDocs = () => {
                   name="aadhar_back_image"
                   accept="image/*,.pdf"
                   onChange={handleFileChange}
-                  required={!pdcDocument?.aadhar_back_image}
+                  required={!pdcDocument?.aadhar_back_image || pdcDocument?.aadhar_status === 'rejected'}
                   className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-purple-soft file:text-brand-purple hover:file:bg-indigo-100 cursor-pointer"
                 />
                 {renderThumbnail(localPreviews.aadhar_back_image || pdcDocument?.aadhar_back_image)}
@@ -188,6 +193,11 @@ export const PdcSubmitDocs = () => {
           {/* Section 2: PAN */}
           <div className="border-b border-slate-100 pb-5">
             <h3 className="font-bold text-xs uppercase text-slate-400 tracking-wide mb-3">2. PAN Card Details</h3>
+            {(pdcDocument?.pan_status === 'rejected' || pdcDocument?.pancard_status === 'rejected') && (
+              <div className="mb-4 bg-red-50 text-red-700 text-xs font-semibold px-4 py-2.5 rounded-xl border border-red-200">
+                ⚠️ <span className="font-bold">PAN Rejected:</span> {pdcDocument?.pan_reject_reason || 'Please re-upload clear images.'}
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="PAN Number"
@@ -206,7 +216,7 @@ export const PdcSubmitDocs = () => {
                   name="pancard_image"
                   accept="image/*,.pdf"
                   onChange={handleFileChange}
-                  required={!pdcDocument?.pancard_image}
+                  required={!pdcDocument?.pancard_image || pdcDocument?.pan_status === 'rejected' || pdcDocument?.pancard_status === 'rejected'}
                   className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-purple-soft file:text-brand-purple hover:file:bg-indigo-100 cursor-pointer"
                 />
                 {renderThumbnail(localPreviews.pancard_image || pdcDocument?.pancard_image)}
@@ -217,6 +227,11 @@ export const PdcSubmitDocs = () => {
           {/* Section 3: GST */}
           <div className="border-b border-slate-100 pb-5">
             <h3 className="font-bold text-xs uppercase text-slate-400 tracking-wide mb-3">3. GST Details</h3>
+            {pdcDocument?.gst_status === 'rejected' && (
+              <div className="mb-4 bg-red-50 text-red-700 text-xs font-semibold px-4 py-2.5 rounded-xl border border-red-200">
+                ⚠️ <span className="font-bold">GST Rejected:</span> {pdcDocument?.gst_reject_reason || 'Please re-upload clear images.'}
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="GST Number"
@@ -235,7 +250,7 @@ export const PdcSubmitDocs = () => {
                   name="gst_doc"
                   accept="image/*,.pdf"
                   onChange={handleFileChange}
-                  required={!pdcDocument?.gst_doc}
+                  required={!pdcDocument?.gst_doc || pdcDocument?.gst_status === 'rejected'}
                   className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-purple-soft file:text-brand-purple hover:file:bg-indigo-100 cursor-pointer"
                 />
                 {renderThumbnail(localPreviews.gst_doc || pdcDocument?.gst_doc)}
@@ -246,6 +261,11 @@ export const PdcSubmitDocs = () => {
           {/* Section 4: Bank */}
           <div className="border-b border-slate-100 pb-5">
             <h3 className="font-bold text-xs uppercase text-slate-400 tracking-wide mb-3">4. Bank Account Details</h3>
+            {pdcDocument?.bank_status === 'rejected' && (
+              <div className="mb-4 bg-red-50 text-red-700 text-xs font-semibold px-4 py-2.5 rounded-xl border border-red-200">
+                ⚠️ <span className="font-bold">Bank Details Rejected:</span> {pdcDocument?.bank_reject_reason || 'Please re-upload clear images.'}
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Account Number"
@@ -273,7 +293,7 @@ export const PdcSubmitDocs = () => {
                 name="passbook_image"
                 accept="image/*,.pdf"
                 onChange={handleFileChange}
-                required={!pdcDocument?.passbook_image}
+                required={!pdcDocument?.passbook_image || pdcDocument?.bank_status === 'rejected'}
                 className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-purple-soft file:text-brand-purple hover:file:bg-indigo-100 cursor-pointer"
               />
               {renderThumbnail(localPreviews.passbook_image || pdcDocument?.passbook_image)}

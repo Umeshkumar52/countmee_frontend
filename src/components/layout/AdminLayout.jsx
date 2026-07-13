@@ -21,6 +21,7 @@ import {
   Bell,
   Car,
   CalendarClock,
+  ShieldAlert,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser } from "../../features/auth/authSlice";
@@ -81,6 +82,7 @@ export const AdminLayout = () => {
     { name: "Reports", path: "/admin/reports", icon: Landmark },
     { name: "Charges", path: "/admin/charges", icon: BadgeIndianRupee },
     { name: "Vehicles", path: "/admin/vehicles", icon: Car },
+    { name: "Cancellations", path: "/admin/cancellations", icon: ShieldAlert },
   ];
 
   return (

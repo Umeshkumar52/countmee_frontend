@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Clock, History, Landmark, Info, Wallet, Search, ExternalLink } from 'lucide-react';
+import { Clock, History, Landmark, Info, Wallet, Search, ExternalLink, HourglassIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { fetchPendingPayments, fetchPastPayments, settlePayments } from '../../../api/admin.api';
+import { fetchPendingPayments, fetchPastPayments, settlePayments, fetchAdminWaitingCharges, fetchLatePaidWaitingCharges } from '../../../api/admin.api';
 import Table from '../../../components/common/Table';
 import Badge from '../../../components/common/Badge';
 import Button from '../../../components/common/Button';
@@ -12,7 +12,8 @@ import toast from 'react-hot-toast';
 
 export const FinanceOverview = () => {
   const navigate = useNavigate();
-  const [activeView, setActiveView] = useState('pending'); // pending, past
+  const [activeView, setActiveView] = useState('pending'); // pending, past, waiting
+  const [waitingSubTab, setWaitingSubTab] = useState('pending'); // pending, settled, late
   const [financeType, setFinanceType] = useState('DP'); // DP, PDC
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
@@ -23,6 +24,7 @@ export const FinanceOverview = () => {
 
   const [pendingRecords, setPendingRecords] = useState([]);
   const [pastRecords, setPastRecords] = useState([]);
+  const [waitingRecords, setWaitingRecords] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Modals state
@@ -66,13 +68,34 @@ export const FinanceOverview = () => {
     }
   };
 
+  const handleFetchWaiting = async () => {
+    setIsLoading(true);
+    setWaitingRecords([]);
+    try {
+      let response;
+      if (waitingSubTab === 'late') {
+        response = await fetchLatePaidWaitingCharges();
+      } else {
+        response = await fetchAdminWaitingCharges({ status: waitingSubTab });
+      }
+      setWaitingRecords(response.data.data || response.data || []);
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to load waiting charges');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (activeView === 'past') {
       handleFetchPast();
+    } else if (activeView === 'waiting') {
+      handleFetchWaiting();
     } else {
       handleFetchPending();
     }
-  }, [activeView, financeType]);
+  }, [activeView, financeType, waitingSubTab]);
 
   const [settleType, setSettleType] = useState('both'); // base, waiting, both
 
@@ -118,8 +141,7 @@ export const FinanceOverview = () => {
   const pendingHeaders = financeType === 'DP'
     ? ['Pilot ID', 'Pilot Name', 'Total Orders', 'Sum to Pay', 'Bank Details', 'Actions']
     : ['PDC ID', 'Center Name', 'Total Orders', 'Sum to Pay', 'Bank Details', 'Actions'];
-
-  const pastHeaders = ['Settlement ID', 'Recipient Name', 'Role', 'Amount Paid', 'Orders Settled', 'Date'];
+  const pastHeaders = ['Settlement ID', 'Recipient Name', 'Role', 'Payment Type', 'Amount Paid', 'Orders Settled', 'Date'];
 
   return (
     <div className="space-y-6 text-left page-transition">
@@ -151,6 +173,16 @@ export const FinanceOverview = () => {
           }`}
         >
           <History className="w-4 h-4" /> Past Payouts History
+        </button>
+        <button
+          onClick={() => setActiveView('waiting')}
+          className={`px-4 py-2 text-xs font-bold transition-colors rounded-lg cursor-pointer flex items-center gap-2 ${
+            activeView === 'waiting'
+              ? 'bg-amber-500 text-white'
+              : 'text-slate-500 hover:bg-slate-100'
+          }`}
+        >
+          <HourglassIcon className="w-4 h-4" /> Waiting Charges
         </button>
       </div>
 
@@ -291,6 +323,89 @@ export const FinanceOverview = () => {
             }}
           />
         </div>
+      ) : activeView === 'waiting' ? (
+        <div className="space-y-6">
+          <div className="bg-white p-5 rounded-2xl border border-slate-100 flex flex-col sm:flex-row sm:items-center gap-4 shadow-xs">
+            <div className="flex gap-2 w-full overflow-x-auto pb-2 sm:pb-0">
+              <button
+                onClick={() => setWaitingSubTab('pending')}
+                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-colors border whitespace-nowrap cursor-pointer ${
+                  waitingSubTab === 'pending'
+                    ? 'bg-amber-500 border-amber-500 text-white'
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Pending (Last 4 Months)
+              </button>
+              <button
+                onClick={() => setWaitingSubTab('settled')}
+                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-colors border whitespace-nowrap cursor-pointer ${
+                  waitingSubTab === 'settled'
+                    ? 'bg-emerald-500 border-emerald-500 text-white'
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Settled (Last 4 Months)
+              </button>
+              <button
+                onClick={() => setWaitingSubTab('late')}
+                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-colors border whitespace-nowrap cursor-pointer ${
+                  waitingSubTab === 'late'
+                    ? 'bg-brand-purple border-brand-purple text-white'
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Late Paid Revenue (Last 30 Days)
+              </button>
+            </div>
+            
+            <Button
+              onClick={handleFetchWaiting}
+              isLoading={isLoading}
+              variant="primary"
+              size="sm"
+              className="py-2.5 px-5 shrink-0 sm:ml-auto"
+            >
+              Refresh Data
+            </Button>
+          </div>
+
+          <Table
+            headers={waitingSubTab === 'late' ? ['Order ID', 'Payment Status', 'Paid Date', 'Total Wait Charge'] : pendingHeaders}
+            data={waitingRecords}
+            isLoading={isLoading}
+            emptyMessage={waitingSubTab === 'late' ? "No late paid waiting charges in the last 30 days." : `No ${waitingSubTab} waiting charges found in the last 4 months.`}
+            renderRow={(item) => {
+              if (waitingSubTab === 'late') {
+                return (
+                  <tr key={item._id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-5 py-4 text-xs font-bold text-slate-500">#{item.order_id?._id}</td>
+                    <td className="px-5 py-4 text-xs"><Badge variant="success">Paid ({item.payment_method})</Badge></td>
+                    <td className="px-5 py-4 text-xs text-slate-600">{new Date(item.paid_at).toLocaleDateString()}</td>
+                    <td className="px-5 py-4 text-xs font-extrabold text-slate-900">₹ {(item.total_waiting_charge || 0).toFixed(2)}</td>
+                  </tr>
+                );
+              }
+
+              // Standard Group Row for Pending/Settled
+              const id = item.dp_auth_id || item.pdc_auth_id;
+              return (
+                <tr key={id} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-5 py-4 text-xs font-bold text-slate-500">#{id}</td>
+                  <td className="px-5 py-4 text-xs font-semibold text-slate-800">{item.name}</td>
+                  <td className="px-5 py-4 text-xs text-slate-600 font-bold">{item.total_orders} Orders</td>
+                  <td className="px-5 py-4 text-xs font-extrabold text-slate-900">₹ {(item.amount_to_pay || 0).toFixed(2)}</td>
+                  <td className="px-5 py-4 text-xs text-slate-600">Bank Info Available</td>
+                  <td className="px-5 py-4 text-xs flex gap-2">
+                    <Button onClick={() => showDetails(item)} variant="secondary" size="xs">
+                      View Orders
+                    </Button>
+                  </td>
+                </tr>
+              );
+            }}
+          />
+        </div>
       ) : (
         <div className="space-y-6">
           {/* Past Settlements History Table */}
@@ -311,6 +426,15 @@ export const FinanceOverview = () => {
                   <Badge variant={item.user_type === 'DP' ? 'success' : 'indigo'}>
                     {item.user_type === 'DP' ? 'Pilot (DP)' : 'PDC Center'}
                   </Badge>
+                </td>
+                <td className="px-5 py-4 text-xs">
+                  {item.settle_type === 'waiting' ? (
+                    <Badge variant="warning">Wait Charge</Badge>
+                  ) : item.settle_type === 'both' ? (
+                    <Badge variant="indigo">Base + Wait</Badge>
+                  ) : (
+                    <Badge variant="success">Base Price</Badge>
+                  )}
                 </td>
                 <td className="px-5 py-4 text-xs font-bold text-slate-700">
                   ₹ {item.settled_amount.toFixed(2)}
@@ -360,7 +484,7 @@ export const FinanceOverview = () => {
             </div>
           ) : (
             <div className="bg-slate-50 border border-slate-100 rounded-lg p-4 text-center">
-              <span className="text-sm font-bold text-slate-700">Total Settlement: ₹{selectedGroup.amount_to_pay.toFixed(2)}</span>
+              <span className="text-sm font-bold text-slate-700">Total Settlement: ₹{(selectedGroup.amount_to_pay || 0).toFixed(2)}</span>
             </div>
           )}
         </ConfirmationModal>
