@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import React, { useEffect, useState } from 'react';
 import { fetchPdcRatings } from '../../../api/pdc.api';
 import { Star, MessageSquare } from 'lucide-react';
@@ -46,6 +47,7 @@ export const PdcRatings = () => {
         }
       } catch (error) {
         console.error("Failed to load PDC ratings:", error);
+      toast.error("Failed to load PDC ratings:");
       } finally {
         setIsLoading(false);
       }

@@ -72,6 +72,7 @@ export const PdcOrderHistory = () => {
       setHistoryOrders(response.data || []);
     } catch (e) {
       console.error('Failed to load order history', e);
+      toast.error("Failed to load order history");
     } finally {
       setIsLoading(false);
     }
@@ -128,6 +129,7 @@ export const PdcOrderHistory = () => {
       setRatingData({ stars: 0, message: '' });
     } catch (error) {
       console.error('Failed to submit rating:', error);
+      toast.error("Failed to submit rating:");
       toast.error(error.response?.data?.message || 'Failed to submit rating');
     }
   };

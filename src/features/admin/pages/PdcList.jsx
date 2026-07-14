@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -49,6 +50,7 @@ export const PdcList = () => {
       setTotalPdcs(dataPayload.total || 0);
     } catch (e) {
       console.error("Failed to load PDCs", e);
+      toast.error("Failed to load PDCs");
     } finally {
       setIsLoading(false);
     }
@@ -74,6 +76,7 @@ export const PdcList = () => {
       fetchPdcs();
     } catch (e) {
       console.error("Failed to activate PDC", e);
+      toast.error("Failed to activate PDC");
     }
   };
 
@@ -83,6 +86,7 @@ export const PdcList = () => {
       fetchPdcs();
     } catch (e) {
       console.error("Failed to deactivate PDC", e);
+      toast.error("Failed to deactivate PDC");
     }
   };
 

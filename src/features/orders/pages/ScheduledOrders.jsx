@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -74,6 +75,7 @@ export const ScheduledOrders = () => {
       setActiveBundlesCount(bundlesData?.bundles?.length || 0);
     } catch (e) {
       console.error("Failed to load stats or filters", e);
+      toast.error("Failed to load stats or filters");
     }
   };
 
@@ -103,6 +105,7 @@ export const ScheduledOrders = () => {
       setTotalOrders(response.data.total);
     } catch (e) {
       console.error("Failed to load paginated orders", e);
+      toast.error("Failed to load paginated orders");
     } finally {
       setIsLoading(false);
     }
@@ -210,21 +213,21 @@ export const ScheduledOrders = () => {
       </div>
 
       {/* Stats Cards Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        {/* Total Scheduled */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* All Dates (Clear Filter) */}
         <div
           onClick={() => setSelectedDateFilter("")}
           className={`flex flex-col items-center justify-center p-3 bg-blue-50/50 border-2 rounded-xl cursor-pointer transition-all hover:bg-blue-50 ${selectedDateFilter === "" ? "border-blue-600 shadow-md scale-[1.02]" : "border-blue-400 opacity-90"}`}
         >
-          <div className="text-blue-700 font-bold text-sm">Total Scheduled</div>
+          <div className="text-blue-700 font-bold text-sm">All Dates</div>
           <div className="text-slate-500 text-[10px] mb-1">
-            Orders (all dates)
+            Clear Date Filter
           </div>
           <div className="text-2xl font-black text-slate-900 mb-1">
-            {stats?.total || 0}
+            <Filter className="w-6 h-6 text-blue-500 my-1" />
           </div>
           <div className="text-[9px] text-slate-400 flex items-center gap-1 group-hover:text-blue-600 transition-colors">
-            click &rarr; full list
+            click to view all
           </div>
         </div>
 
@@ -277,27 +280,11 @@ export const ScheduledOrders = () => {
           <div className="text-[9px] text-transparent select-none">spacer</div>
         </div>
 
-        {/* Broadcast Orders */}
-        <div
-          onClick={() => navigate("/admin/scheduled-orders/broadcasts")}
-          className={`flex flex-col items-center justify-center p-3 bg-rose-50/50 border-2 rounded-xl cursor-pointer transition-all hover:bg-rose-50 border-rose-400 opacity-90`}
-        >
-          <div className="text-rose-700 font-bold text-sm flex items-center gap-1">
-            <Radio className="w-4 h-4" /> Broadcast Orders
-          </div>
-          <div className="text-slate-500 text-[10px] mb-1">Active Bundles</div>
-          <div className="text-2xl font-black text-slate-900 mb-1">
-            {activeBundlesCount}
-          </div>
-          <div className="text-[9px] text-rose-600 flex items-center gap-1 group-hover:text-rose-600 transition-colors">
-            click &rarr; view bundles
-          </div>
-        </div>
       </div>
 
       {/* Advanced Filters Row */}
-      <div className="flex flex-wrap items-center gap-3 mb-6 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
-        <div className="relative min-w-[200px] flex-1 sm:flex-none">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:flex xl:flex-row xl:flex-wrap items-center gap-3 mb-6 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+        <div className="relative w-full sm:col-span-2 xl:col-span-1 xl:flex-1">
           <Input
             placeholder="Search Order / Customer"
             value={searchTerm}
@@ -311,18 +298,18 @@ export const ScheduledOrders = () => {
           placeholder="Pickup PIN"
           value={selectedPickupPin}
           onChange={(e) => setSelectedPickupPin(e.target.value)}
-          className="bg-slate-50 border-slate-300 min-w-[120px] max-w-[150px]"
+          className="w-full bg-slate-50 border-slate-300 xl:w-32"
         />
 
         <Input
           placeholder="Delivery PIN"
           value={selectedDeliveryPin}
           onChange={(e) => setSelectedDeliveryPin(e.target.value)}
-          className="bg-slate-50 border-slate-300 min-w-[120px] max-w-[150px]"
+          className="w-full bg-slate-50 border-slate-300 xl:w-32"
         />
 
         <select
-          className="h-10 px-3 bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-brand-purple focus:border-brand-purple outline-none cursor-pointer"
+          className="w-full xl:w-36 h-10 px-3 bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-brand-purple focus:border-brand-purple outline-none cursor-pointer"
           value={selectedVehicleType}
           onChange={(e) => setSelectedVehicleType(e.target.value)}
         >
@@ -335,7 +322,7 @@ export const ScheduledOrders = () => {
         </select>
 
         <select
-          className="h-10 px-3 bg-orange-50 border border-orange-300 text-slate-900 font-semibold text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 outline-none cursor-pointer"
+          className="w-full xl:w-40 h-10 px-3 bg-orange-50 border border-orange-300 text-slate-900 font-semibold text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 outline-none cursor-pointer"
           value={selectedStatus}
           onChange={(e) => setSelectedStatus(e.target.value)}
         >
@@ -356,7 +343,7 @@ export const ScheduledOrders = () => {
               state: { orderIds: selectedOrders },
             });
           }}
-          className="ml-auto"
+          className="w-full sm:col-span-2 xl:col-span-1 xl:w-auto xl:ml-auto h-10"
         >
           Find DP
         </Button>

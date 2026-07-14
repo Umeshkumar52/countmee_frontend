@@ -62,6 +62,7 @@ export const Reports = () => {
       setCurrentPage(1); // Reset page on new fetch
     } catch (e) {
       console.error("Failed to generate report", e);
+      toast.error("Failed to generate report");
       toast.error("Failed to load report data");
     } finally {
       setIsLoading(false);

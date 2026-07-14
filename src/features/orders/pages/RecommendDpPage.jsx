@@ -41,6 +41,7 @@ export const RecommendDpPage = () => {
         setDps(data.capableDps || []);
       } catch (e) {
         console.error("Failed to load bundle summary", e);
+      toast.error("Failed to load bundle summary");
         setErrorMsg(
           e.response?.data?.message || "Failed to load summary data.",
         );
@@ -62,6 +63,7 @@ export const RecommendDpPage = () => {
       navigate("/admin/scheduled-orders");
     } catch (err) {
       console.error("Failed to broadcast bundle", err);
+      toast.error("Failed to broadcast bundle");
       setErrorMsg(err.response?.data?.message || "Failed to broadcast bundle");
     } finally {
       setIsSubmit(false);

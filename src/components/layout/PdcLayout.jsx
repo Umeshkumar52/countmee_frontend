@@ -45,6 +45,7 @@ export const PdcLayout = () => {
     const docId = pdcDocument._id || pdcDocument.id;
     if (!docId) {
       console.error("Missing PDC Document ID. Cannot toggle online status.");
+      toast.error("Missing PDC Document ID. Cannot toggle online status.");
       return;
     }
 

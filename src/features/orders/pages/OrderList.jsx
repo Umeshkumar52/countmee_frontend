@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, Truck, Search } from "lucide-react";
@@ -35,6 +36,7 @@ export const OrderList = () => {
       setTotalOrders(response.data.total);
     } catch (e) {
       console.error("Failed to load paginated orders", e);
+      toast.error("Failed to load paginated orders");
     } finally {
       setIsLoading(false);
     }
@@ -99,9 +101,9 @@ export const OrderList = () => {
       </div>
 
       {/* Controls Container */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-100 pb-2">
+      <div className="flex flex-col 2xl:flex-row justify-between items-start 2xl:items-center gap-4 border-b border-slate-100 pb-4">
         {/* Tabs */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 flex-1">
           {tabs.map((tab) => (
             <button
               key={tab.value}
@@ -109,10 +111,10 @@ export const OrderList = () => {
                 setActiveTab(tab.value);
                 setCurrentPage(1);
               }}
-              className={`px-4 py-2.5 text-xs font-bold capitalize transition-colors rounded-lg cursor-pointer ${
+              className={`px-4 py-2 text-xs font-bold capitalize transition-colors rounded-lg cursor-pointer ${
                 activeTab === tab.value
-                  ? "bg-brand-purple text-white"
-                  : "text-slate-500 hover:bg-slate-100"
+                  ? "bg-brand-purple text-white shadow-sm"
+                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
               }`}
             >
               {tab.name}
@@ -121,20 +123,20 @@ export const OrderList = () => {
         </div>
 
         {/* Search */}
-        <div className="relative w-full lg:w-lg flex-shrink-0">
+        <div className="relative w-full 2xl:w-80 flex-shrink-0">
           <Search
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
           />
           <input
             type="text"
-            placeholder="Search by name, phone..."
+            placeholder="Search by order ID, name, phone..."
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
               setCurrentPage(1); // Reset to first page on new search
             }}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm transition-all outline-none focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple"
+            className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm transition-all outline-none focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple"
           />
         </div>
       </div>

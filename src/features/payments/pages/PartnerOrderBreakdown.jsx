@@ -59,6 +59,7 @@ const PartnerOrderBreakdown = () => {
       setSelectedOrder(null);
     } catch (e) {
       console.error(e);
+      toast.error(e?.response?.data?.message || e?.message || "An error occurred");
       toast.error('Settlement failed: ' + e.message);
     } finally {
       setIsSettling(false);

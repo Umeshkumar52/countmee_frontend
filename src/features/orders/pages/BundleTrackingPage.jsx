@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -60,6 +61,7 @@ const BundleTrackingPage = () => {
         setData(res);
       } catch (err) {
         console.error("Failed to load tracking data", err);
+      toast.error("Failed to load tracking data");
         setError(err.response?.data?.message || "Failed to load tracking data");
       } finally {
         setIsLoading(false);

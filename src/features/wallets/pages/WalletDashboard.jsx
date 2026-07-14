@@ -132,6 +132,7 @@ export const WalletDashboard = () => {
       }
     } catch (e) {
       console.error("Failed to load wallet dashboard data", e);
+      toast.error("Failed to load wallet dashboard data");
     } finally {
       setIsLoading(false);
     }
@@ -198,6 +199,7 @@ export const WalletDashboard = () => {
       );
     } catch (e) {
       console.error(e);
+      toast.error(e?.response?.data?.message || e?.message || "An error occurred");
     } finally {
       setIsTxsLoading(false);
     }
@@ -254,6 +256,7 @@ export const WalletDashboard = () => {
       );
     } catch (e) {
       console.error(e);
+      toast.error(e?.response?.data?.message || e?.message || "An error occurred");
     } finally {
       setIsRecipientsLoading(false);
     }

@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
@@ -25,6 +26,7 @@ export const PdcDocumentStatus = () => {
       }
     } catch (e) {
       console.error('Failed to reload profile status', e);
+      toast.error("Failed to reload profile status");
     } finally {
       setIsRefreshing(false);
     }

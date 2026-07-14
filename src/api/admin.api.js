@@ -13,6 +13,8 @@ export const createPartner = (data) => client.post("/admin/adddp", data);
 export const bulkAddPartner = (data) => client.post("/admin/bulk-adddp", data);
 export const updatePartner = (id, data) =>
   client.put(`/admin/editdp/${id}`, data);
+export const blockDpAPI = (id, data) => 
+  client.put(`/admin/block_dp/${id}`, data);
 export const deletePartner = (id) => client.delete(`/admin/delete_dp/${id}`);
 export const fetchDpDetails = (id) => client.get(`/admin/dpDetails/${id}`);
 
@@ -128,6 +130,8 @@ export const fetchReportsData = (data) =>
 // Vehicle Subcategories
 export const fetchVehicleConfigurations = () =>
   client.get("/admin/vehicleTypes?type=all");
+export const fetchVehicleSubcategoriesByType = (type) =>
+  client.get(`/admin/vehicleTypes?type=${encodeURIComponent(type)}`);
 export const createVehicleConfiguration = (data) =>
   client.post("/admin/vehicle_subcategories", data);
 export const updateVehicleConfiguration = (id, data) =>

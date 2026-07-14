@@ -3,6 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   fetchDpDetails as apiFetchDpDetails,
   updateDpDocumentStatusAPI,
+  fetchVehicleSubcategoriesByType,
+  updatePartner,
+  blockDpAPI
 } from "../../../api/admin.api";
 import Button from "../../../components/common/Button";
 import Badge from "../../../components/common/Badge";
@@ -15,7 +18,12 @@ import {
   ChevronLeft,
   FileText,
   Download,
+  Edit2,
+  Save,
+  X,
+  Ban
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 export const DpDocumentVerification = () => {
   const { id } = useParams();
@@ -23,6 +31,62 @@ export const DpDocumentVerification = () => {
   const [dpDetail, setDpDetail] = useState(null);
   const [dpDocument, setDpDocument] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [isBlocking, setIsBlocking] = useState(false);
+
+  const [isEditingSubType, setIsEditingSubType] = useState(false);
+  const [availableSubcategories, setAvailableSubcategories] = useState([]);
+  const [editedSubType, setEditedSubType] = useState("");
+  const [isSavingSubType, setIsSavingSubType] = useState(false);
+
+  const handleBlockToggle = async () => {
+    setIsBlocking(true);
+    try {
+      const newStatus = !isBlocked;
+      await blockDpAPI(id, { is_blocked: newStatus });
+      setIsBlocked(newStatus);
+      toast.success(`Delivery Partner successfully ${newStatus ? 'blocked' : 'unblocked'}`);
+    } catch (err) {
+      console.error("Failed to toggle block status", err);
+      toast.error("Failed to toggle block status");
+      toast.error("Failed to update block status");
+    } finally {
+      setIsBlocking(false);
+    }
+  };
+
+  const handleEditSubTypeClick = async () => {
+    setIsEditingSubType(true);
+    setEditedSubType(dpDocument.sub_vehicle_type || "");
+    try {
+      const res = await fetchVehicleSubcategoriesByType(dpDocument.vehicle_type);
+      if (res.data?.data?.subcategories) {
+        setAvailableSubcategories(res.data.data.subcategories);
+      }
+    } catch (err) {
+      console.error("Failed to fetch subcategories:", err);
+      toast.error("Failed to fetch subcategories:");
+      toast.error("Failed to fetch sub vehicle options");
+    }
+  };
+
+  const handleSaveSubType = async () => {
+    setIsSavingSubType(true);
+    try {
+      const formData = new FormData();
+      formData.append("sub_vehicle_type", editedSubType);
+      await updatePartner(id, formData);
+      toast.success("Sub Vehicle Type updated successfully");
+      setDpDocument(prev => ({ ...prev, sub_vehicle_type: editedSubType }));
+      setIsEditingSubType(false);
+    } catch (err) {
+      console.error("Failed to update sub type:", err);
+      toast.error("Failed to update sub type:");
+      toast.error("Failed to update sub vehicle type");
+    } finally {
+      setIsSavingSubType(false);
+    }
+  };
 
   const [rejectionReasons, setRejectionReasons] = useState({
     aadhar: "",
@@ -91,7 +155,10 @@ export const DpDocumentVerification = () => {
             window.URL.revokeObjectURL(blobUrl);
             document.body.removeChild(a);
           })
-          .catch((err) => console.error("Download failed", err));
+          .catch((err) => {
+            console.error("Download failed", err);
+            toast.error("Download failed");
+          });
       }
     });
   };
@@ -125,8 +192,10 @@ export const DpDocumentVerification = () => {
         response.data.data?.dpDocument || response.data.dpDocument;
       setDpDetail(detail);
       setDpDocument(document);
+      setIsBlocked(detail.user?.is_blocked || detail.user_id?.is_blocked || false);
     } catch (e) {
       console.error("Failed to load DP details", e);
+      toast.error("Failed to load DP details");
     } finally {
       setIsLoading(false);
     }
@@ -153,6 +222,7 @@ export const DpDocumentVerification = () => {
       fetchDetails();
     } catch (e) {
       console.error("Failed to update document status", e);
+      toast.error("Failed to update document status");
     }
   };
 
@@ -339,6 +409,18 @@ export const DpDocumentVerification = () => {
             </p>
           </div>
         </div>
+        
+        {/* Block / Unblock Button */}
+        <Button
+          onClick={handleBlockToggle}
+          variant={isBlocked ? "success" : "danger"}
+          size="sm"
+          icon={Ban}
+          disabled={isBlocking}
+          className="ml-auto"
+        >
+          {isBlocking ? "Processing..." : isBlocked ? "Unblock DP" : "Block DP"}
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -486,7 +568,38 @@ export const DpDocumentVerification = () => {
                 <h3 className="font-semibold text-lg text-gray-800 mb-2 border-b pb-2">Vehicle Specifications</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-y-3 gap-x-4 text-sm text-gray-700">
                   <p><strong>Type:</strong> {dpDocument.vehicle_type || "N/A"}</p>
-                  <p><strong>Sub Type:</strong> {dpDocument.sub_vehicle_type || "N/A"}</p>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                    <strong>Sub Type:</strong> 
+                    {isEditingSubType ? (
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={editedSubType}
+                          onChange={(e) => setEditedSubType(e.target.value)}
+                          className="bg-white border border-slate-300 rounded px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-[#553092]"
+                        >
+                          <option value="">Select</option>
+                          {availableSubcategories.map(sub => (
+                            <option key={sub._id} value={sub.sub_vehicle_type}>{sub.sub_vehicle_type}</option>
+                          ))}
+                        </select>
+                        <button onClick={handleSaveSubType} disabled={isSavingSubType} className="text-green-600 hover:text-green-700 disabled:opacity-50">
+                          <Save size={16} />
+                        </button>
+                        <button onClick={() => setIsEditingSubType(false)} className="text-slate-400 hover:text-slate-600">
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        {dpDocument.sub_vehicle_type || "N/A"}
+                        {dpDocument.vehicle_type && (
+                          <button onClick={handleEditSubTypeClick} className="text-blue-500 hover:text-blue-700 tooltip" title="Edit Sub Type">
+                            <Edit2 size={14} />
+                          </button>
+                        )}
+                      </span>
+                    )}
+                  </div>
                   <p><strong>Capacity:</strong> {dpDocument.vehicle_min_capacity ? `${dpDocument.vehicle_min_capacity} - ${dpDocument.vehicle_max_capacity} kg` : "N/A"}</p>
                   <p><strong>Is New Vehicle:</strong> {dpDocument.is_new_vehicle ? "Yes" : "No"}</p>
                   <p><strong>Registration Date:</strong> {dpDocument.vehicle_registration_date || "N/A"}</p>

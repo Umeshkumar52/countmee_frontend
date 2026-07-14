@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import React, { useEffect, useState } from "react";
 import {
   fetchCustomers as apiFetchCustomers,
@@ -45,6 +46,7 @@ export const Customers = () => {
       setCustomers(formatted);
     } catch (e) {
       console.error("Failed to load customers", e);
+      toast.error("Failed to load customers");
     } finally {
       setIsLoading(false);
     }
@@ -77,6 +79,7 @@ export const Customers = () => {
       fetchCustomers();
     } catch (err) {
       console.error("Update customer failed", err);
+      toast.error("Update customer failed");
     } finally {
       setIsSubmit(false);
     }
@@ -95,6 +98,7 @@ export const Customers = () => {
       fetchCustomers();
     } catch (e) {
       console.error("Delete customer failed", e);
+      toast.error("Delete customer failed");
     } finally {
       setIsDeleteLoading(false);
       setIsDeleteModalOpen(false);
