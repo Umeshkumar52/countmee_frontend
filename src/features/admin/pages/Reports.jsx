@@ -7,6 +7,7 @@ import Button from "../../../components/common/Button";
 import Input from "../../../components/common/Input";
 import Pagination from "../../../components/common/Pagination";
 import toast from "react-hot-toast";
+import { Landmark } from "lucide-react";
 
 export const Reports = () => {
   const [reportType, setReportType] = useState("order"); // order, user, feedback
@@ -216,7 +217,8 @@ export const Reports = () => {
   return (
     <div className="space-y-6 text-left page-transition">
       <div>
-        <h2 className="text-xl font-bold text-slate-800">
+        <h2 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <Landmark className="w-7 h-7 text-brand-purple" />
           Operational Reports
         </h2>
         <p className="text-xs text-slate-400 mt-1">

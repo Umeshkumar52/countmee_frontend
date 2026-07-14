@@ -11,6 +11,7 @@ import {
   Navigation,
   HelpCircle,
   User,
+  MapPin,
 } from "lucide-react";
 import { fetchBundleTracking } from "../../../api/orders.api";
 import Button from "../../../components/common/Button";
@@ -184,7 +185,8 @@ const BundleTrackingPage = () => {
         >
           <ArrowLeft className="w-5 h-5 text-slate-600" />
         </Button>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900 tracking-tight">
+          <MapPin className="w-8 h-8 text-brand-purple" />
           Track Assignment
         </h1>
       </div>

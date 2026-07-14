@@ -313,7 +313,10 @@ export const WalletDashboard = () => {
   return (
     <div className="space-y-6 text-left page-transition">
       <div>
-        <h2 className="text-xl font-bold text-slate-800">Wallet Management</h2>
+        <h2 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <Wallet className="w-7 h-7 text-brand-purple" />
+          Wallet Management
+        </h2>
         <p className="text-xs text-slate-400 mt-1">
           Adjust credit balances, verify joining config rewards, and execute
           mass promotional credits

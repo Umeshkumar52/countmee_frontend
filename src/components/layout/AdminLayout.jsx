@@ -184,6 +184,61 @@ export const AdminLayout = () => {
           {/* Global Metrics Cards (Scrolls horizontally if needed) */}
           <div className="flex flex-1 items-center gap-3 overflow-x-auto hide-scrollbar px-4">
             <div
+              className="flex items-center gap-3 bg-blue-50/50 border border-blue-200 px-3 py-1.5 rounded-lg shrink-0 cursor-pointer hover:bg-blue-100"
+              onClick={() => navigate("/admin/scheduled-orders")}
+            >
+              <CalendarClock size={14} className="text-blue-700" />
+              <div className="flex flex-col">
+                <span className="text-[10px] text-slate-500 font-semibold uppercase leading-none">
+                  Scheduled
+                  {/* <span className=" text-slate-800 leading-none">
+                    {metrics.totalScheduled} Total
+                  </span> */}
+                </span>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-sm font-bold text-slate-800 leading-none">
+                    {metrics.totalScheduled} Total
+                  </span>
+                  <span className="text-slate-300 mx-0.5 leading-none">|</span>
+                  <span className="text-xs font-semibold text-orange-600 leading-none whitespace-nowrap">
+                    Pending: {metrics.scheduledPending}
+                  </span>
+                  <span className="text-slate-300 mx-0.5 leading-none">|</span>
+                  <span className="text-xs font-semibold text-emerald-600 leading-none whitespace-nowrap">
+                    Completed: {metrics.scheduledCompleted}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div
+              className="flex items-center gap-3 bg-rose-50/50 border border-rose-200 px-3 py-1.5 rounded-lg shrink-0 cursor-pointer hover:bg-rose-100"
+              onClick={() => navigate("/admin/scheduled-orders/broadcasts")}
+            >
+              <Radio size={14} className="text-rose-700" />
+              <div className="flex flex-col">
+                <span className="text-[10px] text-slate-500 font-semibold uppercase leading-none">
+                  Broadcasts
+                </span>
+                <span className="text-sm font-bold text-slate-800 leading-none mt-1">
+                  {metrics.activeBundles}
+                </span>
+              </div>
+            </div>
+            <div
+              className="flex items-center gap-3 bg-orange-50/50 border border-orange-100 px-3 py-1.5 rounded-lg shrink-0 cursor-pointer hover:bg-orange-50"
+              onClick={() => navigate("/admin/orders")}
+            >
+              <Package size={14} className="text-orange-600" />
+              <div className="flex flex-col">
+                <span className="text-[10px] text-slate-500 font-semibold uppercase leading-none">
+                  Orders
+                </span>
+                <span className="text-sm font-bold text-slate-800 leading-none mt-1">
+                  {metrics.ordersCount}
+                </span>
+              </div>
+            </div>
+            <div
               className="flex items-center gap-3 bg-purple-50/50 border border-purple-100 px-3 py-1.5 rounded-lg shrink-0 cursor-pointer hover:bg-purple-50"
               onClick={() => navigate("/admin/delivery-partners")}
             >
@@ -222,61 +277,6 @@ export const AdminLayout = () => {
                 </span>
                 <span className="text-sm font-bold text-slate-800 leading-none mt-1">
                   {metrics.pdcsCount}
-                </span>
-              </div>
-            </div>
-            <div
-              className="flex items-center gap-3 bg-orange-50/50 border border-orange-100 px-3 py-1.5 rounded-lg shrink-0 cursor-pointer hover:bg-orange-50"
-              onClick={() => navigate("/admin/orders")}
-            >
-              <Package size={14} className="text-orange-600" />
-              <div className="flex flex-col">
-                <span className="text-[10px] text-slate-500 font-semibold uppercase leading-none">
-                  Orders
-                </span>
-                <span className="text-sm font-bold text-slate-800 leading-none mt-1">
-                  {metrics.ordersCount}
-                </span>
-              </div>
-            </div>
-            <div
-              className="flex items-center gap-3 bg-blue-50/50 border border-blue-200 px-3 py-1.5 rounded-lg shrink-0 cursor-pointer hover:bg-blue-100"
-              onClick={() => navigate("/admin/scheduled-orders")}
-            >
-              <CalendarClock size={14} className="text-blue-700" />
-              <div className="flex flex-col">
-                <span className="text-[10px] text-slate-500 font-semibold uppercase leading-none">
-                  Scheduled
-                  {/* <span className=" text-slate-800 leading-none">
-                    {metrics.totalScheduled} Total
-                  </span> */}
-                </span>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm font-bold text-slate-800 leading-none">
-                    {metrics.totalScheduled} Total
-                  </span>
-                  <span className="text-slate-300 mx-0.5 leading-none">|</span>
-                  <span className="text-xs font-semibold text-orange-600 leading-none whitespace-nowrap">
-                    Pending: {metrics.scheduledPending}
-                  </span>
-                  <span className="text-slate-300 mx-0.5 leading-none">|</span>
-                  <span className="text-xs font-semibold text-emerald-600 leading-none whitespace-nowrap">
-                    Completed: {metrics.scheduledCompleted}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div
-              className="flex items-center gap-3 bg-rose-50/50 border border-rose-200 px-3 py-1.5 rounded-lg shrink-0 cursor-pointer hover:bg-rose-100"
-              onClick={() => navigate("/admin/scheduled-orders/broadcasts")}
-            >
-              <Radio size={14} className="text-rose-700" />
-              <div className="flex flex-col">
-                <span className="text-[10px] text-slate-500 font-semibold uppercase leading-none">
-                  Broadcasts
-                </span>
-                <span className="text-sm font-bold text-slate-800 leading-none mt-1">
-                  {metrics.activeBundles}
                 </span>
               </div>
             </div>

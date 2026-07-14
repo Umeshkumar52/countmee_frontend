@@ -60,8 +60,8 @@ const OrderTable = ({ title, orders, isLoading, onViewPackage, onViewDp, otpKey,
                   : (raw.broadcast?.pickup_otp || '-');
                 
                 let statusColor = "bg-slate-500";
-                if (raw.broadcast?.status === "Pending") statusColor = "bg-yellow-500";
-                else if (raw.broadcast?.status === "Broadcasting") statusColor = "bg-blue-500";
+                if (raw.broadcast?.status === "pending") statusColor = "bg-yellow-500";
+                else if (raw.broadcast?.status === "broadcasting") statusColor = "bg-blue-500";
                 else if (raw.broadcast?.status === "Accepted") statusColor = "bg-green-500";
                 const stripe = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50';
                 return (
