@@ -175,6 +175,10 @@ const PartnerOrderBreakdown = () => {
                             <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-md flex items-center gap-1">
                               ✓ Settled
                             </span>
+                          ) : order.waiting_charge_expired ? (
+                            <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-3 py-1.5 rounded-md flex items-center gap-1">
+                              Expired
+                            </span>
                           ) : (
                             <Button 
                               size="sm" 
@@ -183,7 +187,7 @@ const PartnerOrderBreakdown = () => {
                               onClick={() => handleSettleClick(order)}
                               className="text-[11px] h-7 px-3 py-1"
                             >
-                              Settle
+                              Settle Wait Charge
                             </Button>
                           )}
                         </div>

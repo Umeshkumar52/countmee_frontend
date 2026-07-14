@@ -92,6 +92,10 @@ export const updateDpDocumentStatusAPI = (data) =>
 // Payments / Finance
 export const fetchPendingPayments = (params = {}) =>
   client.get("/admin/pendingpayments", { params });
+export const fetchAdminWaitingCharges = (params = {}) =>
+  client.get("/admin/waitingcharges", { params });
+export const fetchLatePaidWaitingCharges = () =>
+  client.get("/admin/latepaidwaitingcharges");
 export const settlePayments = (data) =>
   client.post("/admin/settlepayments", data);
 export const fetchPastPayments = (userId = "") =>
@@ -151,3 +155,13 @@ export const assignBundle = (orderIds, dp_id) =>
 
 export const fetchBundleSummary = (orderIds) =>
   client.post("/admin/orders/bundle-summary", { orderIds });
+
+// DP Cancellation Penalty System
+export const fetchDpCancellations = (params) =>
+  client.get("/admin/dp-cancellations", { params });
+export const fetchCancellationSetting = () =>
+  client.get("/admin/cancellation-setting");
+export const updateCancellationSetting = (data) =>
+  client.put("/admin/cancellation-setting", data);
+export const unblockDp = (dpId) =>
+  client.put(`/admin/unblock-dp/${dpId}`);

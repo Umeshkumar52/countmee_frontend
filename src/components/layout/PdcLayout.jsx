@@ -232,8 +232,13 @@ export const PdcLayout = () => {
                 </button>
 
                 {isNotifOpen && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-100 text-slate-800 rounded-xl shadow-xl z-50 overflow-hidden page-transition">
-                    <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                  <>
+                    <div
+                      className="fixed inset-0 z-40 cursor-default"
+                      onClick={() => setIsNotifOpen(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-100 text-slate-800 rounded-xl shadow-xl z-50 overflow-hidden page-transition">
+                      <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                       <div className="flex items-center gap-2">
                         <h4 className="font-semibold text-sm">Notifications</h4>
                         {unreadNotifs.length > 0 && (
@@ -302,7 +307,8 @@ export const PdcLayout = () => {
                         ))
                       )}
                     </div>
-                  </div>
+                    </div>
+                  </>
                 )}
               </div>
 
@@ -331,8 +337,13 @@ export const PdcLayout = () => {
                 </button>
 
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-100 text-slate-800 rounded-xl shadow-xl z-50 overflow-hidden page-transition">
-                    <div className="p-4 border-b border-slate-100 flex items-start gap-3">
+                  <>
+                    <div
+                      className="fixed inset-0 z-40 cursor-default"
+                      onClick={() => setIsProfileOpen(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-100 text-slate-800 rounded-xl shadow-xl z-50 overflow-hidden page-transition">
+                      <div className="p-4 border-b border-slate-100 flex items-start gap-3">
                       <div className="w-12 h-12 rounded-full border border-slate-200 bg-indigo-50 overflow-hidden flex items-center justify-center flex-shrink-0">
                         {pdcDocument?.profile_image ? (
                           <img
@@ -386,7 +397,8 @@ export const PdcLayout = () => {
                         <LogOut size={16} /> Log Out
                       </button>
                     </div>
-                  </div>
+                    </div>
+                  </>
                 )}
               </div>
             </div>

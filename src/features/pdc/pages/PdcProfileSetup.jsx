@@ -82,7 +82,7 @@ export const PdcProfileSetup = () => {
   const { user, pdcDocument, onboardingStep, isKycVerified } = useAuth();
 
   // Derive step states
-  const step1Status = pdcDocument?.name && pdcDocument?.phone ? 'done' : 'active';
+  const step1Status = user?.name && (pdcDocument?.phone || user?.phone) ? 'done' : 'active';
   const step2Status =
     step1Status !== 'done'
       ? 'locked'
