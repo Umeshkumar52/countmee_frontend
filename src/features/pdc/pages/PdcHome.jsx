@@ -299,6 +299,7 @@ export const PdcHome = () => {
       setPendingOrders(data.pendingOrders || 0);
     } catch (e) {
       console.error('Failed to load dashboard', e);
+      toast.error("Failed to load dashboard");
     } finally {
       setIsLoading(false);
     }
@@ -311,6 +312,7 @@ export const PdcHome = () => {
       fetchDashboard();
     } catch (error) {
       console.error(`Failed to ${action} drop-off:`, error);
+      toast.error("Failed to ${action} drop-off:");
       toast.error(error.response?.data?.message || `Failed to ${action} drop-off`);
       setIsLoading(false);
     }
@@ -324,6 +326,7 @@ export const PdcHome = () => {
       toast.success(res.data?.message || 'Broadcast successful!');
     } catch (error) {
       console.error('Failed to broadcast:', error);
+      toast.error("Failed to broadcast:");
       toast.error(error.response?.data?.message || 'Failed to broadcast order');
       setIsLoading(false);
     }

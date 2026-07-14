@@ -7,6 +7,7 @@ import {
   deletePartner,
   fetchDpDetails,
   updateDpApprovalStatus,
+  fetchVehicleSubcategoriesByType,
 } from "../../../api/admin.api";
 import Table from "../../../components/common/Table";
 import Badge from "../../../components/common/Badge";
@@ -125,6 +126,26 @@ export const DeliveryPartners = () => {
   const [reference2Phone, setReference2Phone] = useState("");
 
   const [subVehicleType, setSubVehicleType] = useState("");
+  const [availableSubcategories, setAvailableSubcategories] = useState([]);
+
+  useEffect(() => {
+    if (vehicle) {
+      fetchVehicleSubcategoriesByType(vehicle)
+        .then((res) => {
+          if (res.data?.data?.subcategories) {
+            setAvailableSubcategories(res.data.data.subcategories);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to fetch subcategories:", err);
+      toast.error("Failed to fetch subcategories:");
+          setAvailableSubcategories([]);
+        });
+    } else {
+      setAvailableSubcategories([]);
+    }
+  }, [vehicle]);
+
   const [otherVehicleDetails, setOtherVehicleDetails] = useState("");
   const [vehicleMinCapacity, setVehicleMinCapacity] = useState("");
   const [vehicleMaxCapacity, setVehicleMaxCapacity] = useState("");
@@ -168,6 +189,7 @@ export const DeliveryPartners = () => {
       setPartners(formatted);
     } catch (e) {
       console.error("Failed to fetch partners", e);
+      toast.error("Failed to fetch partners");
     } finally {
       setIsLoading(false);
     }
@@ -397,6 +419,7 @@ export const DeliveryPartners = () => {
         setPermitDocumentPreview(getImageUrl(dpDocument.permit_document));
     } catch (err) {
       console.error("Failed to fetch DP details", err);
+      toast.error("Failed to fetch DP details");
       setValidationError("Failed to load details. Using list summary.");
     } finally {
       setIsDetailLoading(false);
@@ -654,6 +677,7 @@ export const DeliveryPartners = () => {
       fetchPartners();
     } catch (err) {
       console.error("Submit failed", err);
+      toast.error("Submit failed");
       setValidationError(
         err.response?.data?.message ||
           "An error occurred during submission. Please check your inputs.",
@@ -676,6 +700,7 @@ export const DeliveryPartners = () => {
       fetchPartners();
     } catch (e) {
       console.error("Delete failed", e);
+      toast.error("Delete failed");
     } finally {
       setIsDeleteLoading(false);
       setIsDeleteModalOpen(false);
@@ -693,6 +718,7 @@ export const DeliveryPartners = () => {
       fetchPartners();
     } catch (e) {
       console.error("Failed to toggle approval", e);
+      toast.error("Failed to toggle approval");
     }
   };
 
@@ -1062,13 +1088,25 @@ export const DeliveryPartners = () => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <Input
-                            label="Sub Vehicle Type"
-                            id="subVehicleTypeEdit"
-                            placeholder="e.g. Scooter, Truck"
-                            value={subVehicleType}
-                            onChange={(e) => setSubVehicleType(e.target.value)}
-                          />
+                          <div className="flex flex-col text-left">
+                            <label htmlFor="subVehicleTypeEdit" className="text-xs font-semibold text-slate-600 mb-1.5">
+                              Sub Vehicle Type
+                            </label>
+                            <select
+                              id="subVehicleTypeEdit"
+                              value={subVehicleType}
+                              onChange={(e) => setSubVehicleType(e.target.value)}
+                              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm transition-all outline-none focus:ring-2 focus:ring-[#553092]/20 focus:border-[#553092]"
+                              disabled={!vehicle || availableSubcategories.length === 0}
+                            >
+                              <option value="">Select Sub Vehicle</option>
+                              {availableSubcategories.map((subcat) => (
+                                <option key={subcat._id} value={subcat.sub_vehicle_type}>
+                                  {subcat.sub_vehicle_type}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                           <Input
                             label="Other Vehicle Details"
                             id="otherVehicleDetailsEdit"
@@ -1613,13 +1651,25 @@ export const DeliveryPartners = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        label="Sub Vehicle Type"
-                        id="subVehicleType"
-                        placeholder="e.g. Scooter, Truck"
-                        value={subVehicleType}
-                        onChange={(e) => setSubVehicleType(e.target.value)}
-                      />
+                      <div className="flex flex-col text-left">
+                        <label htmlFor="subVehicleType" className="text-xs font-semibold text-slate-600 mb-1.5">
+                          Sub Vehicle Type
+                        </label>
+                        <select
+                          id="subVehicleType"
+                          value={subVehicleType}
+                          onChange={(e) => setSubVehicleType(e.target.value)}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm transition-all outline-none focus:ring-2 focus:ring-[#553092]/20 focus:border-[#553092]"
+                          disabled={!vehicle || availableSubcategories.length === 0}
+                        >
+                          <option value="">Select Sub Vehicle</option>
+                          {availableSubcategories.map((subcat) => (
+                            <option key={subcat._id} value={subcat.sub_vehicle_type}>
+                              {subcat.sub_vehicle_type}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                       <Input
                         label="Other Vehicle Details"
                         id="otherVehicleDetails"

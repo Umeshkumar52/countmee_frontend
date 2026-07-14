@@ -32,6 +32,7 @@ const BundleResponsesPage = () => {
       }
     } catch (e) {
       console.error("Failed to fetch bundle responses", e);
+      toast.error("Failed to fetch bundle responses");
       setError(e.response?.data?.message || "Failed to load responses");
     } finally {
       setIsLoading(false);

@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Truck, Radio } from "lucide-react";
@@ -59,6 +60,7 @@ export const OrderView = () => {
         setOrder(response.data);
       } catch (e) {
         console.error("Failed to load order details", e);
+      toast.error("Failed to load order details");
       } finally {
         setIsLoading(false);
       }
@@ -636,6 +638,7 @@ export const OrderView = () => {
               setOrder(response.data);
             } catch (error) {
               console.error("Failed to refresh order:", error);
+      toast.error("Failed to refresh order:");
             }
           }}
         />

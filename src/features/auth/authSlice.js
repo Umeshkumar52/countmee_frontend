@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { loginAdmin, loginPdc, registerPdc as registerPdcApi, logoutPdc } from '../../api/auth.api';
 import { toggleOnline } from '../../api/pdc.api';
@@ -15,6 +16,7 @@ const getLocalSession = () => {
       return session;
     } catch (e) {
       console.error('Failed to parse local session', e);
+      toast.error("Failed to parse local session");
     }
   }
   return null;
@@ -133,6 +135,7 @@ const authSlice = createSlice({
           localStorage.setItem('countme_session', JSON.stringify(session));
         } catch (e) {
           console.error('Failed to sync updated PDC document state', e);
+      toast.error("Failed to sync updated PDC document state");
         }
       }
     },

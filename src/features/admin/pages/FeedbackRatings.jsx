@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import React, { useEffect, useState } from "react";
 import { ROLES } from "../../../constants";
 import { fetchRatings } from "../../../api/admin.api";
@@ -49,6 +50,7 @@ export const FeedbackRatings = () => {
         setTotalFeedbacks(resData.total || 0);
       } catch (e) {
         console.error("Failed to load feedbacks", e);
+      toast.error("Failed to load feedbacks");
       } finally {
         setIsLoading(false);
       }

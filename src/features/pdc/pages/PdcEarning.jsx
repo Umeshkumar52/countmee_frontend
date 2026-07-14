@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import React, { useEffect, useState } from 'react';
 import { fetchPdcEarnings } from '../../../api/pdc.api';
 
@@ -137,6 +138,7 @@ export const PdcEarning = () => {
       setEarningsData(data);
     } catch (e) {
       console.error('Failed to load earnings', e);
+      toast.error("Failed to load earnings");
     } finally {
       setIsLoading(false);
     }

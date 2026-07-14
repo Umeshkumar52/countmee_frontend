@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, RefreshCw, CheckCircle2, XCircle, Clock, PackageOpen, Users, Eye } from "lucide-react";
@@ -20,6 +21,7 @@ const BroadcastBundlesPage = () => {
       setBundles(data?.bundles || []);
     } catch (e) {
       console.error("Failed to fetch bundles", e);
+      toast.error("Failed to fetch bundles");
     } finally {
       setIsLoading(false);
     }

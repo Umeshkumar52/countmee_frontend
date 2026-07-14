@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
 import Modal from "../../../components/common/Modal";
@@ -176,6 +177,7 @@ const BulkUploadDpModal = ({ isOpen, onClose, onSuccess }) => {
           successCount++;
         } catch (err) {
           console.error(`Row ${dpRow.row} failed:`, err);
+      toast.error("Row ${dpRow.row} failed:");
           if (err.response?.data?.errors) {
             localErrors.push(...err.response.data.errors);
           } else {
@@ -199,6 +201,7 @@ const BulkUploadDpModal = ({ isOpen, onClose, onSuccess }) => {
 
     } catch (err) {
       console.error("Top level processing error:", err);
+      toast.error("Top level processing error:");
       setGeneralError(err.message || "An unexpected error occurred during processing.");
     } finally {
       setIsSubmitting(false);

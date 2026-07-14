@@ -53,6 +53,7 @@ const EditChargeConfig = () => {
       }
     } catch (e) {
       console.error("Failed to load charges", e);
+      toast.error("Failed to load charges");
     } finally {
       setIsLoading(false);
     }
@@ -156,6 +157,7 @@ const EditChargeConfig = () => {
       navigate("/admin/charges");
     } catch (e) {
       console.error(e);
+      toast.error(e?.response?.data?.message || e?.message || "An error occurred");
       toast.error("Failed to update vehicle parameters");
     } finally {
       setIsUpdatingVehicle(false);

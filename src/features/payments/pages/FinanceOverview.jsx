@@ -49,6 +49,7 @@ export const FinanceOverview = () => {
       setPendingRecords(response.data.data || response.data || []);
     } catch (e) {
       console.error(e);
+      toast.error(e?.response?.data?.message || e?.message || "An error occurred");
       toast.error('Failed to load pending payments');
     } finally {
       setIsLoading(false);
@@ -63,6 +64,7 @@ export const FinanceOverview = () => {
       setPastRecords(response.data.data || response.data || []);
     } catch (e) {
       console.error(e);
+      toast.error(e?.response?.data?.message || e?.message || "An error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -128,6 +130,7 @@ export const FinanceOverview = () => {
       handleFetchPending();
     } catch (e) {
       console.error(e);
+      toast.error(e?.response?.data?.message || e?.message || "An error occurred");
       toast.error('Settlement failed: ' + e.message);
     } finally {
       setIsSettling(false);

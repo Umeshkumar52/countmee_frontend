@@ -20,6 +20,7 @@ export const AssignOrderModal = ({ isOpen, onClose, orderId, onAssignSuccess }) 
         setPartners(dpList);
       } catch (e) {
         console.error('Failed to load partners', e);
+      toast.error("Failed to load partners");
       } finally {
         setIsLoading(false);
       }
@@ -42,6 +43,7 @@ export const AssignOrderModal = ({ isOpen, onClose, orderId, onAssignSuccess }) 
       onClose();
     } catch (err) {
       console.error('Failed to assign order', err);
+      toast.error("Failed to assign order");
     } finally {
       setIsSubmit(false);
     }

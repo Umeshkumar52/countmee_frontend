@@ -90,7 +90,10 @@ export const PdcDetails = () => {
             window.URL.revokeObjectURL(blobUrl);
             document.body.removeChild(a);
           })
-          .catch((err) => console.error("Download failed", err));
+          .catch((err) => {
+            console.error("Download failed", err);
+            toast.error("Download failed");
+          });
       }
     });
   };
@@ -120,6 +123,7 @@ export const PdcDetails = () => {
       setLongitude(pdcData?.longitude || "");
     } catch (e) {
       console.error("Failed to load PDC details", e);
+      toast.error("Failed to load PDC details");
     } finally {
       setIsLoading(false);
     }
@@ -146,6 +150,7 @@ export const PdcDetails = () => {
       fetchPdcDetails();
     } catch (e) {
       console.error("Failed to update document status", e);
+      toast.error("Failed to update document status");
     }
   };
 
@@ -158,6 +163,7 @@ export const PdcDetails = () => {
       fetchPdcDetails();
     } catch (e) {
       console.error("Failed to update location", e);
+      toast.error("Failed to update location");
     } finally {
       setIsUpdatingLocation(false);
     }

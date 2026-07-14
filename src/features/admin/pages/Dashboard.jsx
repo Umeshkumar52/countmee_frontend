@@ -1,3 +1,4 @@
+import toast from 'react-hot-toast';
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { fetchDashboard } from "../../../api/admin.api";
@@ -68,6 +69,7 @@ export const Dashboard = () => {
         });
       } catch (e) {
         console.error("Failed to fetch stats", e);
+      toast.error("Failed to fetch stats");
       } finally {
         setIsLoading(false);
       }
@@ -75,41 +77,7 @@ export const Dashboard = () => {
     fetchDashboardStats();
   }, []);
 
-  const statCards = [
-    {
-      name: "Delivery Partners",
-      count: stats.deliveryPartnersCount,
-      color: "bg-purple-50/50 border-purple-200 hover:bg-purple-50 hover:border-purple-300",
-      textColor: "text-purple-700",
-      link: "/admin/delivery-partners",
-      icon: Truck,
-    },
-    {
-      name: "Active Customers",
-      count: stats.customersCount,
-      color: "bg-blue-50/50 border-blue-200 hover:bg-blue-50 hover:border-blue-300",
-      textColor: "text-blue-700",
-      link: "/admin/customers",
-      icon: User,
-    },
-    {
-      name: "PDC Centers",
-      count: stats.pdcsCount,
-      color: "bg-emerald-50/50 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300",
-      textColor: "text-emerald-700",
-      link: "/admin/pdc-list",
-      icon: Building2,
-    },
-    {
-      name: "Total Orders",
-      count: stats.ordersCount,
-      color: "bg-orange-50/50 border-orange-200 hover:bg-orange-50 hover:border-orange-300",
-      textColor: "text-orange-700",
-      link: "/admin/orders",
-      icon: Package,
-    },
-  ];
-
+  // Global stats are now shown in the AdminLayout Topbar
   return (
     <div className="space-y-6 text-left page-transition">
       <div>
@@ -119,31 +87,7 @@ export const Dashboard = () => {
         </p>
       </div>
 
-      {/* Stats Cards grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {statCards.map((card, idx) => {
-          const { icon: Icon } = card;
-          return (
-            <Link
-              key={idx}
-              to={card.link}
-              className={`flex flex-col items-center justify-center p-5 border rounded-xl cursor-pointer transition-all transform hover:-translate-y-0.5 ${card.color} hover:shadow-md text-center`}
-            >
-              <div className={`${card.textColor} font-bold text-sm mb-1 flex items-center justify-center gap-1.5`}>
-                <Icon size={16} strokeWidth={2.5} />
-                {card.name}
-              </div>
-              <h3 className="text-3xl font-extrabold font-display text-slate-800 my-2">
-                {isLoading ? "..." : <AnimatedCounter end={card.count} />}
-              </h3>
-              <div className="text-slate-400 text-[10px] mt-1">
-                Click &rarr; View List
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-
+      {/* Global stats are shown in the layout navbar */}
       {/* Main layout widgets */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Orders table widget */}
