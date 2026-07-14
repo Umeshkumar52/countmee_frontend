@@ -13,6 +13,7 @@ import {
   XCircle,
   ChevronDown,
   ChevronRight,
+  Car,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -134,7 +135,8 @@ export const VehicleConfigurations = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-800 tracking-tight">
+            <Car className="w-8 h-8 text-brand-purple" />
             Vehicle Configurations
           </h1>
           <p className="text-sm text-slate-500 mt-1">

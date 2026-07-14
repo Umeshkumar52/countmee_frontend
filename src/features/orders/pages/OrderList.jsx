@@ -1,7 +1,7 @@
 import toast from 'react-hot-toast';
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, Truck, Search } from "lucide-react";
+import { Eye, Truck, Search, Package } from "lucide-react";
 import { fetchPaginatedOrders } from "../../../api/orders.api";
 import Table from "../../../components/common/Table";
 import Badge from "../../../components/common/Badge";
@@ -93,7 +93,10 @@ export const OrderList = () => {
   return (
     <div className="space-y-6 text-left page-transition">
       <div>
-        <h2 className="text-xl font-bold text-slate-800">Orders Logistics</h2>
+        <h2 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <Package className="w-7 h-7 text-brand-purple" />
+          Orders Logistics
+        </h2>
         <p className="text-xs text-slate-400 mt-1">
           Monitor parcel routes, assign delivery boys, and track completion
           status

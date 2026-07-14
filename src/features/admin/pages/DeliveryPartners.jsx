@@ -16,9 +16,17 @@ import Modal from "../../../components/common/Modal";
 import Input from "../../../components/common/Input";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
 import BulkUploadDpModal from "../components/BulkUploadDpModal";
-import { Plus, Search, Eye, Edit2, Trash2, FolderUp } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Eye,
+  Edit2,
+  Trash2,
+  FolderUp,
+  Truck,
+} from "lucide-react";
 import { VEHICLE_TYPES } from "../../../constants";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 // Reusable File Upload Preview Component
 const FileUpload = ({ label, id, preview, onChange, required }) => (
@@ -138,7 +146,7 @@ export const DeliveryPartners = () => {
         })
         .catch((err) => {
           console.error("Failed to fetch subcategories:", err);
-      toast.error("Failed to fetch subcategories:");
+          toast.error("Failed to fetch subcategories:");
           setAvailableSubcategories([]);
         });
     } else {
@@ -157,11 +165,15 @@ export const DeliveryPartners = () => {
   const [permitExpiry, setPermitExpiry] = useState("");
 
   const [insuranceDocument, setInsuranceDocument] = useState(null);
-  const [emissionCertificateDocument, setEmissionCertificateDocument] = useState(null);
+  const [emissionCertificateDocument, setEmissionCertificateDocument] =
+    useState(null);
   const [permitDocument, setPermitDocument] = useState(null);
 
   const [insuranceDocumentPreview, setInsuranceDocumentPreview] = useState("");
-  const [emissionCertificateDocumentPreview, setEmissionCertificateDocumentPreview] = useState("");
+  const [
+    emissionCertificateDocumentPreview,
+    setEmissionCertificateDocumentPreview,
+  ] = useState("");
   const [permitDocumentPreview, setPermitDocumentPreview] = useState("");
   // Step state (1: Basic, 2: Vehicle, 3: KYC Docs & Bank, 4: References)
   const [currentStep, setCurrentStep] = useState(1);
@@ -182,7 +194,7 @@ export const DeliveryPartners = () => {
         name: d.user?.name || "N/A",
         phone: d.user?.phone || "N/A",
         email: d.user?.email || "N/A",
-        vehicle: d.vehicle_type || "Bike",
+        vehicle: d.vehicle_type || VEHICLE_TYPES.TWO_WHEELER,
         status: d.status,
         document_approval: d.document_approval,
       }));
@@ -285,7 +297,12 @@ export const DeliveryPartners = () => {
     setName(partner.name || "");
     setEmail(partner.email || "");
     setPhone(partner.phone || "");
-    setVehicle(partner.vehicle || VEHICLE_TYPES.TWO_WHEELER);
+    // Ensure vehicle is always a valid type known by the backend
+    const validVehicleTypes = Object.values(VEHICLE_TYPES);
+    const safeVehicle = validVehicleTypes.includes(partner.vehicle)
+      ? partner.vehicle
+      : VEHICLE_TYPES.TWO_WHEELER;
+    setVehicle(safeVehicle);
     setDob("");
     setGender("");
     setAddress("");
@@ -357,12 +374,17 @@ export const DeliveryPartners = () => {
             ? dpDetail.dob.split("T")[0]
             : "",
       );
-      setGender(dpDetail?.gender || "");
+      setGender(dpDetail?.gender ? dpDetail.gender.toLowerCase() : "");
       setAddress(dpDetail?.address || "");
-      setVehicle(
+      // Ensure the loaded vehicle_type is a valid type accepted by the backend
+      const rawVehicleType =
         dpDocument?.vehicle_type ||
-          partner.vehicle ||
-          VEHICLE_TYPES.TWO_WHEELER,
+        partner.vehicle ||
+        VEHICLE_TYPES.TWO_WHEELER;
+      setVehicle(
+        validVehicleTypes.includes(rawVehicleType)
+          ? rawVehicleType
+          : VEHICLE_TYPES.TWO_WHEELER,
       );
 
       setAadharNumber(dpDocument?.aadhar_number || "");
@@ -414,7 +436,9 @@ export const DeliveryPartners = () => {
       if (dpDocument?.insurance_document)
         setInsuranceDocumentPreview(getImageUrl(dpDocument.insurance_document));
       if (dpDocument?.emission_certificate_document)
-        setEmissionCertificateDocumentPreview(getImageUrl(dpDocument.emission_certificate_document));
+        setEmissionCertificateDocumentPreview(
+          getImageUrl(dpDocument.emission_certificate_document),
+        );
       if (dpDocument?.permit_document)
         setPermitDocumentPreview(getImageUrl(dpDocument.permit_document));
     } catch (err) {
@@ -637,20 +661,30 @@ export const DeliveryPartners = () => {
       formData.append("vehicle_number", vehicleNumber.trim());
       formData.append("reference1_name", reference1Name.trim());
       formData.append("reference1_phone", reference1Phone.trim());
-      
+
       if (dlExpiryDate) formData.append("dl_expiry_date", dlExpiryDate);
-      if (reference2Name) formData.append("reference2_name", reference2Name.trim());
-      if (reference2Phone) formData.append("reference2_phone", reference2Phone.trim());
-      if (subVehicleType) formData.append("sub_vehicle_type", subVehicleType.trim());
-      if (otherVehicleDetails) formData.append("other_vehicle_details", otherVehicleDetails.trim());
-      if (vehicleMinCapacity) formData.append("vehicle_min_capacity", vehicleMinCapacity);
-      if (vehicleMaxCapacity) formData.append("vehicle_max_capacity", vehicleMaxCapacity);
-      if (insuranceExpiryDate) formData.append("insurance_expiry_date", insuranceExpiryDate);
-      if (emissionExpiryDate) formData.append("emission_expiry_date", emissionExpiryDate);
+      if (reference2Name)
+        formData.append("reference2_name", reference2Name.trim());
+      if (reference2Phone)
+        formData.append("reference2_phone", reference2Phone.trim());
+      if (subVehicleType)
+        formData.append("sub_vehicle_type", subVehicleType.trim());
+      if (otherVehicleDetails)
+        formData.append("other_vehicle_details", otherVehicleDetails.trim());
+      if (vehicleMinCapacity)
+        formData.append("vehicle_min_capacity", vehicleMinCapacity);
+      if (vehicleMaxCapacity)
+        formData.append("vehicle_max_capacity", vehicleMaxCapacity);
+      if (insuranceExpiryDate)
+        formData.append("insurance_expiry_date", insuranceExpiryDate);
+      if (emissionExpiryDate)
+        formData.append("emission_expiry_date", emissionExpiryDate);
       if (permitExpiry) formData.append("permit_expiry", permitExpiry);
       formData.append("is_new_vehicle", isNewVehicle);
-      if (vehicleRegistrationDate) formData.append("vehicle_registration_date", vehicleRegistrationDate);
-      if (travelPermitStates) formData.append("travel_permit_states", travelPermitStates.trim());
+      if (vehicleRegistrationDate)
+        formData.append("vehicle_registration_date", vehicleRegistrationDate);
+      if (travelPermitStates)
+        formData.append("travel_permit_states", travelPermitStates.trim());
 
       // Append files
       if (profileImg) formData.append("profile_img", profileImg);
@@ -664,8 +698,13 @@ export const DeliveryPartners = () => {
       if (vehicleImg) formData.append("vehicle_img", vehicleImg);
       if (bankImageFront) formData.append("bank_imagefront", bankImageFront);
       if (bankImgBack) formData.append("bank_imageback", bankImgBack);
-      if (insuranceDocument) formData.append("insurance_document", insuranceDocument);
-      if (emissionCertificateDocument) formData.append("emission_certificate_document", emissionCertificateDocument);
+      if (insuranceDocument)
+        formData.append("insurance_document", insuranceDocument);
+      if (emissionCertificateDocument)
+        formData.append(
+          "emission_certificate_document",
+          emissionCertificateDocument,
+        );
       if (permitDocument) formData.append("permit_document", permitDocument);
 
       if (selectedPartner) {
@@ -709,7 +748,7 @@ export const DeliveryPartners = () => {
   };
 
   const handleToggleApproval = async (id, currentApproval) => {
-    const newStatus = currentApproval === "Approved" ? "Rejected" : "Approved";
+    const newStatus = currentApproval === "approved" ? "rejected" : "approved";
     try {
       await updateDpApprovalStatus({
         userId: id,
@@ -736,7 +775,8 @@ export const DeliveryPartners = () => {
     <div className="space-y-6 text-left page-transition">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">
+          <h2 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+            <Truck className="w-7 h-7 text-brand-purple" />
             Delivery Partners
           </h2>
           <p className="text-xs text-slate-400 mt-1">
@@ -806,12 +846,12 @@ export const DeliveryPartners = () => {
                   handleToggleApproval(dp.id, dp.document_approval)
                 }
                 variant={
-                  dp.document_approval === "Approved" ? "danger" : "success"
+                  dp.document_approval === "approved" ? "danger" : "success"
                 }
                 size="sm"
                 className="py-1 px-2.5 text-[10px]"
               >
-                {dp.document_approval === "Approved" ? "Reject" : "Approve"}
+                {dp.document_approval === "approved" ? "Reject" : "Approve"}
               </Button>
             </td>
             <td className="px-5 py-4 text-xs whitespace-nowrap">
@@ -1089,19 +1129,29 @@ export const DeliveryPartners = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="flex flex-col text-left">
-                            <label htmlFor="subVehicleTypeEdit" className="text-xs font-semibold text-slate-600 mb-1.5">
+                            <label
+                              htmlFor="subVehicleTypeEdit"
+                              className="text-xs font-semibold text-slate-600 mb-1.5"
+                            >
                               Sub Vehicle Type
                             </label>
                             <select
                               id="subVehicleTypeEdit"
                               value={subVehicleType}
-                              onChange={(e) => setSubVehicleType(e.target.value)}
+                              onChange={(e) =>
+                                setSubVehicleType(e.target.value)
+                              }
                               className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm transition-all outline-none focus:ring-2 focus:ring-[#553092]/20 focus:border-[#553092]"
-                              disabled={!vehicle || availableSubcategories.length === 0}
+                              disabled={
+                                !vehicle || availableSubcategories.length === 0
+                              }
                             >
                               <option value="">Select Sub Vehicle</option>
                               {availableSubcategories.map((subcat) => (
-                                <option key={subcat._id} value={subcat.sub_vehicle_type}>
+                                <option
+                                  key={subcat._id}
+                                  value={subcat.sub_vehicle_type}
+                                >
                                   {subcat.sub_vehicle_type}
                                 </option>
                               ))}
@@ -1112,7 +1162,9 @@ export const DeliveryPartners = () => {
                             id="otherVehicleDetailsEdit"
                             placeholder="Extra info"
                             value={otherVehicleDetails}
-                            onChange={(e) => setOtherVehicleDetails(e.target.value)}
+                            onChange={(e) =>
+                              setOtherVehicleDetails(e.target.value)
+                            }
                           />
                           <Input
                             label="Min Capacity (kg)"
@@ -1120,7 +1172,9 @@ export const DeliveryPartners = () => {
                             type="number"
                             placeholder="Min capacity"
                             value={vehicleMinCapacity}
-                            onChange={(e) => setVehicleMinCapacity(e.target.value)}
+                            onChange={(e) =>
+                              setVehicleMinCapacity(e.target.value)
+                            }
                           />
                           <Input
                             label="Max Capacity (kg)"
@@ -1128,35 +1182,45 @@ export const DeliveryPartners = () => {
                             type="number"
                             placeholder="Max capacity"
                             value={vehicleMaxCapacity}
-                            onChange={(e) => setVehicleMaxCapacity(e.target.value)}
+                            onChange={(e) =>
+                              setVehicleMaxCapacity(e.target.value)
+                            }
                           />
                           <Input
                             label="Registration Date"
                             id="vehicleRegistrationDateEdit"
                             type="date"
                             value={vehicleRegistrationDate}
-                            onChange={(e) => setVehicleRegistrationDate(e.target.value)}
+                            onChange={(e) =>
+                              setVehicleRegistrationDate(e.target.value)
+                            }
                           />
                           <Input
                             label="Insurance Expiry Date"
                             id="insuranceExpiryDateEdit"
                             type="date"
                             value={insuranceExpiryDate}
-                            onChange={(e) => setInsuranceExpiryDate(e.target.value)}
+                            onChange={(e) =>
+                              setInsuranceExpiryDate(e.target.value)
+                            }
                           />
                           <Input
                             label="Emission Expiry Date"
                             id="emissionExpiryDateEdit"
                             type="date"
                             value={emissionExpiryDate}
-                            onChange={(e) => setEmissionExpiryDate(e.target.value)}
+                            onChange={(e) =>
+                              setEmissionExpiryDate(e.target.value)
+                            }
                           />
                           <Input
                             label="Travel Permit States"
                             id="travelPermitStatesEdit"
                             placeholder="e.g. Delhi, Haryana"
                             value={travelPermitStates}
-                            onChange={(e) => setTravelPermitStates(e.target.value)}
+                            onChange={(e) =>
+                              setTravelPermitStates(e.target.value)
+                            }
                           />
                           <Input
                             label="Permit Expiry Date"
@@ -1170,10 +1234,15 @@ export const DeliveryPartners = () => {
                               type="checkbox"
                               id="isNewVehicleEdit"
                               checked={isNewVehicle}
-                              onChange={(e) => setIsNewVehicle(e.target.checked)}
+                              onChange={(e) =>
+                                setIsNewVehicle(e.target.checked)
+                              }
                               className="mr-2 h-4 w-4 text-[#553092] rounded focus:ring-[#553092]"
                             />
-                            <label htmlFor="isNewVehicleEdit" className="text-sm font-semibold text-slate-700">
+                            <label
+                              htmlFor="isNewVehicleEdit"
+                              className="text-sm font-semibold text-slate-700"
+                            >
                               Is New Vehicle?
                             </label>
                           </div>
@@ -1184,19 +1253,37 @@ export const DeliveryPartners = () => {
                             label="Insurance Document"
                             id="insuranceDocumentEdit"
                             preview={insuranceDocumentPreview}
-                            onChange={(e) => handleFileChange(e, setInsuranceDocument, setInsuranceDocumentPreview)}
+                            onChange={(e) =>
+                              handleFileChange(
+                                e,
+                                setInsuranceDocument,
+                                setInsuranceDocumentPreview,
+                              )
+                            }
                           />
                           <FileUpload
                             label="Emission Certificate"
                             id="emissionCertificateDocumentEdit"
                             preview={emissionCertificateDocumentPreview}
-                            onChange={(e) => handleFileChange(e, setEmissionCertificateDocument, setEmissionCertificateDocumentPreview)}
+                            onChange={(e) =>
+                              handleFileChange(
+                                e,
+                                setEmissionCertificateDocument,
+                                setEmissionCertificateDocumentPreview,
+                              )
+                            }
                           />
                           <FileUpload
                             label="Permit Document"
                             id="permitDocumentEdit"
                             preview={permitDocumentPreview}
-                            onChange={(e) => handleFileChange(e, setPermitDocument, setPermitDocumentPreview)}
+                            onChange={(e) =>
+                              handleFileChange(
+                                e,
+                                setPermitDocument,
+                                setPermitDocumentPreview,
+                              )
+                            }
                           />
                         </div>
 
@@ -1613,7 +1700,6 @@ export const DeliveryPartners = () => {
                         onChange={(e) => setAddress(e.target.value)}
                         required
                       />
-                      
                     </div>
                   </div>
                 )}
@@ -1652,7 +1738,10 @@ export const DeliveryPartners = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex flex-col text-left">
-                        <label htmlFor="subVehicleType" className="text-xs font-semibold text-slate-600 mb-1.5">
+                        <label
+                          htmlFor="subVehicleType"
+                          className="text-xs font-semibold text-slate-600 mb-1.5"
+                        >
                           Sub Vehicle Type
                         </label>
                         <select
@@ -1660,11 +1749,16 @@ export const DeliveryPartners = () => {
                           value={subVehicleType}
                           onChange={(e) => setSubVehicleType(e.target.value)}
                           className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm transition-all outline-none focus:ring-2 focus:ring-[#553092]/20 focus:border-[#553092]"
-                          disabled={!vehicle || availableSubcategories.length === 0}
+                          disabled={
+                            !vehicle || availableSubcategories.length === 0
+                          }
                         >
                           <option value="">Select Sub Vehicle</option>
                           {availableSubcategories.map((subcat) => (
-                            <option key={subcat._id} value={subcat.sub_vehicle_type}>
+                            <option
+                              key={subcat._id}
+                              value={subcat.sub_vehicle_type}
+                            >
                               {subcat.sub_vehicle_type}
                             </option>
                           ))}
@@ -1698,7 +1792,9 @@ export const DeliveryPartners = () => {
                         id="vehicleRegistrationDate"
                         type="date"
                         value={vehicleRegistrationDate}
-                        onChange={(e) => setVehicleRegistrationDate(e.target.value)}
+                        onChange={(e) =>
+                          setVehicleRegistrationDate(e.target.value)
+                        }
                       />
                       <Input
                         label="Insurance Expiry Date"
@@ -1729,7 +1825,10 @@ export const DeliveryPartners = () => {
                           onChange={(e) => setIsNewVehicle(e.target.checked)}
                           className="mr-2 h-4 w-4 text-[#553092] rounded focus:ring-[#553092]"
                         />
-                        <label htmlFor="isNewVehicle" className="text-sm font-semibold text-slate-700">
+                        <label
+                          htmlFor="isNewVehicle"
+                          className="text-sm font-semibold text-slate-700"
+                        >
                           Is New Vehicle?
                         </label>
                       </div>
@@ -1740,19 +1839,37 @@ export const DeliveryPartners = () => {
                         label="Insurance Document"
                         id="insuranceDocument"
                         preview={insuranceDocumentPreview}
-                        onChange={(e) => handleFileChange(e, setInsuranceDocument, setInsuranceDocumentPreview)}
+                        onChange={(e) =>
+                          handleFileChange(
+                            e,
+                            setInsuranceDocument,
+                            setInsuranceDocumentPreview,
+                          )
+                        }
                       />
                       <FileUpload
                         label="Emission Certificate"
                         id="emissionCertificateDocument"
                         preview={emissionCertificateDocumentPreview}
-                        onChange={(e) => handleFileChange(e, setEmissionCertificateDocument, setEmissionCertificateDocumentPreview)}
+                        onChange={(e) =>
+                          handleFileChange(
+                            e,
+                            setEmissionCertificateDocument,
+                            setEmissionCertificateDocumentPreview,
+                          )
+                        }
                       />
                       <FileUpload
                         label="Permit Document"
                         id="permitDocument"
                         preview={permitDocumentPreview}
-                        onChange={(e) => handleFileChange(e, setPermitDocument, setPermitDocumentPreview)}
+                        onChange={(e) =>
+                          handleFileChange(
+                            e,
+                            setPermitDocument,
+                            setPermitDocumentPreview,
+                          )
+                        }
                       />
                     </div>
                   </div>
@@ -2054,7 +2171,9 @@ export const DeliveryPartners = () => {
                           maxLength={10}
                           value={reference2Phone}
                           onChange={(e) =>
-                            setReference2Phone(e.target.value.replace(/\D/g, ""))
+                            setReference2Phone(
+                              e.target.value.replace(/\D/g, ""),
+                            )
                           }
                         />
                       </div>

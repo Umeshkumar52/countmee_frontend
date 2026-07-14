@@ -1,5 +1,6 @@
 import toast from 'react-hot-toast';
 import React, { useEffect, useState } from "react";
+import { MessageSquareWarning } from "lucide-react";
 import { ROLES } from "../../../constants";
 import { fetchRatings } from "../../../api/admin.api";
 import Table from "../../../components/common/Table";
@@ -84,7 +85,8 @@ export const FeedbackRatings = () => {
   return (
     <div className="space-y-6 text-left page-transition">
       <div>
-        <h2 className="text-xl font-bold text-slate-800">
+        <h2 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <MessageSquareWarning className="w-7 h-7 text-brand-purple" />
           Feedbacks & Ratings
         </h2>
         <p className="text-xs text-slate-400 mt-1">

@@ -9,7 +9,7 @@ import {
 import Table from "../../../components/common/Table";
 import Badge from "../../../components/common/Badge";
 import Button from "../../../components/common/Button";
-import { Eye, Search, Plus } from "lucide-react";
+import { Eye, Search, Plus, Warehouse } from "lucide-react";
 import AddPdcModal from "../components/AddPdcModal";
 import Pagination from "../../../components/common/Pagination";
 
@@ -128,7 +128,10 @@ export const PdcList = () => {
     <div className="space-y-6 text-left page-transition">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">PDC Store Hubs</h2>
+          <h2 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+            <Warehouse className="w-7 h-7 text-brand-purple" />
+            PDC Store Hubs
+          </h2>
           <p className="text-xs text-slate-400 mt-1">
             Manage parcel distribution centers, verify documents, and activate
             outlets

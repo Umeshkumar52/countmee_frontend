@@ -1,7 +1,17 @@
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, RefreshCw, CheckCircle2, XCircle, Clock, PackageOpen, Users, Eye } from "lucide-react";
+import {
+  ArrowLeft,
+  RefreshCw,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  PackageOpen,
+  Users,
+  Eye,
+  Radio,
+} from "lucide-react";
 import { fetchActiveBundles } from "../../../api/orders.api";
 import Table from "../../../components/common/Table";
 import Badge from "../../../components/common/Badge";
@@ -20,7 +30,6 @@ const BroadcastBundlesPage = () => {
       const data = await fetchActiveBundles();
       setBundles(data?.bundles || []);
     } catch (e) {
-      console.error("Failed to fetch bundles", e);
       toast.error("Failed to fetch bundles");
     } finally {
       setIsLoading(false);
@@ -55,15 +64,24 @@ const BroadcastBundlesPage = () => {
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-sm">
           {bundle.status === "broadcasting" ? (
-            <Badge variant="warning" className="flex items-center gap-1 w-fit bg-amber-50 text-amber-700 border border-amber-200">
+            <Badge
+              variant="warning"
+              className="flex items-center gap-1 w-fit bg-amber-50 text-amber-700 border border-amber-200"
+            >
               <Clock className="w-3 h-3" /> Broadcasting
             </Badge>
           ) : bundle.status === "assigned" ? (
-            <Badge variant="success" className="flex items-center gap-1 w-fit bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <Badge
+              variant="success"
+              className="flex items-center gap-1 w-fit bg-emerald-50 text-emerald-700 border border-emerald-200"
+            >
               <CheckCircle2 className="w-3 h-3" /> Assigned
             </Badge>
           ) : (
-            <Badge variant="error" className="flex items-center gap-1 w-fit bg-rose-50 text-rose-700 border border-rose-200">
+            <Badge
+              variant="error"
+              className="flex items-center gap-1 w-fit bg-rose-50 text-rose-700 border border-rose-200"
+            >
               <XCircle className="w-3 h-3" /> {bundle.status}
             </Badge>
           )}
@@ -104,7 +122,11 @@ const BroadcastBundlesPage = () => {
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => navigate(`/admin/scheduled-orders/broadcasts/${bundle.bundle_id}/track`)}
+                onClick={() =>
+                  navigate(
+                    `/admin/scheduled-orders/broadcasts/${bundle.bundle_id}/track`,
+                  )
+                }
                 className="shadow-sm hover:shadow-md transition-shadow bg-blue-600 hover:bg-blue-700"
               >
                 Track Assignment
@@ -113,7 +135,11 @@ const BroadcastBundlesPage = () => {
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => navigate(`/admin/scheduled-orders/broadcasts/${bundle.bundle_id}`)}
+                onClick={() =>
+                  navigate(
+                    `/admin/scheduled-orders/broadcasts/${bundle.bundle_id}`,
+                  )
+                }
                 className="shadow-sm hover:shadow-md transition-shadow"
               >
                 View Responses
@@ -129,25 +155,35 @@ const BroadcastBundlesPage = () => {
     <div className="p-6 max-w-[1600px] mx-auto w-full">
       <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-lg">
+          {/* <Button variant="ghost" onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-lg">
             <ArrowLeft className="w-5 h-5 text-slate-600" />
-          </Button>
+          </Button> */}
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Broadcast Orders</h1>
+            <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900 tracking-tight">
+              <Radio className="w-8 h-8 text-brand-purple" />
+              Broadcast Orders
+            </h1>
             <p className="mt-1 text-sm text-slate-500 font-medium">
-              Manage currently active order bundles broadcasted to delivery partners.
+              Manage currently active order bundles broadcasted to delivery
+              partners.
             </p>
           </div>
         </div>
-        <Button variant="outline" onClick={loadBundles} className="flex items-center gap-2 font-semibold">
-          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-brand-purple' : ''}`} />
+        <Button
+          variant="outline"
+          onClick={loadBundles}
+          className="flex items-center gap-2 font-semibold"
+        >
+          <RefreshCw
+            className={`w-4 h-4 ${isLoading ? "animate-spin text-brand-purple" : ""}`}
+          />
           Refresh
         </Button>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto min-h-[400px]">
-          <Table 
+          <Table
             headers={headers}
             data={bundles}
             isLoading={isLoading}
@@ -158,10 +194,12 @@ const BroadcastBundlesPage = () => {
         </div>
       </div>
 
-      <BundleDetailsModal 
+      <BundleDetailsModal
         bundle={selectedViewBundle}
         onClose={() => setSelectedViewBundle(null)}
-        onViewResponses={(bundleId) => navigate(`/admin/scheduled-orders/broadcasts/${bundleId}`)}
+        onViewResponses={(bundleId) =>
+          navigate(`/admin/scheduled-orders/broadcasts/${bundleId}`)
+        }
       />
     </div>
   );

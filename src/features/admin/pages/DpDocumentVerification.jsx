@@ -463,9 +463,9 @@ export const DpDocumentVerification = () => {
                 <span>Overall Approval:</span>
                 <Badge
                   variant={
-                    dpDetail.document_approval === "Approved"
+                    dpDetail.document_approval === "approved"
                       ? "success"
-                      : dpDetail.document_approval === "Rejected"
+                      : dpDetail.document_approval === "rejected"
                         ? "danger"
                         : "warning"
                   }

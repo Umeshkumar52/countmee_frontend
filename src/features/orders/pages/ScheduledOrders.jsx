@@ -1,4 +1,4 @@
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -74,7 +74,6 @@ export const ScheduledOrders = () => {
       setAvailableFilters(filtersData);
       setActiveBundlesCount(bundlesData?.bundles?.length || 0);
     } catch (e) {
-      console.error("Failed to load stats or filters", e);
       toast.error("Failed to load stats or filters");
     }
   };
@@ -104,8 +103,7 @@ export const ScheduledOrders = () => {
       setTotalPages(response.data.totalPages);
       setTotalOrders(response.data.total);
     } catch (e) {
-      console.error("Failed to load paginated orders", e);
-      toast.error("Failed to load paginated orders");
+      toast.error("Failed to load orders");
     } finally {
       setIsLoading(false);
     }
@@ -279,7 +277,6 @@ export const ScheduledOrders = () => {
           </div>
           <div className="text-[9px] text-transparent select-none">spacer</div>
         </div>
-
       </div>
 
       {/* Advanced Filters Row */}

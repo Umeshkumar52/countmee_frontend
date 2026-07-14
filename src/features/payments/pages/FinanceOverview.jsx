@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Clock, History, Landmark, Info, Wallet, Search, ExternalLink } from 'lucide-react';
+import { Clock, History, Landmark, Info, Wallet, Search, ExternalLink, FileBarChart2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { fetchPendingPayments, fetchPastPayments, settlePayments } from '../../../api/admin.api';
 import Table from '../../../components/common/Table';
@@ -128,7 +128,10 @@ export const FinanceOverview = () => {
     <div className="space-y-6 text-left page-transition">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Finance Settlement</h2>
+          <h2 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+            <FileBarChart2 className="w-7 h-7 text-brand-purple" />
+            Finance Settlement
+          </h2>
           <p className="text-xs text-slate-400 mt-1">Verify earnings accounts, aggregate payouts, and settle partner transactions</p>
         </div>
       </div>
