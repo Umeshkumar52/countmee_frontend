@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -22,7 +22,7 @@ const truckSvg = encodeURIComponent(`
 </svg>
 `);
 const truckIcon = new L.Icon({
-  iconUrl: `data:image/svg+xml;charset=utf-8,\${truckSvg}`,
+  iconUrl: `data:image/svg+xml;charset=utf-8,${truckSvg}`,
   iconSize: [40, 40],
   iconAnchor: [20, 20],
   popupAnchor: [0, -20],
