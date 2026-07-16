@@ -4,10 +4,9 @@ export const fetchDashboard = () => client.get("/admin/dashboard");
 
 // Delivery Partners
 export const fetchPartners = (params = {}) => {
-  if (!params?.search) {
-    params = {};
-  }
-  return client.get("/admin/deliverypartner", { params });
+  const queryParams = { ...params };
+  if (!queryParams.search) delete queryParams.search;
+  return client.get("/admin/deliverypartner", { params: queryParams });
 };
 export const createPartner = (data) => client.post("/admin/adddp", data);
 export const bulkAddPartner = (data) => client.post("/admin/bulk-adddp", data);
@@ -20,10 +19,9 @@ export const fetchDpDetails = (id) => client.get(`/admin/dpDetails/${id}`);
 
 // Customers
 export const fetchCustomers = (params = {}) => {
-  if (!params?.search) {
-    params = {};
-  }
-  return client.get("/admin/customer", { params });
+  const queryParams = { ...params };
+  if (!queryParams.search) delete queryParams.search;
+  return client.get("/admin/customer", { params: queryParams });
 };
 export const updateCustomer = (id, data) =>
   client.put(`/admin/editcustomer/${id}`, data);
@@ -32,10 +30,9 @@ export const deleteCustomer = (id) =>
 
 // PDCs
 export const fetchPdcs = (params = {}) => {
-  if (!params?.search) {
-    params = {};
-  }
-  return client.get("/admin/pdc", { params });
+  const queryParams = { ...params };
+  if (!queryParams.search) delete queryParams.search;
+  return client.get("/admin/pdc", { params: queryParams });
 };
 export const activatePdc = (id) => client.put(`/admin/activatepdc/${id}`);
 export const deactivatePdc = (id) => client.put(`/admin/deactivatepdc/${id}`);
@@ -49,16 +46,16 @@ export const adminAddPdc = (data) =>
 export const updateDocumentStatus = (data) => {
   if (data.pdcId) {
     const t = data.type === "pan" ? "pan" : data.type; // map to 'pan', 'aadhar', 'gst', 'bank'
-    if (data.status === "rejected" || data.status === "Reject") {
+    if (data.status === "rejected" || data.status === "reject") {
       const reasonEncoded = encodeURIComponent(
         data.reason || "No reason specified",
       );
       return client.post(`/admin/${t}_reject/${data.pdcId}/${reasonEncoded}`);
     } else {
       const val =
-        data.status === "approved" || data.status === "Accept"
-          ? "Accept"
-          : "Reject";
+        data.status === "approved" || data.status === "accept"
+          ? "approved"
+          : "rejected";
       return client.post(`/admin/${t}_status/${data.pdcId}/${val}`);
     }
   }

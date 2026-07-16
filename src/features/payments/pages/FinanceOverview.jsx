@@ -22,6 +22,7 @@ import Table from "../../../components/common/Table";
 import Badge from "../../../components/common/Badge";
 import Button from "../../../components/common/Button";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
+import Modal from "../../../components/common/Modal";
 
 import Input from "../../../components/common/Input";
 import toast from "react-hot-toast";
@@ -51,8 +52,8 @@ export const FinanceOverview = () => {
 
   const [isSettling, setIsSettling] = useState(false);
 
-  // Hovered bank info tooltip state
-  const [hoveredBankId, setHoveredBankId] = useState(null);
+  // Bank info modal state
+  const [selectedBankGroup, setSelectedBankGroup] = useState(null);
 
   const handleFetchPending = async () => {
     setIsLoading(true);
@@ -174,15 +175,15 @@ export const FinanceOverview = () => {
   const pendingHeaders =
     financeType === "DP"
       ? [
-          "Pilot ID",
-          "Pilot Name",
+          // "Pilot ID",
+          "Delivery Partner",
           "Total Orders",
           "Sum to Pay",
           "Bank Details",
           "Actions",
         ]
       : [
-          "PDC ID",
+          // "PDC ID",
           "Center Name",
           "Total Orders",
           "Sum to Pay",
@@ -190,7 +191,7 @@ export const FinanceOverview = () => {
           "Actions",
         ];
   const pastHeaders = [
-    "Settlement ID",
+    // "Settlement ID",
     "Recipient Name",
     "Role",
     "Payment Type",
@@ -319,12 +320,11 @@ export const FinanceOverview = () => {
             emptyMessage={`No pending ${financeType === "DP" ? "Delivery Partner" : "PDC"} payouts found in this date range.`}
             renderRow={(group) => {
               const id = group.dp_auth_id || group.pdc_auth_id;
-              const isHovered = hoveredBankId === id;
               return (
                 <tr key={id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-5 py-4 text-xs font-bold text-slate-500">
+                  {/* <td className="px-5 py-4 text-xs font-bold text-slate-500">
                     #{id}
-                  </td>
+                  </td> */}
                   <td className="px-5 py-4 text-xs font-semibold text-slate-800">
                     {group.name}
                   </td>
@@ -336,8 +336,7 @@ export const FinanceOverview = () => {
                   </td>
                   <td className="px-5 py-4 text-xs text-slate-600 relative">
                     <div
-                      onMouseEnter={() => setHoveredBankId(id)}
-                      onMouseLeave={() => setHoveredBankId(null)}
+                      onClick={() => setSelectedBankGroup(group)}
                       className="inline-flex items-center gap-1.5 cursor-pointer bg-slate-50 hover:bg-slate-100 py-1 px-2.5 rounded-lg border border-slate-200 transition-colors"
                     >
                       <Landmark className="w-3.5 h-3.5 text-slate-500" />
@@ -346,48 +345,6 @@ export const FinanceOverview = () => {
                       </span>
                       <Info className="w-3.5 h-3.5 text-slate-400" />
                     </div>
-
-                    {isHovered && (
-                      <div className="absolute z-50 bottom-full mb-2 left-5 bg-slate-800 text-white p-3 rounded-xl shadow-lg border border-slate-700 min-w-56 text-[10px] space-y-1 page-transition">
-                        {financeType === "DP" ? (
-                          <>
-                            <p className="font-bold border-b border-slate-700 pb-1 mb-1 text-slate-300">
-                              Bank Details
-                            </p>
-                            <p>
-                              <span className="text-slate-400">Bank Name:</span>{" "}
-                              {group.bank_name}
-                            </p>
-                            <p>
-                              <span className="text-slate-400">
-                                Account No:
-                              </span>{" "}
-                              {group.bank_acc_number}
-                            </p>
-                            <p>
-                              <span className="text-slate-400">IFSC Code:</span>{" "}
-                              {group.bank_ifsc}
-                            </p>
-                          </>
-                        ) : (
-                          <>
-                            <p className="font-bold border-b border-slate-700 pb-1 mb-1 text-slate-300">
-                              Bank Details
-                            </p>
-                            <p>
-                              <span className="text-slate-400">
-                                Account No:
-                              </span>{" "}
-                              {group.account_no}
-                            </p>
-                            <p>
-                              <span className="text-slate-400">IFSC Code:</span>{" "}
-                              {group.ifsc}
-                            </p>
-                          </>
-                        )}
-                      </div>
-                    )}
                   </td>
                   <td className="px-5 py-4 text-xs flex gap-2">
                     <Button
@@ -484,9 +441,9 @@ export const FinanceOverview = () => {
                     key={item._id}
                     className="hover:bg-slate-50/50 transition-colors"
                   >
-                    <td className="px-5 py-4 text-xs font-bold text-slate-500">
+                    {/* <td className="px-5 py-4 text-xs font-bold text-slate-500">
                       #{item.order_id?._id}
-                    </td>
+                    </td> */}
                     <td className="px-5 py-4 text-xs">
                       <Badge variant="success">
                         Paid ({item.payment_method})
@@ -506,9 +463,9 @@ export const FinanceOverview = () => {
               const id = item.dp_auth_id || item.pdc_auth_id;
               return (
                 <tr key={id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-5 py-4 text-xs font-bold text-slate-500">
+                  {/* <td className="px-5 py-4 text-xs font-bold text-slate-500">
                     #{id}
-                  </td>
+                  </td> */}
                   <td className="px-5 py-4 text-xs font-semibold text-slate-800">
                     {item.name}
                   </td>
@@ -548,9 +505,9 @@ export const FinanceOverview = () => {
                 key={item.id}
                 className="hover:bg-slate-50/50 transition-colors"
               >
-                <td className="px-5 py-4 text-xs font-bold text-slate-500">
+                {/* <td className="px-5 py-4 text-xs font-bold text-slate-500">
                   #SETTLE-{item.id}
-                </td>
+                </td> */}
                 <td className="px-5 py-4 text-xs font-semibold text-slate-800">
                   {item.user_name}
                 </td>
@@ -634,6 +591,51 @@ export const FinanceOverview = () => {
       )}
 
       {/* Orders Breakdowns Details Modal (REMOVED - Replaced by PartnerOrderBreakdown page) */}
+
+      {/* Bank Details Modal */}
+      <Modal
+        isOpen={!!selectedBankGroup}
+        onClose={() => setSelectedBankGroup(null)}
+        title="Bank Details"
+        size="md"
+      >
+        {selectedBankGroup && (
+          <div className="space-y-4 text-sm text-slate-700">
+            {financeType === "DP" ? (
+              <>
+                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                  <span className="text-slate-500 font-semibold">Bank Name</span>
+                  <span className="font-bold text-slate-900">{selectedBankGroup.bank_name}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                  <span className="text-slate-500 font-semibold">Account No</span>
+                  <span className="font-bold text-slate-900">{selectedBankGroup.bank_acc_number}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                  <span className="text-slate-500 font-semibold">IFSC Code</span>
+                  <span className="font-bold text-slate-900">{selectedBankGroup.bank_ifsc}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                  <span className="text-slate-500 font-semibold">Account No</span>
+                  <span className="font-bold text-slate-900">{selectedBankGroup.account_no}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                  <span className="text-slate-500 font-semibold">IFSC Code</span>
+                  <span className="font-bold text-slate-900">{selectedBankGroup.ifsc}</span>
+                </div>
+              </>
+            )}
+            <div className="mt-6 flex justify-end">
+              <Button variant="secondary" onClick={() => setSelectedBankGroup(null)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

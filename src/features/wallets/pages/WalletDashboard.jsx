@@ -21,6 +21,7 @@ import {
   fetchMassCreditRecipients,
 } from "../../../api/admin.api";
 import Table from "../../../components/common/Table";
+import Pagination from "../../../components/common/Pagination";
 import Badge from "../../../components/common/Badge";
 import Button from "../../../components/common/Button";
 import Input from "../../../components/common/Input";
@@ -41,6 +42,10 @@ export const WalletDashboard = () => {
   // Filters for customer wallets search
   const [searchQuery, setSearchQuery] = useState("");
   const [balanceRange, setBalanceRange] = useState("All");
+  
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Add Money / Individual credit state
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -75,11 +80,17 @@ export const WalletDashboard = () => {
   const loadInitialData = async () => {
     setIsLoading(true);
     try {
-      const walletsRes = await fetchWallets();
+      const walletsRes = await fetchWallets({
+        search: searchQuery,
+        balance_range: balanceRange === "All" ? "" : balanceRange,
+        page,
+        limit: 10,
+      });
       const data = walletsRes.data.data || walletsRes.data;
       if (data) {
         setJoiningBonus(data.joiningBonus?.value || 0);
         setBonusInput(data.joiningBonus?.value || "");
+        setTotalPages(data.totalPages || 1);
 
         // Map customers to the shape expected by UI
         const formattedCustomers = (data.customers || []).map((c) => ({
@@ -140,33 +151,28 @@ export const WalletDashboard = () => {
 
   useEffect(() => {
     loadInitialData();
-  }, [activeTab]);
+  }, [activeTab, page]);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (activeTab === "credit") {
+        setPage(1);
+        loadInitialData();
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery, balanceRange]);
 
   // Handle Search and Filters
   const handleClearFilters = () => {
     setSearchQuery("");
     setBalanceRange("All");
+    setPage(1);
   };
 
-  const filteredCustomers = customers.filter((c) => {
-    const matchesSearch =
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.phone.includes(searchQuery);
-
-    const balance = c.wallet?.balance || 0;
-    let matchesRange = true;
-    if (balanceRange === "0-100") {
-      matchesRange = balance >= 0 && balance <= 100;
-    } else if (balanceRange === "101-500") {
-      matchesRange = balance >= 101 && balance <= 500;
-    } else if (balanceRange === "501-1000") {
-      matchesRange = balance >= 501 && balance <= 1000;
-    } else if (balanceRange === "1000+") {
-      matchesRange = balance > 1000;
-    }
-
-    return matchesSearch && matchesRange;
-  });
+  // The backend now filters and paginates, so we just use customers directly
+  const filteredCustomers = customers;
 
   // Individual Add Money Modal Actions
   const openAddMoney = (customer) => {
@@ -454,6 +460,17 @@ export const WalletDashboard = () => {
               </tr>
             )}
           />
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="mt-4">
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={(p) => setPage(p)}
+              />
+            </div>
+          )}
         </div>
       )}
 

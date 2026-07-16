@@ -1,4 +1,4 @@
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -18,7 +18,7 @@ export const PdcList = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -92,22 +92,26 @@ export const PdcList = () => {
 
   const getKycBadge = (pdc) => {
     const isApproved =
-      (pdc.aadhar_status === "approved" || pdc.aadhar_status === "Accept") &&
-      (pdc.pan_status === "approved" || pdc.pan_status === "Accept") &&
-      (pdc.gst_status === "approved" || pdc.gst_status === "Accept") &&
-      (pdc.bank_status === "approved" || pdc.bank_status === "Accept");
+      (pdc.aadhar_status?.toLowerCase() === "approved" ||
+        pdc.aadhar_status?.toLowerCase() === "accept") &&
+      (pdc.pan_status?.toLowerCase() === "approved" ||
+        pdc.pan_status?.toLowerCase() === "accept") &&
+      (pdc.gst_status?.toLowerCase() === "approved" ||
+        pdc.gst_status?.toLowerCase() === "accept") &&
+      (pdc.bank_status?.toLowerCase() === "approved" ||
+        pdc.bank_status?.toLowerCase() === "accept");
 
     if (isApproved) return <Badge variant="success">Verified</Badge>;
 
     const isRejected =
-      pdc.aadhar_status === "rejected" ||
-      pdc.aadhar_status === "Reject" ||
-      pdc.pan_status === "rejected" ||
-      pdc.pan_status === "Reject" ||
-      pdc.gst_status === "rejected" ||
-      pdc.gst_status === "Reject" ||
-      pdc.bank_status === "rejected" ||
-      pdc.bank_status === "Reject";
+      pdc.aadhar_status?.toLowerCase() === "rejected" ||
+      pdc.aadhar_status?.toLowerCase() === "reject" ||
+      pdc.pan_status?.toLowerCase() === "rejected" ||
+      pdc.pan_status?.toLowerCase() === "reject" ||
+      pdc.gst_status?.toLowerCase() === "rejected" ||
+      pdc.gst_status?.toLowerCase() === "reject" ||
+      pdc.bank_status?.toLowerCase() === "rejected" ||
+      pdc.bank_status?.toLowerCase() === "reject";
 
     if (isRejected) return <Badge variant="danger">Rejected</Badge>;
 
@@ -185,8 +189,8 @@ export const PdcList = () => {
             </td>
             <td className="px-5 py-4 text-xs">{getKycBadge(pdc)}</td>
             <td className="px-5 py-4 text-xs">
-              <Badge variant={pdc.online === 1 ? "success" : "slate"}>
-                {pdc.online === 1 ? "Online" : "Offline"}
+              <Badge variant={pdc.online ? "success" : "slate"}>
+                {pdc.online ? "Online" : "Offline"}
               </Badge>
             </td>
             <td className="px-5 py-4 flex gap-4 text-xs space-x-2">

@@ -110,8 +110,8 @@ export const PdcDetails = () => {
     handleDownloadDocument(allDocs);
   };
 
-  const fetchPdcDetails = async () => {
-    setIsLoading(true);
+  const fetchPdcDetails = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
     try {
       const response = await apiFetchPdcDetails(id);
       const pdcData = response.data.pdc || response.data.data?.pdc;
@@ -125,12 +125,12 @@ export const PdcDetails = () => {
       console.error("Failed to load PDC details", e);
       toast.error("Failed to load PDC details");
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPdcDetails();
+    fetchPdcDetails(true);
   }, [id]);
 
   const handleDocumentAction = async (docType, status, reason = "") => {
@@ -146,8 +146,8 @@ export const PdcDetails = () => {
       setRejectionReasons((prev) => ({ ...prev, [docType]: "" }));
       setShowRejectForm((prev) => ({ ...prev, [docType]: false }));
 
-      // Reload details
-      fetchPdcDetails();
+      // Reload details without triggering full page loader
+      fetchPdcDetails(false);
     } catch (e) {
       console.error("Failed to update document status", e);
       toast.error("Failed to update document status");
@@ -160,7 +160,7 @@ export const PdcDetails = () => {
     try {
       await updatePdcLocation(id, { latitude, longitude });
       toast.success("Operational location updated successfully!");
-      fetchPdcDetails();
+      fetchPdcDetails(false);
     } catch (e) {
       console.error("Failed to update location", e);
       toast.error("Failed to update location");
@@ -184,8 +184,8 @@ export const PdcDetails = () => {
     const rejectReason = pdc[rejectReasonField];
 
     // Status normalization for badge
-    const isApproved = status === "approved" || status === "Accept";
-    const isRejected = status === "rejected" || status === "Reject";
+    const isApproved = status?.toLowerCase() === "approved" || status?.toLowerCase() === "accept";
+    const isRejected = status?.toLowerCase() === "rejected" || status?.toLowerCase() === "reject";
 
     return (
       <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs space-y-4">

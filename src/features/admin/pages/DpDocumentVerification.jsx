@@ -39,6 +39,19 @@ export const DpDocumentVerification = () => {
   const [editedSubType, setEditedSubType] = useState("");
   const [isSavingSubType, setIsSavingSubType] = useState(false);
 
+
+
+  const DOCUMENT_TYPES = [
+    { type: "aadhar", statusField: "adhar_status" },
+    { type: "dl", statusField: "dl_status" },
+    { type: "rc", statusField: "rc_status" },
+    { type: "bank", statusField: "bank_status" },
+    { type: "rv", statusField: "rv_status" },
+    { type: "insurance", statusField: "insurance_status" },
+    { type: "emission", statusField: "emission_status" },
+    { type: "permit", statusField: "permit_status" }
+  ];
+
   const handleBlockToggle = async () => {
     setIsBlocking(true);
     try {
@@ -183,8 +196,8 @@ export const DpDocumentVerification = () => {
     handleDownloadDocument(allDocs);
   };
 
-  const fetchDetails = async () => {
-    setIsLoading(true);
+  const fetchDetails = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
     try {
       const response = await apiFetchDpDetails(id);
       const detail = response.data.data?.dpDetail || response.data.dpDetail;
@@ -197,7 +210,7 @@ export const DpDocumentVerification = () => {
       console.error("Failed to load DP details", e);
       toast.error("Failed to load DP details");
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   };
 
@@ -218,13 +231,14 @@ export const DpDocumentVerification = () => {
       setRejectionReasons((prev) => ({ ...prev, [docType]: "" }));
       setShowRejectForm((prev) => ({ ...prev, [docType]: false }));
 
-      // Reload details
-      fetchDetails();
+      // Reload details without showing full-page loader
+      fetchDetails(false);
     } catch (e) {
       console.error("Failed to update document status", e);
       toast.error("Failed to update document status");
     }
   };
+
 
   const renderDocumentSection = (
     title,
@@ -237,8 +251,11 @@ export const DpDocumentVerification = () => {
   ) => {
     if (!dpDocument) return null;
 
-    const status = dpDocument[statusField];
+    const status = dpDocument[statusField]?.toLowerCase();
     const rejectReason = dpDocument[rejectReasonField];
+
+    const isApproved = status === "approved";
+    const isRejected = status === "rejected";
 
     return (
       <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs space-y-4">
@@ -258,7 +275,7 @@ export const DpDocumentVerification = () => {
           <div>{/* Badge removed as button text now reflects status */}</div>
         </div>
 
-        {status === "Reject" && rejectReason && (
+        {status === "rejected" && rejectReason && (
           <div className="bg-red-50 text-red-600 p-3 rounded-xl text-xs">
             <span className="font-bold">Rejection Reason:</span> {rejectReason}
           </div>
@@ -293,14 +310,14 @@ export const DpDocumentVerification = () => {
           </Button>
 
           <Button
-            onClick={() => handleDocumentAction(type, "Accept")}
+            onClick={() => handleDocumentAction(type, "approved")}
             variant="success"
             size="sm"
             icon={CheckCircle}
             className="text-xs py-1 h-8 ml-auto"
-            disabled={status === "Accept"}
+            disabled={isApproved}
           >
-            {status === "Accept" ? "Approved" : "Approve"}
+            {isApproved ? "Approved" : "Approve"}
           </Button>
 
           <Button
@@ -311,9 +328,9 @@ export const DpDocumentVerification = () => {
             size="sm"
             icon={XCircle}
             className="text-xs py-1 h-8"
-            disabled={status === "Reject"}
+            disabled={isRejected}
           >
-            {status === "Reject" ? "Rejected" : "Reject"}
+            {isRejected ? "Rejected" : "Reject"}
           </Button>
         </div>
 
@@ -347,7 +364,7 @@ export const DpDocumentVerification = () => {
                 className="py-1 h-8"
                 disabled={!rejectionReasons[type]}
                 onClick={() =>
-                  handleDocumentAction(type, "Reject", rejectionReasons[type])
+                  handleDocumentAction(type, "rejected", rejectionReasons[type])
                 }
               >
                 Confirm Rejection
@@ -479,20 +496,22 @@ export const DpDocumentVerification = () => {
 
         {/* Documents */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between pl-1">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pl-1 gap-4">
             <h3 className="font-bold text-slate-500 text-xs uppercase tracking-wide">
               Submitted KYC Files
             </h3>
             {dpDocument && (
-              <Button
-                onClick={handleDownloadAll}
-                variant="outline"
-                size="sm"
-                icon={Download}
-                className="text-xs h-8"
-              >
-                Download All
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={handleDownloadAll}
+                  variant="outline"
+                  size="sm"
+                  icon={Download}
+                  className="text-xs h-8"
+                >
+                  Download All
+                </Button>
+              </div>
             )}
           </div>
 
@@ -697,6 +716,8 @@ export const DpDocumentVerification = () => {
           </div>
         </Modal>
       )}
+
+
     </div>
   );
 };

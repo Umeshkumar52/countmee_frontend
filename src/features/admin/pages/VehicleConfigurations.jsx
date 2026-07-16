@@ -51,7 +51,8 @@ export const VehicleConfigurations = () => {
   const handleApprove = async (id) => {
     if (!window.confirm("Approve this vehicle type request?")) return;
     try {
-      await updateVehicleConfiguration(id, { status: "Approved" });
+      await updateVehicleConfiguration(id, { status: "approved" });
+      toast.success("Request approved successfully");
       loadConfigs();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to approve");
@@ -61,7 +62,8 @@ export const VehicleConfigurations = () => {
   const handleReject = async (id) => {
     if (!window.confirm("Reject this vehicle type request?")) return;
     try {
-      await updateVehicleConfiguration(id, { status: "Rejected" });
+      await updateVehicleConfiguration(id, { status: "rejected" });
+      toast.success("Request rejected successfully");
       loadConfigs();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to reject");
@@ -233,17 +235,17 @@ export const VehicleConfigurations = () => {
                             {config.sub_vehicle_type}
                           </td>
                           <td className="px-6 py-4">
-                            {config.status === "Pending" && (
+                            {config.status?.toLowerCase() === "pending" && (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
                                 Pending
                               </span>
                             )}
-                            {config.status === "Approved" && (
+                            {config.status?.toLowerCase() === "approved" && (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                 Approved
                               </span>
                             )}
-                            {config.status === "Rejected" && (
+                            {config.status?.toLowerCase() === "rejected" && (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                 Rejected
                               </span>
@@ -259,7 +261,7 @@ export const VehicleConfigurations = () => {
                             )}
                           </td>
                           <td className="px-6 py-4 text-right space-x-2">
-                            {config.status === "Pending" && (
+                            {config.status?.toLowerCase() === "pending" && (
                               <>
                                 <button
                                   onClick={() => handleApprove(config._id)}

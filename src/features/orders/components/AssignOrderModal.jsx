@@ -1,12 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { fetchNearestDps, assignDeliveryBoy } from '../../../api/admin.api';
-import Modal from '../../../components/common/Modal';
-import Button from '../../../components/common/Button';
-import toast from 'react-hot-toast';
+import React, { useEffect, useState } from "react";
+import { fetchNearestDps, assignDeliveryBoy } from "../../../api/admin.api";
+import Modal from "../../../components/common/Modal";
+import Button from "../../../components/common/Button";
+import toast from "react-hot-toast";
 
-export const AssignOrderModal = ({ isOpen, onClose, orderId, onAssignSuccess }) => {
+export const AssignOrderModal = ({
+  isOpen,
+  onClose,
+  orderId,
+  onAssignSuccess,
+}) => {
   const [partners, setPartners] = useState([]);
-  const [selectedDp, setSelectedDp] = useState('');
+  const [selectedDp, setSelectedDp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmit, setIsSubmit] = useState(false);
 
@@ -19,8 +24,8 @@ export const AssignOrderModal = ({ isOpen, onClose, orderId, onAssignSuccess }) 
         const dpList = response.data?.data || [];
         setPartners(dpList);
       } catch (e) {
-        console.error('Failed to load partners', e);
-      toast.error("Failed to load partners");
+        console.error("Failed to load partners", e);
+        toast.error("Failed to load partners");
       } finally {
         setIsLoading(false);
       }
@@ -36,13 +41,13 @@ export const AssignOrderModal = ({ isOpen, onClose, orderId, onAssignSuccess }) 
     try {
       await assignDeliveryBoy({
         order_id: orderId,
-        dp_id: selectedDp
+        dp_id: selectedDp,
       });
-      toast.success('Order successfully assigned to delivery partner!');
+      toast.success("Order successfully assigned to delivery partner!");
       onAssignSuccess();
       onClose();
     } catch (err) {
-      console.error('Failed to assign order', err);
+      console.error("Failed to assign order", err);
       toast.error("Failed to assign order");
     } finally {
       setIsSubmit(false);
@@ -57,12 +62,18 @@ export const AssignOrderModal = ({ isOpen, onClose, orderId, onAssignSuccess }) 
         </p>
 
         {isLoading ? (
-          <div className="text-xs text-slate-400 py-3">Loading active partners list...</div>
+          <div className="text-xs text-slate-400 py-3">
+            Loading active partners list...
+          </div>
         ) : partners.length === 0 ? (
-          <div className="text-xs text-red-500 font-semibold py-3">No active delivery partners available.</div>
+          <div className="text-xs text-red-500 font-semibold py-3">
+            No active delivery partners available.
+          </div>
         ) : (
           <div className="flex flex-col">
-            <label className="text-xs font-semibold text-slate-600 mb-1.5">Delivery Boy</label>
+            <label className="text-xs font-semibold text-slate-600 mb-1.5">
+              Delivery Boy
+            </label>
             <select
               value={selectedDp}
               onChange={(e) => setSelectedDp(e.target.value)}
@@ -71,8 +82,15 @@ export const AssignOrderModal = ({ isOpen, onClose, orderId, onAssignSuccess }) 
             >
               <option value="">-- Choose Partner --</option>
               {partners.map((dp) => (
-                <option key={dp.user_id || dp.id || dp._id} value={dp.user_id || dp.user?._id || dp.user_id?._id || dp._id}>
-                  {dp.name || dp.user?.name || dp.user_id?.name} ({dp.vehicle_type || dp.vehicle || "Bike"}) - Rating: ⭐{dp.rating || 0} - Active Orders: {dp.active_orders || 0}
+                <option
+                  key={dp.user_id || dp.id || dp._id}
+                  value={
+                    dp.user_id || dp.user?._id || dp.user_id?._id || dp._id
+                  }
+                >
+                  {dp.name || dp.user?.name || dp.user_id?.name} (
+                  {dp.vehicle_type || dp.vehicle || "Bike"}) - Phone:{" "}
+                  {dp?.phone || "N/A"}
                 </option>
               ))}
             </select>
@@ -83,7 +101,13 @@ export const AssignOrderModal = ({ isOpen, onClose, orderId, onAssignSuccess }) 
           <Button onClick={onClose} variant="secondary" size="sm">
             Cancel
           </Button>
-          <Button type="submit" isLoading={isSubmit} disabled={!selectedDp} variant="primary" size="sm">
+          <Button
+            type="submit"
+            isLoading={isSubmit}
+            disabled={!selectedDp}
+            variant="primary"
+            size="sm"
+          >
             Assign Partner
           </Button>
         </div>
