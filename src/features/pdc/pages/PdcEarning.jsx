@@ -1,5 +1,5 @@
 import toast from 'react-hot-toast';
-import React, { useEffect, useState } from 'react';
+import  { useEffect, useState } from 'react';
 import { fetchPdcEarnings } from '../../../api/pdc.api';
 
 // --- Shimmer Skeleton Components ---

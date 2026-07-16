@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import  { useEffect, useState } from 'react';
 import { fetchOrders } from '../../../api/orders.api';
-import Table from '../../../components/common/Table';
-import Badge from '../../../components/common/Badge';
+//import Table from '../../../components/common/Table';
+//import Badge from '../../../components/common/Badge';
 import Button from '../../../components/common/Button';
 import Modal from '../../../components/common/Modal';
 import toast from 'react-hot-toast';

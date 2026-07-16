@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import  { useEffect, useState } from 'react';
 import { Clock, History, Landmark, Info, Wallet, Search, ExternalLink, HourglassIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { fetchPendingPayments, fetchPastPayments, settlePayments, fetchAdminWaitingCharges, fetchLatePaidWaitingCharges } from '../../../api/admin.api';
@@ -6,7 +6,7 @@ import Table from '../../../components/common/Table';
 import Badge from '../../../components/common/Badge';
 import Button from '../../../components/common/Button';
 import ConfirmationModal from '../../../components/common/ConfirmationModal';
-import Modal from '../../../components/common/Modal';
+//import Modal from '../../../components/common/Modal';
 import Input from '../../../components/common/Input';
 import toast from 'react-hot-toast';
 

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { ArrowLeft, MapPin, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { updatePdcDocumentState } from '../../auth/authSlice';
 import { submitPdcDocuments } from '../../../api/pdc.api';
 import { fetchPdcProfile } from '../../../api/pdc.api';

@@ -1,5 +1,5 @@
 import toast from 'react-hot-toast';
-import React, { useEffect, useState } from 'react';
+import  { useEffect, useState } from 'react';
 import { fetchPdcRatings } from '../../../api/pdc.api';
 import { Star, MessageSquare } from 'lucide-react';
 

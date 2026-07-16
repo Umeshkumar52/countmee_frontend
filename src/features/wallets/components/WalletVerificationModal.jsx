@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import { verifyCredentials, sendOtp, verifyOtp } from '../../../api/admin.api';
 import Modal from '../../../components/common/Modal';
 import Input from '../../../components/common/Input';

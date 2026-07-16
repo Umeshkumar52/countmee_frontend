@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import {
   Wallet,
   Gift,
@@ -10,14 +10,13 @@ import {
 } from "lucide-react";
 import {
   fetchWallets,
-  fetchWalletConfig,
+  //fetchWalletConfig,
   updateJoiningBonus,
-  verifyWalletUser,
   creditIndividual,
   creditMass,
   fetchUserTransactions,
-  fetchCustomers,
-  fetchWalletConfigHistory,
+  //fetchCustomers,
+  //fetchWalletConfigHistory,
   fetchMassCreditRecipients,
 } from "../../../api/admin.api";
 import Table from "../../../components/common/Table";
