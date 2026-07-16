@@ -143,11 +143,19 @@ export const PdcDocumentStatus = () => {
             ))}
           </div>
 
-          {(pdcDocument?.aadhar_status === 'rejected' ||
-            pdcDocument?.pan_status === 'rejected' ||
-            pdcDocument?.gst_status === 'rejected' ||
-            pdcDocument?.bank_status === 'rejected') && (
-            <div className="mt-4">
+          {(() => {
+            const isRejected = (s) => s && (s.toLowerCase() === 'rejected' || s.toLowerCase() === 'reject');
+            const hasRejection =
+              isRejected(pdcDocument?.aadhar_status) ||
+              isRejected(pdcDocument?.pan_status) ||
+              isRejected(pdcDocument?.pancard_status) ||
+              isRejected(pdcDocument?.gst_status) ||
+              isRejected(pdcDocument?.bank_status);
+
+            if (!hasRejection) return null;
+
+            return (
+              <div className="mt-4">
               <Button
                 onClick={() => navigate('/pdc/submit_pdc_documents')}
                 className="w-full bg-brand-purple hover:bg-brand-purple-dark text-white font-bold"
@@ -155,7 +163,8 @@ export const PdcDocumentStatus = () => {
                 Re-submit Documents
               </Button>
             </div>
-          )}
+            );
+          })()}
         </div>
       </div>
     </div>

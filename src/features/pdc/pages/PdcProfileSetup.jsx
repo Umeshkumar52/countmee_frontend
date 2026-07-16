@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { updatePdcDocumentState } from '../../auth/authSlice';
+import { fetchPdcProfile } from '../../../api/pdc.api';
 import useAuth from '../../../hooks/useAuth';
 
 const StepCard = ({ number, title, description, status, onClick, disabled }) => {
+// ... existing StepCard code ...
   const statusStyles = {
     done: {
       icon: '✅',
@@ -79,24 +83,55 @@ const StepCard = ({ number, title, description, status, onClick, disabled }) => 
 
 export const PdcProfileSetup = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { user, pdcDocument, onboardingStep, isKycVerified } = useAuth();
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const response = await fetchPdcProfile();
+        if (response.data?.data?.document) {
+          dispatch(updatePdcDocumentState(response.data.data.document));
+        }
+      } catch (err) {
+        console.error("Failed to fetch PDC profile", err);
+      }
+    };
+    loadProfile();
+  }, [dispatch]);
+
+  // Helper to check if a document is rejected
+  const isRejected = (status) => {
+    if (!status) return false;
+    const s = status.toLowerCase();
+    return s === 'rejected' || s === 'reject';
+  };
+  const hasRejection = pdcDocument && (
+    isRejected(pdcDocument.aadhar_status) ||
+    isRejected(pdcDocument.pan_status) ||
+    isRejected(pdcDocument.pancard_status) ||
+    isRejected(pdcDocument.gst_status) ||
+    isRejected(pdcDocument.bank_status)
+  );
 
   // Derive step states
   const step1Status = user?.name && (pdcDocument?.phone || user?.phone) ? 'done' : 'active';
   const step2Status =
     step1Status !== 'done'
       ? 'locked'
+      : hasRejection
+      ? 'active'
       : pdcDocument?.aadhar_front_image || pdcDocument?.pancard_image || pdcDocument?.passbook_image
       ? 'done'
       : 'active';
   const step3Status =
-    step2Status === 'locked' || step2Status === 'active'
-      ? 'locked'
-      : isKycVerified
+    isKycVerified
       ? 'done'
-      : onboardingStep === 'status'
+      : hasRejection
+      ? 'active'
+      : step2Status === 'done'
       ? 'pending'
-      : 'active';
+      : 'locked';
 
   const handleStep1 = () => navigate('/pdc/inner_registered');
   const handleStep2 = () => {
@@ -104,7 +139,7 @@ export const PdcProfileSetup = () => {
     navigate('/pdc/submit_pdc_documents');
   };
   const handleStep3 = () => {
-    if (step2Status !== 'done') return;
+    if (step3Status === 'locked') return;
     navigate('/pdc/documentStatus');
   };
 
@@ -169,7 +204,7 @@ export const PdcProfileSetup = () => {
           description="Our team reviews your documents. You will be notified once approved."
           status={step3Status}
           onClick={handleStep3}
-          disabled={step2Status !== 'done' && step2Status !== 'pending'}
+          disabled={step3Status === 'locked'}
         />
       </div>
 
@@ -186,7 +221,17 @@ export const PdcProfileSetup = () => {
       )}
 
       {/* Status Banner */}
-      {!isKycVerified && onboardingStep === 'status' && (
+      {!isKycVerified && onboardingStep === 'status' && hasRejection && (
+        <div className="mt-6 w-full max-w-lg bg-red-50 border border-red-200 rounded-2xl p-4 text-center">
+          <span className="text-2xl">⚠️</span>
+          <h4 className="font-bold text-red-800 text-sm mt-2">Action Required</h4>
+          <p className="text-xs text-red-600 mt-1">
+            One or more of your documents were rejected. Please click on Step 2 to review the feedback and re-upload the required documents.
+          </p>
+        </div>
+      )}
+
+      {!isKycVerified && onboardingStep === 'status' && !hasRejection && (
         <div className="mt-6 w-full max-w-lg bg-blue-50 border border-blue-200 rounded-2xl p-4 text-center">
           <span className="text-2xl">⏳</span>
           <h4 className="font-bold text-blue-800 text-sm mt-2">Documents Under Review</h4>

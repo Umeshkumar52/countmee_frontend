@@ -15,6 +15,15 @@ export const PdcInnerRegister = () => {
   const [phone, setPhone] = useState(pdcDocument?.phone || user?.phone || '');
   const [email, setEmail] = useState(pdcDocument?.email || user?.email || '');
 
+  // Sync local state when pdcDocument updates from the API
+  useEffect(() => {
+    if (pdcDocument) {
+      setName(pdcDocument.name || user?.name || '');
+      setPhone(pdcDocument.phone || user?.phone || '');
+      setEmail(pdcDocument.email || user?.email || '');
+    }
+  }, [pdcDocument, user]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 

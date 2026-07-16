@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { ArrowLeft, MapPin, ExternalLink } from 'lucide-react';
 import { updatePdcDocumentState } from '../../auth/authSlice';
 import { submitPdcDocuments } from '../../../api/pdc.api';
+import { fetchPdcProfile } from '../../../api/pdc.api';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import Modal from '../../../components/common/Modal';
@@ -11,6 +12,21 @@ import useAuth from '../../../hooks/useAuth';
 
 export const PdcSubmitDocs = () => {
   const { pdcDocument } = useAuth();
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const response = await fetchPdcProfile();
+        if (response.data?.data?.document) {
+          dispatch(updatePdcDocumentState(response.data.data.document));
+        }
+      } catch (err) {
+        console.error("Failed to fetch PDC profile", err);
+      }
+    };
+    loadProfile();
+  }, [dispatch]);
 
   // Identity fields — names MUST match backend service exactly
   const [aadhar_card_no, setAadharNo] = useState(pdcDocument?.aadhar_card_no || '');
@@ -28,6 +44,22 @@ export const PdcSubmitDocs = () => {
   const [pincode, setPincode] = useState(pdcDocument?.pincode || '');
   const [address, setAddress] = useState(pdcDocument?.address || '');
 
+  // Sync local state when pdcDocument updates from the API
+  useEffect(() => {
+    if (pdcDocument) {
+      setAadharNo(pdcDocument.aadhar_card_no || '');
+      setPanNo(pdcDocument.pan_card_no || '');
+      setGstNo(pdcDocument.gst_no || '');
+      setAccountNo(pdcDocument.account_no || '');
+      setIfsc(pdcDocument.ifsc || '');
+      setCity(pdcDocument.city || '');
+      setDistrict(pdcDocument.district || '');
+      setState(pdcDocument.state || '');
+      setPincode(pdcDocument.pincode || '');
+      setAddress(pdcDocument.address || '');
+    }
+  }, [pdcDocument]);
+
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [localPreviews, setLocalPreviews] = useState({});
@@ -43,7 +75,6 @@ export const PdcSubmitDocs = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
 
@@ -85,11 +116,16 @@ export const PdcSubmitDocs = () => {
 
       const response = await submitPdcDocuments(formData);
 
-      // Optimistic update into Redux
-      dispatch(updatePdcDocumentState({
-        aadhar_card_no, pan_card_no, gst_no,
-        account_no, ifsc, city, district, state, pincode, address,
-      }));
+      // Update into Redux
+      if (response.data?.data?.document) {
+        dispatch(updatePdcDocumentState(response.data.data.document));
+      } else {
+        // Optimistic update fallback
+        dispatch(updatePdcDocumentState({
+          aadhar_card_no, pan_card_no, gst_no,
+          account_no, ifsc, city, district, state, pincode, address,
+        }));
+      }
 
       navigate('/pdc/profile_setup');
     } catch (err) {
