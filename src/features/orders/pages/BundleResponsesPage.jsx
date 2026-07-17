@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, RefreshCw, AlertCircle } from "lucide-react";
+import { ArrowLeft, RefreshCw, AlertCircle, MessageSquare } from "lucide-react";
 import { fetchBundleResponses, assignBundleFinal } from "../../../api/orders.api";
 import Table from "../../../components/common/Table";
 import Button from "../../../components/common/Button";
@@ -99,7 +99,7 @@ const BundleResponsesPage = () => {
             <div className="flex items-center gap-1.5 justify-center text-sm font-semibold text-emerald-700 bg-white border-2 border-emerald-500 px-3 py-1 rounded-full w-[100px]">
               Accepted
             </div>
-          ) : dp.response === "Rejected" ? (
+          ) : dp.response === "rejected" ? (
             <div className="flex items-center gap-1.5 justify-center text-sm font-semibold text-rose-700 bg-white border-2 border-rose-400 px-3 py-1 rounded-full w-[100px]">
               Rejected
             </div>
@@ -135,7 +135,7 @@ const BundleResponsesPage = () => {
             >
               Accept
             </Button>
-          ) : dp.response === "Rejected" ? (
+          ) : dp.response === "rejected" ? (
             <div className="text-rose-600 font-medium pl-2">Rejected</div>
           ) : (
             <div className="text-orange-500 font-medium pl-2">Pending</div>
@@ -153,7 +153,10 @@ const BundleResponsesPage = () => {
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">DP Responses</h1>
+            <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900 tracking-tight">
+              <MessageSquare className="w-8 h-8 text-brand-purple" />
+              DP Responses
+            </h1>
             <p className="mt-1 text-sm text-slate-500 font-medium">
               Bundle ID: {bundleId}
             </p>

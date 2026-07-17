@@ -11,7 +11,7 @@ import Button from "../../../components/common/Button";
 import Modal from "../../../components/common/Modal";
 import Input from "../../../components/common/Input";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
-import { Search } from "lucide-react";
+import { Search, Users } from "lucide-react";
 
 export const Customers = () => {
   const [customers, setCustomers] = useState([]);
@@ -116,7 +116,8 @@ export const Customers = () => {
   return (
     <div className="space-y-6 text-left page-transition">
       <div>
-        <h2 className="text-xl font-bold text-slate-800">
+        <h2 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <Users className="w-7 h-7 text-brand-purple" />
           Customers Directory
         </h2>
         <p className="text-xs text-slate-400 mt-1">

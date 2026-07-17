@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { fetchDashboard } from "../../../api/admin.api";
 import Badge from "../../../components/common/Badge";
-import { Truck, Building2, Warehouse, User, Package } from "lucide-react";
+import { Truck, Building2, Warehouse, User, Package, LayoutDashboard } from "lucide-react";
 
 const AnimatedCounter = ({ end, duration = 1500 }) => {
   const [count, setCount] = useState(0);
@@ -81,7 +81,10 @@ export const Dashboard = () => {
   return (
     <div className="space-y-6 text-left page-transition">
       <div>
-        <h2 className="text-xl font-bold text-slate-800">Admin Dashboard</h2>
+        <h2 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <LayoutDashboard className="w-7 h-7 text-brand-purple" />
+          Admin Dashboard
+        </h2>
         <p className="text-xs text-slate-400 mt-1">
           Overview of CountMee platform metrics and operations
         </p>

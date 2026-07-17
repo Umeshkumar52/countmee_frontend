@@ -7,6 +7,7 @@ import { ROLES } from "../../../constants";
 import Button from "../../../components/common/Button";
 import Input from "../../../components/common/Input";
 import toast from "react-hot-toast";
+import { Megaphone } from "lucide-react";
 
 export const Broadcast = () => {
   const [distancesByRole, setDistancesByRole] = useState({});
@@ -65,7 +66,8 @@ export const Broadcast = () => {
   return (
     <div className="space-y-6 text-left page-transition w-full mx-auto">
       <div>
-        <h2 className="text-xl font-bold text-slate-800">
+        <h2 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+          <Megaphone className="w-7 h-7 text-brand-purple" />
           Role-Based Broadcast Configurations
         </h2>
         <p className="text-xs text-slate-400 mt-1">
