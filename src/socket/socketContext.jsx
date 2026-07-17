@@ -43,13 +43,16 @@ export const SocketProvider = ({ children }) => {
 
     // Set up standard notification listener
     const handleNotification = (notif) => {
+      // Normalize array payload from socket to a single object to match FCM
+      const normalizedNotif = Array.isArray(notif) ? notif[0] : notif;
+
       // Direct reducer dispatch to append
-      dispatch({ type: "notifications/addNotification", payload: notif });
+      dispatch({ type: "notifications/addNotification", payload: normalizedNotif });
 
       // Show native system notification if permission is granted
       if (Notification.permission === "granted") {
-        new Notification(notif.title || "New Notification", {
-          body: notif.message || "",
+        new Notification(normalizedNotif.title || "New Notification", {
+          body: normalizedNotif.message || "",
           icon: "/countMe_logo.png",
         });
       }

@@ -1,4 +1,5 @@
 import  { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { fetchPdcDashboard, actionDrop, broadcastOrder } from '../../../api/pdc.api';
 import useAuth from '../../../hooks/useAuth';
 import useSocket from '../../../hooks/useSocket';
@@ -280,6 +281,8 @@ export const PdcHome = () => {
   const [totalOrders, setTotalOrders] = useState(0);
   const [pendingOrders, setPendingOrders] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  
+  const lastUpdated = useSelector((state) => state.notifications.lastUpdated);
 
   // Modal states
   const [packageModalOpen, setPackageModalOpen] = useState(false);
@@ -335,7 +338,11 @@ export const PdcHome = () => {
   useEffect(() => { fetchDashboard(); }, []);
   useSocket('order:assigned', fetchDashboard);
   useSocket('order:created', fetchDashboard);
-  useSocket('notification:received', fetchDashboard);
+  
+  // Refetch dashboard automatically when a new unique notification arrives (from Socket OR FCM)
+  useEffect(() => {
+    if (lastUpdated) fetchDashboard();
+  }, [lastUpdated]);
 
   return (
     <div className="w-full space-y-6 text-left page-transition pb-10">

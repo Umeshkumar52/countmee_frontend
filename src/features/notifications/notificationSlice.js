@@ -5,6 +5,7 @@ const initialState = {
   notifications: [],
   isLoading: false,
   error: null,
+  lastUpdated: null,
 };
 
 export const fetchNotifications = createAsyncThunk(
@@ -47,6 +48,7 @@ const notificationSlice = createSlice({
       if (!exists) {
         // Append new real-time notification to the beginning of the list
         state.notifications.unshift(newNotif);
+        state.lastUpdated = Date.now();
       }
     },
   },
