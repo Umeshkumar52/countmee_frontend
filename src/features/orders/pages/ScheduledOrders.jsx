@@ -35,6 +35,9 @@ const getStatusVariant = (status) => {
   return "slate";
 };
 
+const selectableStatuses = ["created", "scheduled", "confirmed", "processing", "pending"];
+const isSelectable = (status) => selectableStatuses.includes((status || "").toLowerCase());
+
 export const ScheduledOrders = () => {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -163,7 +166,8 @@ export const ScheduledOrders = () => {
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedOrders(orders.map((order) => order.id));
+      const selectable = orders.filter((order) => isSelectable(order.status));
+      setSelectedOrders(selectable.map((order) => order.id));
     } else {
       setSelectedOrders([]);
     }
@@ -177,12 +181,16 @@ export const ScheduledOrders = () => {
       return [...prev, orderId];
     });
   };
+  
+  const selectableOrders = orders.filter((order) => isSelectable(order.status));
+  
   console.log(orders);
   const headers = [
     <input
       type="checkbox"
-      className="w-4 h-4 text-brand-purple rounded border-slate-300 focus:ring-brand-purple"
-      checked={orders.length > 0 && selectedOrders.length === orders.length}
+      className="w-4 h-4 text-brand-purple rounded border-slate-300 focus:ring-brand-purple disabled:opacity-50 disabled:cursor-not-allowed"
+      checked={selectableOrders.length > 0 && selectedOrders.length === selectableOrders.length}
+      disabled={selectableOrders.length === 0}
       onChange={handleSelectAll}
     />,
     "Order Id",
@@ -358,8 +366,9 @@ export const ScheduledOrders = () => {
             <td className="px-5 py-4">
               <input
                 type="checkbox"
-                className="w-4 h-4 text-brand-purple rounded border-slate-300 focus:ring-brand-purple"
+                className="w-4 h-4 text-brand-purple rounded border-slate-300 focus:ring-brand-purple disabled:opacity-50 disabled:cursor-not-allowed"
                 checked={selectedOrders.includes(order.id)}
+                disabled={!isSelectable(order.status)}
                 onChange={() => handleSelectOrder(order.id)}
               />
             </td>
