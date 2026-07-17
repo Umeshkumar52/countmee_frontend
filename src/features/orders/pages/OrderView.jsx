@@ -488,6 +488,7 @@ export const OrderView = () => {
                   <LiveTrackingMap
                     dpLocation={dpLocArray}
                     waypoints={waypoints}
+                    vehicleType={order.vehicle_type}
                     height="100%"
                   />
                 );
@@ -509,10 +510,19 @@ export const OrderView = () => {
               </div>
               <div className="flex justify-between">
                 <span>Payment Status:</span>
-                <span className="capitalize bg-green-300 rounded-lg p-1 font-semibold text-slate-700">
-                  {order?.payment_history?.transaction_type === "refund"
+                <span
+                  className={`capitalize ${order?.payment_history?.status === "FAILED" || order?.payment_history?.status === "ACTIVE" ? "bg-red-300" : "bg-green-300"} rounded-lg p-1 font-semibold text-slate-700`}
+                >
+                  {order?.payment_history?.transaction_type === "refund" ||
+                  order?.payment_history?.status === "REFUNDED"
                     ? "REFUNDED"
-                    : order.payment_status}
+                    : order?.payment_history?.status === "SUCCESS" ||
+                        order?.payment_history?.status === "completed"
+                      ? "PAID"
+                      : order?.payment_history?.status === "ACTIVE" ||
+                          order?.payment_history?.status === "FAILED"
+                        ? "FAILED"
+                        : "PENDING"}
                 </span>
               </div>
               <div className="flex justify-between mt-2">
@@ -532,6 +542,7 @@ export const OrderView = () => {
               {/* Admin Manual Refund Button */}
               {isAdmin &&
                 order?.payment_history?.transaction_type !== "refund" &&
+                order?.payment_history?.status !== "REFUNDED" &&
                 order.status === "cancelled" && (
                   <div className="pt-4 border-t border-slate-100 mt-4">
                     <Button

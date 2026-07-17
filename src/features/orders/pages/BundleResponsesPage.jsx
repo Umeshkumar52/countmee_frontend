@@ -1,11 +1,14 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, RefreshCw, AlertCircle, MessageSquare } from "lucide-react";
-import { fetchBundleResponses, assignBundleFinal } from "../../../api/orders.api";
+import {
+  fetchBundleResponses,
+  assignBundleFinal,
+} from "../../../api/orders.api";
 import Table from "../../../components/common/Table";
 import Button from "../../../components/common/Button";
 import { useSocketInstance } from "../../../socket/socketContext";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 const BundleResponsesPage = () => {
   const { bundleId } = useParams();
@@ -14,8 +17,13 @@ const BundleResponsesPage = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  
-  const [metrics, setMetrics] = useState({ notified: 0, accepted: 0, rejected: 0, pending: 0 });
+
+  const [metrics, setMetrics] = useState({
+    notified: 0,
+    accepted: 0,
+    rejected: 0,
+    pending: 0,
+  });
   const [responses, setResponses] = useState([]);
   const [bundleData, setBundleData] = useState(null);
   const [isAssigning, setIsAssigning] = useState(false);
@@ -26,7 +34,9 @@ const BundleResponsesPage = () => {
     try {
       const data = await fetchBundleResponses(bundleId);
       if (data) {
-        setMetrics(data.metrics || { notified: 0, accepted: 0, rejected: 0, pending: 0 });
+        setMetrics(
+          data.metrics || { notified: 0, accepted: 0, rejected: 0, pending: 0 },
+        );
         setResponses(data.responses || []);
         setBundleData(data.bundle || null);
       }
@@ -59,8 +69,13 @@ const BundleResponsesPage = () => {
   }, [socket, bundleId]);
 
   const handleAssign = async (dpId) => {
-    if (!window.confirm("Are you sure you want to assign this order bundle to this DP?")) return;
-    
+    if (
+      !window.confirm(
+        "Are you sure you want to assign this order bundle to this DP?",
+      )
+    )
+      return;
+
     setIsAssigning(true);
     setError("");
     try {
@@ -82,7 +97,7 @@ const BundleResponsesPage = () => {
     return (
       <tr
         key={dp.id || index}
-        className={`transition-colors border-b border-slate-100 last:border-0 ${isThisDpAssigned ? 'bg-blue-50/50 hover:bg-blue-50/70' : 'hover:bg-slate-50'}`}
+        className={`transition-colors border-b border-slate-100 last:border-0 ${isThisDpAssigned ? "bg-blue-50/50 hover:bg-blue-50/70" : "hover:bg-slate-50"}`}
       >
         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
           {dp.name}
@@ -95,7 +110,7 @@ const BundleResponsesPage = () => {
             <div className="flex items-center gap-1.5 justify-center text-sm font-bold text-blue-700 bg-blue-100 border-2 border-blue-400 px-3 py-1 rounded-full w-[100px]">
               Assigned
             </div>
-          ) : dp.response === "Accepted" ? (
+          ) : dp.response === "accepted" ? (
             <div className="flex items-center gap-1.5 justify-center text-sm font-semibold text-emerald-700 bg-white border-2 border-emerald-500 px-3 py-1 rounded-full w-[100px]">
               Accepted
             </div>
@@ -109,7 +124,7 @@ const BundleResponsesPage = () => {
             </div>
           )}
         </td>
-       
+
         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
           {dp.vehicle}
         </td>
@@ -119,13 +134,15 @@ const BundleResponsesPage = () => {
               variant="primary"
               size="sm"
               disabled={true}
-              className="bg-slate-200 text-slate-500 min-w-[100px] rounded flex items-center justify-center gap-1 cursor-not-allowed"
+              className="bg-blue-600 text-slate-500 min-w-[100px] rounded flex items-center justify-center gap-1 cursor-not-allowed"
             >
               Assigned
             </Button>
           ) : isBundleAssigned ? (
-            <div className="text-slate-400 font-medium pl-2 italic">Not Selected</div>
-          ) : dp.response === "Accepted" ? (
+            <div className="text-slate-400 font-medium pl-2 italic">
+              Not Selected
+            </div>
+          ) : dp.response === "accepted" ? (
             <Button
               variant="primary"
               size="sm"
@@ -133,7 +150,7 @@ const BundleResponsesPage = () => {
               disabled={isAssigning}
               className="bg-blue-600 hover:bg-blue-700 text-white min-w-[100px] shadow-sm rounded flex items-center justify-center gap-1"
             >
-              Accept
+              Assign Bundle
             </Button>
           ) : dp.response === "rejected" ? (
             <div className="text-rose-600 font-medium pl-2">Rejected</div>
@@ -149,7 +166,11 @@ const BundleResponsesPage = () => {
     <div className="p-6 max-w-[1600px] mx-auto w-full">
       <div className="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-lg">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="p-2 hover:bg-slate-100 rounded-lg"
+          >
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </Button>
           <div>
@@ -176,32 +197,46 @@ const BundleResponsesPage = () => {
         {/* Notified */}
         <div className="flex flex-col items-center justify-center p-3 bg-blue-50/50 border-2 rounded-xl border-blue-400 opacity-90">
           <div className="text-blue-700 font-bold text-sm">Notified</div>
-          <div className="text-slate-500 text-[10px] mb-1">Total Broadcasted</div>
-          <div className="text-2xl font-black text-slate-900 mb-1">{metrics.notified}</div>
+          <div className="text-slate-500 text-[10px] mb-1">
+            Total Broadcasted
+          </div>
+          <div className="text-2xl font-black text-slate-900 mb-1">
+            {metrics.notified}
+          </div>
           <div className="text-[9px] text-transparent select-none">spacer</div>
         </div>
-        
+
         {/* Accepted */}
         <div className="flex flex-col items-center justify-center p-3 bg-emerald-50/50 border-2 rounded-xl border-emerald-400 opacity-90">
           <div className="text-emerald-700 font-bold text-sm">Accepted</div>
-          <div className="text-slate-500 text-[10px] mb-1">Willing to Deliver</div>
-          <div className="text-2xl font-black text-slate-900 mb-1">{metrics.accepted}</div>
+          <div className="text-slate-500 text-[10px] mb-1">
+            Willing to Deliver
+          </div>
+          <div className="text-2xl font-black text-slate-900 mb-1">
+            {metrics.accepted}
+          </div>
           <div className="text-[9px] text-transparent select-none">spacer</div>
         </div>
-        
+
         {/* Rejected */}
         <div className="flex flex-col items-center justify-center p-3 bg-rose-50/50 border-2 rounded-xl border-rose-400 opacity-90">
           <div className="text-rose-700 font-bold text-sm">Rejected</div>
-          <div className="text-slate-500 text-[10px] mb-1">Declined Request</div>
-          <div className="text-2xl font-black text-slate-900 mb-1">{metrics.rejected}</div>
+          <div className="text-slate-500 text-[10px] mb-1">
+            Declined Request
+          </div>
+          <div className="text-2xl font-black text-slate-900 mb-1">
+            {metrics.rejected}
+          </div>
           <div className="text-[9px] text-transparent select-none">spacer</div>
         </div>
-        
+
         {/* Pending */}
         <div className="flex flex-col items-center justify-center p-3 bg-orange-50/50 border-2 rounded-xl border-orange-400 opacity-90">
           <div className="text-orange-600 font-bold text-sm">Pending</div>
           <div className="text-slate-500 text-[10px] mb-1">No Response Yet</div>
-          <div className="text-2xl font-black text-slate-900 mb-1">{metrics.pending}</div>
+          <div className="text-2xl font-black text-slate-900 mb-1">
+            {metrics.pending}
+          </div>
           <div className="text-[9px] text-transparent select-none">spacer</div>
         </div>
       </div>
@@ -210,7 +245,7 @@ const BundleResponsesPage = () => {
 
       <div className="bg-white border border-slate-200 shadow-sm overflow-hidden rounded-sm">
         <div className="overflow-x-auto min-h-[400px]">
-          <Table 
+          <Table
             headers={headers}
             data={responses}
             isLoading={isLoading}

@@ -7,6 +7,7 @@ import {
   deletePartner,
   fetchDpDetails,
   updateDpApprovalStatus,
+  updateDpDocumentStatusAPI,
   fetchVehicleSubcategoriesByType,
 } from "../../../api/admin.api";
 import Table from "../../../components/common/Table";
@@ -16,6 +17,7 @@ import Modal from "../../../components/common/Modal";
 import Input from "../../../components/common/Input";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
 import BulkUploadDpModal from "../components/BulkUploadDpModal";
+import Pagination from "../../../components/common/Pagination";
 import {
   Plus,
   Search,
@@ -58,6 +60,39 @@ const FileUpload = ({ label, id, preview, onChange, required }) => (
   </div>
 );
 
+const formatDateForInput = (dateString) => {
+  if (!dateString) return "";
+  
+  // Clean up any extra spaces
+  const str = dateString.toString().trim();
+  
+  // 1. If it's already YYYY-MM-DD (optionally with time), return YYYY-MM-DD
+  const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+  }
+
+  // 2. Handle formats like DD-MM-YYYY or DD/MM/YYYY
+  const parts = str.split(/[-/]/);
+  if (parts.length === 3) {
+    if (parts[0].length === 2 && parts[2].length === 4) {
+      // Convert DD-MM-YYYY to YYYY-MM-DD
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+  }
+
+  // 3. Fallback to native Date parsing for other known formats
+  const d = new Date(str);
+  if (!isNaN(d.getTime())) {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  return "";
+};
+
 export const DeliveryPartners = () => {
   const getImageUrl = (path) => {
     if (!path) return "";
@@ -72,6 +107,23 @@ export const DeliveryPartners = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+
+  // Bulk reject states
+  const [showBulkRejectModal, setShowBulkRejectModal] = useState(false);
+  const [bulkRejectReason, setBulkRejectReason] = useState("");
+  const [bulkRejectDpId, setBulkRejectDpId] = useState(null);
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+
+  const DOCUMENT_TYPES = [
+    { type: "aadhar", statusField: "adhar_status" },
+    { type: "dl", statusField: "dl_status" },
+    { type: "rc", statusField: "rc_status" },
+    { type: "bank", statusField: "bank_status" },
+    { type: "rv", statusField: "rv_status" },
+    { type: "insurance", statusField: "insurance_status" },
+    { type: "emission", statusField: "emission_status" },
+    { type: "permit", statusField: "permit_status" },
+  ];
 
   // Add/Edit Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -184,12 +236,21 @@ export const DeliveryPartners = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
   const fetchPartners = async (params = {}) => {
     setIsLoading(true);
     try {
-      const response = await apiFetchPartners(params);
-      const rawList = response.data.dpList || response.data.data?.dpList || [];
-      const formatted = rawList.map((d) => ({
+      const pageToFetch = params.page || currentPage;
+      const response = await apiFetchPartners({ ...params, page: pageToFetch });
+      const dataObj = response.data.data || response.data;
+      const rawList = dataObj.dpList || [];
+      
+      if (dataObj.page) setCurrentPage(dataObj.page);
+      if (dataObj.totalPages) setTotalPages(dataObj.totalPages);
+
+      let formatted = rawList.map((d) => ({
         id: d._id,
         name: d.user?.name || "N/A",
         phone: d.user?.phone || "N/A",
@@ -198,6 +259,18 @@ export const DeliveryPartners = () => {
         status: d.status,
         document_approval: d.document_approval,
       }));
+
+      if (params.search) {
+        const query = params.search.toLowerCase();
+        formatted = formatted.filter(
+          (dp) =>
+            dp.name.toLowerCase().includes(query) ||
+            dp.phone.toLowerCase().includes(query) ||
+            dp.email.toLowerCase().includes(query) ||
+            dp.vehicle.toLowerCase().includes(query),
+        );
+      }
+
       setPartners(formatted);
     } catch (e) {
       console.error("Failed to fetch partners", e);
@@ -209,11 +282,17 @@ export const DeliveryPartners = () => {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      fetchPartners({ search: searchQuery });
+      setCurrentPage(1);
+      fetchPartners({ search: searchQuery, page: 1 });
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    fetchPartners({ search: searchQuery, page });
+  };
 
   const handleOpenAddModal = () => {
     setSelectedPartner(null);
@@ -396,18 +475,18 @@ export const DeliveryPartners = () => {
       setBankIfsc(dpDocument?.bank_ifsc || "");
       setReference1Name(dpDocument?.reference1_name || "");
       setReference1Phone(dpDocument?.reference1_phone || "");
-      setDlExpiryDate(dpDocument?.dl_expiry_date || "");
+      setDlExpiryDate(formatDateForInput(dpDocument?.dl_expiry_date));
       setReference2Name(dpDocument?.reference2_name || "");
       setReference2Phone(dpDocument?.reference2_phone || "");
       setSubVehicleType(dpDocument?.sub_vehicle_type || "");
       setOtherVehicleDetails(dpDocument?.other_vehicle_details || "");
       setVehicleMinCapacity(dpDocument?.vehicle_min_capacity || "");
       setVehicleMaxCapacity(dpDocument?.vehicle_max_capacity || "");
-      setInsuranceExpiryDate(dpDocument?.insurance_expiry_date || "");
-      setEmissionExpiryDate(dpDocument?.emission_expiry_date || "");
-      setPermitExpiry(dpDocument?.permit_expiry || "");
+      setInsuranceExpiryDate(formatDateForInput(dpDocument?.insurance_expiry_date));
+      setEmissionExpiryDate(formatDateForInput(dpDocument?.emission_expiry_date));
+      setPermitExpiry(formatDateForInput(dpDocument?.permit_expiry));
       setIsNewVehicle(dpDocument?.is_new_vehicle || false);
-      setVehicleRegistrationDate(dpDocument?.vehicle_registration_date || "");
+      setVehicleRegistrationDate(formatDateForInput(dpDocument?.vehicle_registration_date));
       setTravelPermitStates(dpDocument?.travel_permit_states?.join(", ") || "");
 
       // Set image previews
@@ -748,16 +827,90 @@ export const DeliveryPartners = () => {
   };
 
   const handleToggleApproval = async (id, currentApproval) => {
-    const newStatus = currentApproval === "approved" ? "rejected" : "approved";
+    if (currentApproval === "approved") {
+      // Switching to reject
+      setBulkRejectDpId(id);
+      setShowBulkRejectModal(true);
+      return;
+    }
+
+    // Approving
+    const newStatus = "approved";
+    setIsLoading(true);
     try {
+      const response = await fetchDpDetails(id);
+      const dpDocument =
+        response.data.data?.dpDocument || response.data.dpDocument;
+
+      if (dpDocument) {
+        const pendingDocs = DOCUMENT_TYPES.filter((doc) => {
+          const status = dpDocument[doc.statusField]?.toLowerCase();
+          return status !== "approved" && status !== "rejected";
+        });
+
+        for (const doc of pendingDocs) {
+          await updateDpDocumentStatusAPI({
+            document_id: dpDocument._id,
+            document_type: doc.type,
+            status: "approved",
+            reason: "",
+          });
+        }
+      }
+
       await updateDpApprovalStatus({
         userId: id,
         document_approval: newStatus,
       });
-      fetchPartners();
+
+      // fetchPartners sets isLoading to false eventually when it loads
+      await fetchPartners();
+      toast.success("Delivery Partner and documents approved.");
     } catch (e) {
-      console.error("Failed to toggle approval", e);
-      toast.error("Failed to toggle approval");
+      console.error("Failed to approve partner", e);
+      toast.error("Failed to approve partner");
+      setIsLoading(false);
+    }
+  };
+
+  const handleConfirmBulkReject = async () => {
+    if (!bulkRejectDpId || !bulkRejectReason.trim()) return;
+    setIsBulkProcessing(true);
+    try {
+      const response = await fetchDpDetails(bulkRejectDpId);
+      const dpDocument =
+        response.data.data?.dpDocument || response.data.dpDocument;
+
+      if (dpDocument) {
+        const pendingDocs = DOCUMENT_TYPES.filter((doc) => {
+          const status = dpDocument[doc.statusField]?.toLowerCase();
+          return status !== "approved" && status !== "rejected";
+        });
+
+        for (const doc of pendingDocs) {
+          await updateDpDocumentStatusAPI({
+            document_id: dpDocument._id,
+            document_type: doc.type,
+            status: "rejected",
+            reason: bulkRejectReason,
+          });
+        }
+      }
+
+      await updateDpApprovalStatus({
+        userId: bulkRejectDpId,
+        document_approval: "rejected",
+      });
+      await fetchPartners();
+      toast.success("Delivery Partner and documents rejected.");
+      setShowBulkRejectModal(false);
+      setBulkRejectReason("");
+      setBulkRejectDpId(null);
+    } catch (e) {
+      console.error("Failed to reject partner", e);
+      toast.error("Failed to reject partner");
+    } finally {
+      setIsBulkProcessing(false);
     }
   };
 
@@ -855,8 +1008,12 @@ export const DeliveryPartners = () => {
               </Button>
             </td>
             <td className="px-5 py-4 text-xs whitespace-nowrap">
-              <Badge variant={dp.status === "Verified" ? "success" : "warning"}>
-                {dp.status === "Verified" ? "Verified" : "Pending"}
+              <Badge
+                variant={
+                  dp.document_approval === "approved" ? "success" : "warning"
+                }
+              >
+                {dp.document_approval === "approved" ? "Verified" : "Pending"}
               </Badge>
             </td>
             <td className="px-5 py-4 text-xs flex items-center space-x-2 whitespace-nowrap">
@@ -2268,6 +2425,16 @@ export const DeliveryPartners = () => {
         />
       )}
 
+      {totalPages > 1 && (
+        <div className="mt-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
+
       <BulkUploadDpModal
         isOpen={isBulkModalOpen}
         onClose={() => setIsBulkModalOpen(false)}
@@ -2276,6 +2443,55 @@ export const DeliveryPartners = () => {
           fetchPartners();
         }}
       />
+
+      {/* Bulk Reject Modal */}
+      {showBulkRejectModal && (
+        <Modal
+          isOpen={showBulkRejectModal}
+          onClose={() => {
+            if (isBulkProcessing) return;
+            setShowBulkRejectModal(false);
+            setBulkRejectReason("");
+            setBulkRejectDpId(null);
+          }}
+          title="Reject Partner & Pending Documents"
+          size="md"
+        >
+          <div className="p-4 space-y-4">
+            <p className="text-sm text-slate-600">
+              Provide a reason for rejecting this partner and all their
+              currently pending documents.
+            </p>
+            <Input
+              label="Reason for Rejection"
+              placeholder="e.g. Documents are unclear, invalid information..."
+              value={bulkRejectReason}
+              onChange={(e) => setBulkRejectReason(e.target.value)}
+            />
+            <div className="flex justify-end gap-3 mt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowBulkRejectModal(false);
+                  setBulkRejectReason("");
+                  setBulkRejectDpId(null);
+                }}
+                disabled={isBulkProcessing}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleConfirmBulkReject}
+                disabled={!bulkRejectReason.trim() || isBulkProcessing}
+                isLoading={isBulkProcessing}
+              >
+                Confirm Rejection
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

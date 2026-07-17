@@ -29,10 +29,34 @@ export const Reports = () => {
   const [filterAipOnly, setFilterAipOnly] = useState(false);
 
   const INDIAN_STATES = [
-    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
-    "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
-    "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana",
-    "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+    "Andhra Pradesh",
+    "Arunachal Pradesh",
+    "Assam",
+    "Bihar",
+    "Chhattisgarh",
+    "Goa",
+    "Gujarat",
+    "Haryana",
+    "Himachal Pradesh",
+    "Jharkhand",
+    "Karnataka",
+    "Kerala",
+    "Madhya Pradesh",
+    "Maharashtra",
+    "Manipur",
+    "Meghalaya",
+    "Mizoram",
+    "Nagaland",
+    "Odisha",
+    "Punjab",
+    "Rajasthan",
+    "Sikkim",
+    "Tamil Nadu",
+    "Telangana",
+    "Tripura",
+    "Uttar Pradesh",
+    "Uttarakhand",
+    "West Bengal",
   ];
 
   // Pagination State
@@ -40,7 +64,7 @@ export const Reports = () => {
   const itemsPerPage = 10;
 
   const handleFetchReport = useCallback(async () => {
-    if (reportType !== 'travel_permit' && (!startDate || !endDate)) {
+    if (reportType !== "travel_permit" && (!startDate || !endDate)) {
       return;
     }
     setIsLoading(true);
@@ -52,7 +76,7 @@ export const Reports = () => {
         start_date: startDate,
         end_date: endDate,
       };
-      if (reportType === 'travel_permit') {
+      if (reportType === "travel_permit") {
         if (filterState) params.state = filterState;
         if (filterAipOnly) params.aip_only = filterAipOnly;
       }
@@ -151,7 +175,7 @@ export const Reports = () => {
         "Vehicle",
         "Permit Type",
         "States",
-        "Expiry"
+        "Expiry",
       ];
       rows = reportData.map((tp) => [
         `"${tp.dp_name || "N/A"}"`,
@@ -202,7 +226,15 @@ export const Reports = () => {
     } else if (reportType === "feedback") {
       return ["From User", "Role", "Comment Message", "Star Rating", "Date"];
     } else if (reportType === "travel_permit") {
-      return ["DP Name", "DP ID", "Mobile", "Vehicle", "Permit Type", "States", "Expiry"];
+      return [
+        "DP Name",
+        "DP ID",
+        "Mobile",
+        "Vehicle",
+        "Permit Type",
+        "States",
+        "Expiry",
+      ];
     }
     return [];
   };
@@ -297,7 +329,10 @@ export const Reports = () => {
                   onChange={(e) => setFilterAipOnly(e.target.checked)}
                   className="mr-2 cursor-pointer"
                 />
-                <label htmlFor="aipOnly" className="text-sm cursor-pointer select-none">
+                <label
+                  htmlFor="aipOnly"
+                  className="text-sm cursor-pointer select-none"
+                >
                   AIP only
                 </label>
               </div>
@@ -342,7 +377,7 @@ export const Reports = () => {
                   >
                     <td className="px-5 py-3.5 text-xs font-bold text-slate-500">
                       {item.orderNumber ||
-                        `order_${item.id?.toString().slice(0, 10)}`}
+                        `order_${item.id?.toString().slice(0, 2)}`}
                     </td>
                     <td className="px-5 py-3.5 text-xs font-semibold text-slate-800 truncate max-w-44">
                       {item.pickup_address}
