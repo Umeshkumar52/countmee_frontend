@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { assignBundle, fetchBundleSummary } from "../../../api/admin.api";
 import Button from "../../../components/common/Button";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
+import { Search, Truck } from "lucide-react";
 
 export const RecommendDpPage = () => {
   const location = useLocation();
@@ -41,7 +42,7 @@ export const RecommendDpPage = () => {
         setDps(data.capableDps || []);
       } catch (e) {
         console.error("Failed to load bundle summary", e);
-      toast.error("Failed to load bundle summary");
+        toast.error("Failed to load bundle summary");
         setErrorMsg(
           e.response?.data?.message || "Failed to load summary data.",
         );
@@ -58,7 +59,9 @@ export const RecommendDpPage = () => {
     setErrorMsg("");
     try {
       await assignBundle(orderIds, selectedDpIds);
-      toast.success("Bundle broadcasted to selected delivery partners successfully!");
+      toast.success(
+        "Bundle broadcasted to selected delivery partners successfully!",
+      );
       // Success, go back to orders
       navigate("/admin/scheduled-orders");
     } catch (err) {
@@ -90,17 +93,20 @@ export const RecommendDpPage = () => {
   // Filter DPs
   const filteredDps = dps.filter((dp) => {
     if (onlyAvailable && dp.status !== "Available") return false;
-    
+
     const loc = String(dp.location || "");
-    if (locationFilter && !loc.toLowerCase().includes(locationFilter.toLowerCase())) {
+    if (
+      locationFilter &&
+      !loc.toLowerCase().includes(locationFilter.toLowerCase())
+    ) {
       return false;
     }
-    
+
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
       const nameStr = String(dp.name || "").toLowerCase();
       const phoneStr = String(dp.phone || "").toLowerCase();
-      
+
       if (!nameStr.includes(search) && !phoneStr.includes(search)) {
         return false;
       }
@@ -181,7 +187,8 @@ export const RecommendDpPage = () => {
               {summary.recommendedVehicle ? (
                 <>
                   <div className="text-3xl font-black text-slate-900 flex items-center gap-3">
-                    🚚 {summary.recommendedVehicle.vehicle_type}
+                    <Truck size={40} />{" "}
+                    {summary.recommendedVehicle.vehicle_type}
                   </div>
                   <div className="text-base text-slate-700 mt-2 font-medium">
                     Capacity matches {summary.totalWeight} KG load
@@ -267,7 +274,7 @@ export const RecommendDpPage = () => {
                   <div className="flex items-center gap-4 mb-6">
                     <input
                       type="text"
-                      placeholder="🔍 Search DP / Mobile"
+                      placeholder={`🔍 Search by name or mobile`}
                       className="border-2 border-slate-200 rounded-lg px-4 py-2.5 text-sm flex-1 focus:ring-2 focus:ring-brand-purple focus:border-brand-purple transition-all"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
