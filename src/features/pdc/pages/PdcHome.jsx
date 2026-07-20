@@ -40,7 +40,7 @@ const OrderTable = ({ title, orders, isLoading, onViewPackage, onViewDp, otpKey,
     <div className="space-y-3 mb-8">
       <h1 className="text-2xl font-bold text-slate-800 text-center my-3 capitalize">{title}</h1>
       <div className="w-full overflow-x-auto px-5 flex justify-center pb-[5vh]">
-        <table className="w-full border-collapse table-fixed" style={{ minWidth: '1000px' }}>
+        <table className="w-full border-collapse" style={{ minWidth: '1000px' }}>
           <thead>
             <tr className="bg-gradient-to-b from-[#9073be] to-[#522f89] text-center align-middle">
               {headers.map((h) => (
@@ -61,13 +61,19 @@ const OrderTable = ({ title, orders, isLoading, onViewPackage, onViewDp, otpKey,
                   : (raw.broadcast?.pickup_otp || '-');
                 
                 let statusColor = "bg-slate-500";
-                if (raw.broadcast?.status === "pending") statusColor = "bg-yellow-500";
-                else if (raw.broadcast?.status === "broadcasting") statusColor = "bg-blue-500";
-                else if (raw.broadcast?.status === "Accepted") statusColor = "bg-green-500";
+                if (raw.broadcast?.status?.toLowerCase() === "pending") statusColor = "bg-yellow-500";
+                else if (raw.broadcast?.status?.toLowerCase() === "broadcasting") statusColor = "bg-blue-500";
+                else if (raw.broadcast?.status?.toLowerCase() === "accepted") statusColor = "bg-green-500";
+                const pickupDisplay = isBroadcastTable
+                  ? (raw.broadcast?.pickup_location || raw.pickup_location || '-')
+                  : (raw.pickup_location || raw.pickup_address || '-');
+                const dropDisplay = raw.drop_location || raw.delivery_location || '-';
                 const stripe = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50';
                 return (
                   <tr key={order._id || order.id} className={`${stripe} hover:bg-purple-50/40 transition-colors text-center text-sm text-slate-600`}>
-                    <td className="text-center p-3 font-semibold text-slate-700 max-h-[10vh] overflow-hidden">{raw.order_id || raw._id || order.id}</td>
+                    <td className="text-center p-3 font-semibold text-slate-700" title={raw.order_id || raw._id || order.id}>
+                      <span className="block max-w-[90px] mx-auto truncate text-xs">{raw.orderNumber || raw.order_id || raw._id || order.id}</span>
+                    </td>
                     <td className="text-center p-3 max-h-[10vh] overflow-hidden">{raw.customer?.name || raw.user_id?.name || '-'}</td>
                     <td className="text-center p-3 max-h-[10vh] overflow-hidden">
                       <button
@@ -76,11 +82,11 @@ const OrderTable = ({ title, orders, isLoading, onViewPackage, onViewDp, otpKey,
                       >View</button>
                     </td>
                     <td className="text-center p-3 max-h-[10vh] overflow-hidden">{raw.packageDetail?.no_of_items ?? '-'}</td>
-                    <td className="text-center p-3 max-h-[10vh] overflow-hidden">
-                      <div className="max-h-[7vh] overflow-y-auto cursor-ns-resize scrollbar-thin scrollbar-thumb-purple-200">{raw.pickup_location || raw.pickup_address || '-'}</div>
+                    <td className="text-center p-3">
+                      <div className="text-xs leading-snug break-words max-w-[160px] mx-auto">{pickupDisplay}</div>
                     </td>
-                    <td className="text-center p-3 max-h-[10vh] overflow-hidden">
-                      <div className="max-h-[7vh] overflow-y-auto cursor-ns-resize scrollbar-thin scrollbar-thumb-purple-200">{raw.drop_location || raw.delivery_location || '-'}</div>
+                    <td className="text-center p-3">
+                      <div className="text-xs leading-snug break-words max-w-[160px] mx-auto">{dropDisplay}</div>
                     </td>
                     <td className="text-center p-3 capitalize max-h-[10vh] overflow-hidden">{raw.mode_of_transport || '-'}</td>
                     {isBroadcastTable && (
@@ -106,7 +112,7 @@ const OrderTable = ({ title, orders, isLoading, onViewPackage, onViewDp, otpKey,
                             Reject
                           </button>
                         </div>
-                      ) : (isBroadcastTable && raw.broadcast?.status === 'Pending') ? (
+                      ) : (isBroadcastTable && raw.broadcast?.status?.toLowerCase() === 'pending') ? (
                         <button
                           onClick={() => onBroadcast(order)}
                           className="px-4 py-1 text-white text-sm font-bold rounded shadow bg-gradient-to-r from-orange-400 to-red-500 hover:from-orange-500 hover:to-red-600 transition-all transform hover:scale-105"
