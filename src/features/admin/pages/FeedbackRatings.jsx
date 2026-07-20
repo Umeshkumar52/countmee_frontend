@@ -1,4 +1,4 @@
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 import React, { useEffect, useState } from "react";
 import { MessageSquareWarning } from "lucide-react";
 import { ROLES } from "../../../constants";
@@ -51,7 +51,7 @@ export const FeedbackRatings = () => {
         setTotalFeedbacks(resData.total || 0);
       } catch (e) {
         console.error("Failed to load feedbacks", e);
-      toast.error("Failed to load feedbacks");
+        toast.error("Failed to load feedbacks");
       } finally {
         setIsLoading(false);
       }
@@ -68,13 +68,7 @@ export const FeedbackRatings = () => {
     );
   };
 
-  const headers = [
-    "Feedback ID",
-    "Submitted By",
-    "User Role",
-    "Rating Score",
-    "Comments",
-  ];
+  const headers = ["Submitted By", "User Role", "Rating Score", "Comments"];
 
   const tabs = [
     { name: "Customer Ratings", value: ROLES.USER },
@@ -121,9 +115,6 @@ export const FeedbackRatings = () => {
         emptyMessage="No rating logs recorded yet."
         renderRow={(fb) => (
           <tr key={fb.id} className="hover:bg-slate-50/50 transition-colors">
-            <td className="px-5 py-4 text-xs font-bold text-slate-400">
-              FB-{fb?.id?.slice(0, 10)}
-            </td>
             <td className="px-5 py-4 text-xs font-bold text-slate-800">
               {fb.user_name}
             </td>

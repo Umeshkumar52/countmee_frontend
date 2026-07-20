@@ -7,15 +7,10 @@ import Button from "../../../components/common/Button";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
 
 const PartnerOrderBreakdown = () => {
-  const { dp_id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
 
-  // We use the group data passed via router state for fast rendering.
-  // If we wanted real-time data on reload, we'd fetch it here.
   const initialGroup = location.state?.groupData || null;
-  const financeType = location.state?.financeType || "DP";
-
   const [group, setGroup] = useState(initialGroup);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isSettling, setIsSettling] = useState(false);

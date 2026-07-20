@@ -70,22 +70,6 @@ const getVehicleIcon = (type = "") => {
   return truckIcon;
 };
 
-// const bikeIcon = createVehicleIcon(bikeSvg);
-// const autoIcon = createVehicleIcon(autoSvg);
-// const truckIcon = createVehicleIcon(truckSvg);
-
-// const getVehicleIcon = (type = "") => {
-//   const typeStr = type.toLowerCase();
-//   if (
-//     typeStr.includes("two") ||
-//     typeStr.includes("bike") ||
-//     typeStr.includes("scooter")
-//   )
-//     return bikeIcon;
-//   if (typeStr.includes("three") || typeStr.includes("auto")) return autoIcon;
-//   return truckIcon;
-// };
-
 const redIcon = new L.Icon({
   iconUrl:
     "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
